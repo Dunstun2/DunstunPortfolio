@@ -2,13 +2,10 @@
 nixPkgs = ["nodejs-18_x"]
 
 [phases.install]
-cmds = ["cd backend && npm ci"]
+cmds = ["cd backend && npm ci --include=dev"]
 
 [phases.build]
-cmds = [
-  "cd backend && npm run migrate:prod",
-  "cd backend && npm run init:db || true"
-]
+cmds = ["cd backend && npx sequelize-cli db:migrate || node scripts/init-db.js"]
 
 [start]
 cmd = "cd backend && npm start"
