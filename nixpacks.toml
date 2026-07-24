@@ -5,7 +5,10 @@ nixPkgs = ["nodejs-18_x"]
 cmds = ["cd backend && npm ci"]
 
 [phases.build]
-cmds = ["cd backend && npm run migrate:prod || true"]
+cmds = [
+  "cd backend && npm run migrate:prod",
+  "cd backend && npm run init:db || true"
+]
 
 [start]
 cmd = "cd backend && npm start"
