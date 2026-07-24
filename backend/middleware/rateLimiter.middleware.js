@@ -10,7 +10,6 @@ const apiLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  trustProxy: true, // Trust Railway/Vercel proxy headers
 });
 
 // Strict rate limiter for auth endpoints - 5 attempts per 15 minutes
@@ -24,7 +23,6 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: false,
-  trustProxy: true, // Trust Railway/Vercel proxy headers
 });
 
 // Medium rate limiter for password reset - 3 attempts per hour
@@ -37,7 +35,6 @@ const passwordResetLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  trustProxy: true, // Trust Railway/Vercel proxy headers
 });
 
 // Contact form rate limiter - 3 submissions per hour
@@ -50,7 +47,6 @@ const contactLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  trustProxy: true, // Trust Railway/Vercel proxy headers
 });
 
 // File upload rate limiter - 10 uploads per hour
@@ -63,7 +59,6 @@ const uploadLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  trustProxy: true, // Trust Railway/Vercel proxy headers
 });
 
 module.exports = {
