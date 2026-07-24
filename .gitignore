@@ -1,0 +1,111 @@
+# Dependencies
+node_modules/
+
+# Environment variables - CRITICAL: Exclude actual values
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+frontend/.env.local
+
+# KEEP these template files (they are safe to commit)
+# backend/.env.example
+# backend/.env.production (template with placeholders)
+# frontend/.env.production (template with placeholders)
+
+# Database
+backend/database.sqlite
+*.sqlite
+*.sqlite3
+
+# Development documentation - DO NOT DEPLOY
+ACHIEVEMENT_MODULE_ENHANCEMENTS.md
+ADMIN_DYNAMIC_SETTINGS_GUIDE.md
+BUILD_COMPLETE.md
+BUILD_SUMMARY.txt
+CONTACT_CMS_STRUCTURE.md
+CONTACT_UNIFICATION_SUMMARY.md
+CONTACT_UNIFIED_COMPLETE.md
+CONTENT_MANAGER_ROADMAP.md
+DEVELOPMENT_STANDARDS.md
+HOW_TO_EDIT_SETTINGS.md
+LOCKABLE_FORMS_GUIDE.md
+PAGES_EXTENSION_COMPLETE.md
+SERVICES_ADMIN_COMPLETE.md
+SERVICES_COMPLETE.md
+SERVICES_NO_HARDCODED_DATA.md
+SERVICES_QUICK_GUIDE.md
+SETTINGS_FIX_SUMMARY.md
+TEST_SETTINGS.md
+UNIVERSAL_CONTENT_IMPLEMENTATION.md
+
+# Development scripts - DO NOT DEPLOY (root level)
+scripts/
+
+# Backend scripts are handled by backend/.gitignore
+
+# Uploads - IMPORTANT: Backup this folder before deployment
+# Consider using cloud storage (S3, Cloudinary) in production
+uploads/
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Logs
+*.log
+logs/
+backend/logs/*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+.DS_Store?
+._*
+Desktop.ini
+ehthumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.turbo/
+.vercel
+
+# Testing
+coverage/
+.nyc_output/
+
+# PM2 (process manager for VPS)
+.pm2/
+pm2.log
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+tmp/
+temp/
+
+# Certificates (use secrets manager in production)
+*.pem
+*.key
+*.cert
+*.crt
+
+# Backups
+backup/
+backups/
+*.sql
+*.sql.gz
+

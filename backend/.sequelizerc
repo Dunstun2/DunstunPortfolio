@@ -1,0 +1,15 @@
+/**
+ * Sequelize CLI Configuration
+ * 
+ * This file tells Sequelize CLI where to find models, migrations, seeders, etc.
+ * It supports both development (SQLite) and production (PostgreSQL) environments.
+ */
+
+const path = require('path');
+
+module.exports = {
+  'config': path.resolve('config', 'database.js'),
+  'models-path': path.resolve('models'),
+  'seeders-path': path.resolve('seeders'),
+  'migrations-path': path.resolve('migrations'),
+};

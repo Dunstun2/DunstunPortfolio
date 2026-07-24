@@ -1,0 +1,59 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Node modules
+node_modules/
+
+# SQLite database (development only - use proper DB in production)
+*.sqlite
+*.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Uploads (if you want to exclude user uploads from git)
+uploads/
+
+# Temporary files
+*.tmp
+*.temp
+token.txt
+
+# Test and seed scripts - DO NOT DEPLOY
+backfill-projects.js
+populateAbout.js
+seed-*.js
+seedCertifications.js
+update-experiences.js
+hero.json
+scratch/
+seeders/
+
+# EXCEPTION: Keep create-admin.js (production-safe, no sample data)
+!create-admin.js
+
+# Scripts directory - exclude all by default
+scripts/*
+
+# But ALLOW these production-safe scripts (admin creation only, no sample data)
+!scripts/seed-admin.js
+
+# Development documentation
+CHANGELOG.md
+IMPROVEMENTS.md
+SERVICES_GUIDE.md
+SERVICES_SUMMARY.md
