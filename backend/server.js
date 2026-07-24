@@ -12,6 +12,9 @@ const swaggerSpec = require('./config/swagger');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust Railway/Vercel proxy headers (required for rate limiting and IP detection)
+app.set('trust proxy', true);
+
 // CORS Configuration
 const corsOptions = {
   origin: function (origin, callback) {
