@@ -14,7 +14,8 @@
     "seed:services": "node scripts/seed-services.js",
     "postinstall": "npm run migrate:prod || true",
     "migrate:prod": "NODE_ENV=production sequelize-cli db:migrate",
-    "create:admin": "node create-admin.js"
+    "create:admin": "node create-admin.js",
+    "init:db": "node scripts/init-db.js"
   },
   "engines": {
     "node": ">=18.0.0",
