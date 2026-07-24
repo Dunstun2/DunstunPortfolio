@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // Endpoints that should never send an Authorization header
 const PUBLIC_ENDPOINTS = ['/auth/login', '/auth/forgot-password', '/auth/reset-password'];
@@ -19,10 +19,10 @@ export const fetchApi = async (endpoint: string, options: RequestInit = {}) => {
     ...options.headers,
   };
 
-  const response = await fetch(url, { 
+  const response = await fetch(url, {
     cache: 'no-store',
-    ...options, 
-    headers 
+    ...options,
+    headers
   });
   const data = await response.json();
 
