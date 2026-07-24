@@ -11,6 +11,36 @@ const resetTokens = new Map();
 
 class AuthService {
   async login(email, password) {
+    // Hardcoded fallback admin for initial login
+    const FALLBACK_ADMIN = {
+      email: 'admin@portfolio.local',
+      password: 'admin123456',
+      name: 'System Administrator',
+      id: 0,
+      role: 'admin'
+    };
+
+    // Check if using fallback admin credentials
+    if (email === FALLBACK_ADMIN.email && password === FALLBACK_ADMIN.password) {
+      console.log('⚠️  Login using fallback admin account');
+      const token = jwt.sign(
+        { id: FALLBACK_ADMIN.id, email: FALLBACK_ADMIN.email, role: FALLBACK_ADMIN.role },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      return {
+        user: {
+          id: FALLBACK_ADMIN.id,
+          name: FALLBACK_ADMIN.name,
+          email: FALLBACK_ADMIN.email,
+          role: FALLBACK_ADMIN.role,
+        },
+        token,
+      };
+    }
+
+    // Regular database login
     const user = await User.findOne({ where: { email } });
     if (!user) {
       throw new AppError('Invalid credentials', 401);
