@@ -1,0 +1,222 @@
+@import "tailwindcss";
+
+/* Force the entire site to use Inter consistently */
+body {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Override Tailwind Typography's default serif font in prose sections */
+.prose,
+.prose * {
+  font-family: inherit !important;
+}
+
+@theme {
+  --color-primary: rgb(var(--color-primary-rgb));
+  --color-secondary: rgb(var(--color-secondary-rgb));
+  --color-bg-dark: rgb(var(--color-bg-dark-rgb));
+  --color-heading-light: rgb(var(--color-heading-light-rgb));
+  --color-text-light: rgb(var(--color-text-light-rgb));
+  --color-muted-light: rgb(var(--color-muted-light-rgb));
+  --color-nav-text: rgb(var(--color-nav-text-rgb));
+  --color-subheading: rgb(var(--color-subheading-rgb));
+  --color-button-text: rgb(var(--color-button-text-rgb));
+}
+
+:root {
+  color-scheme: dark;
+  
+  /* Default Theme: Blue & Orange */
+  --color-primary-rgb: 59 130 246; /* Blue 500 */
+  --color-secondary-rgb: 249 115 22; /* Orange 500 */
+  
+  --color-bg-dark-rgb: 15 23 42; /* Slate 900 */
+  --color-heading-light-rgb: 255 255 255; /* White */
+  --color-text-light-rgb: 241 245 249; /* Slate 100 */
+  --color-muted-light-rgb: 148 163 184; /* Slate 400 */
+  --color-nav-text-rgb: 255 255 255; /* White */
+  --color-subheading-rgb: 148 163 184; /* Slate 400 */
+  --color-button-text-rgb: 255 255 255; /* White */
+  
+  /* Glassmorphism utility variables */
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+:root.light {
+  color-scheme: light;
+  
+  /* High contrast primary and secondary colors for light mode legibility */
+  --color-primary-rgb: 29 78 216; /* Darker Blue (Blue 700) */
+  --color-secondary-rgb: 194 65 12; /* Darker Orange (Orange 700) */
+  
+  /* Light mode defaults - solid values that work without JS */
+  --color-bg-dark-rgb: 241 245 249; /* Slate 100 */
+  --color-heading-light-rgb: 15 23 42; /* Slate 900 */
+  --color-text-light-rgb: 15 23 42; /* Dark Slate (Slate 900) instead of Slate 800 */
+  --color-muted-light-rgb: 51 65 85; /* Darker Slate (Slate 700) instead of Slate 600 */
+  --color-nav-text-rgb: 15 23 42; /* Slate 900 */
+  --color-subheading-rgb: 51 65 85; /* Slate 700 */
+  --color-button-text-rgb: 255 255 255; /* White (buttons usually remain dark/colored) */
+  
+  /* Adjust glassmorphism for light mode */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.1);
+
+  /* Invert Tailwind grays for light mode visibility */
+  --color-gray-50: #030712;
+  --color-gray-100: #111827;
+  --color-gray-200: #1f2937;
+  --color-gray-300: #374151;
+  --color-gray-400: #4b5563;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #9ca3af;
+  --color-gray-700: #d1d5db;
+  --color-gray-800: #e5e7eb;
+  --color-gray-900: #f3f4f6;
+  --color-gray-950: #f9fafb;
+}
+
+.force-dark {
+  color-scheme: dark !important;
+  --color-bg-dark-rgb: 15 23 42 !important;
+  --color-heading-light-rgb: 255 255 255 !important;
+  --color-text-light-rgb: 241 245 249 !important;
+  --color-muted-light-rgb: 148 163 184 !important;
+  --color-nav-text-rgb: 255 255 255 !important;
+  --color-subheading-rgb: 148 163 184 !important;
+  --color-button-text-rgb: 255 255 255 !important;
+  --glass-bg: rgba(15, 23, 42, 0.75) !important;
+  --glass-border: rgba(255, 255, 255, 0.1) !important;
+  color: #f1f5f9 !important;
+}
+
+.force-dark .text-heading-light,
+.force-dark h1,
+.force-dark h2,
+.force-dark h3,
+.force-dark h4 {
+  color: #ffffff !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
+.force-dark .text-text-light,
+.force-dark p {
+  color: #f1f5f9 !important;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+.force-dark .text-subheading,
+.force-dark .text-muted-light {
+  color: #94a3b8 !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.force-dark .text-primary {
+  color: rgb(var(--color-primary-rgb)) !important;
+}
+
+.force-dark .text-secondary {
+  color: rgb(var(--color-secondary-rgb)) !important;
+}
+
+/* Hard override for Tailwind utility classes in Light Mode */
+.light .text-gray-300 { color: #0f172a !important; } /* Slate 900 */
+.light .text-gray-400 { color: #1e293b !important; } /* Slate 800 */
+.light .text-gray-500 { color: #334155 !important; } /* Slate 700 */
+.light .bg-gray-800 { background-color: #f1f5f9 !important; } /* Slate 100 */
+.light .bg-gray-900 { background-color: #e2e8f0 !important; } /* Slate 200 */
+.light .border-gray-700 { border-color: #cbd5e1 !important; } /* Slate 300 */
+.light .border-gray-800 { border-color: #e2e8f0 !important; } /* Slate 200 */
+
+/* Admin Panel Light Mode Adaptations */
+.light .admin-panel {
+  color: #0f172a !important;
+}
+.light .admin-panel h1,
+.light .admin-panel h2,
+.light .admin-panel h3,
+.light .admin-panel h4,
+.light .admin-panel h5,
+.light .admin-panel h6,
+.light .admin-panel label,
+.light .admin-panel p,
+.light .admin-panel span:not(.text-white):not(.text-primary):not(.text-secondary),
+.light .admin-panel td,
+.light .admin-panel th,
+.light .admin-panel input,
+.light .admin-panel textarea,
+.light .admin-panel select,
+.light .admin-panel a:not(.bg-primary):not(.bg-secondary) {
+  color: #0f172a !important;
+}
+
+.light .admin-panel input,
+.light .admin-panel textarea,
+.light .admin-panel select {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light .admin-panel input::placeholder,
+.light .admin-panel textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+.light .admin-panel .bg-primary,
+.light .admin-panel .bg-secondary,
+.light .admin-panel .bg-red-500,
+.light .admin-panel .bg-red-600,
+.light .admin-panel .bg-green-500,
+.light .admin-panel .bg-green-600,
+.light .admin-panel button.bg-primary,
+.light .admin-panel button.bg-secondary,
+.light .admin-panel .bg-primary *,
+.light .admin-panel .bg-secondary *,
+.light .admin-panel .bg-red-500 *,
+.light .admin-panel .bg-red-600 *,
+.light .admin-panel .bg-green-500 *,
+.light .admin-panel .bg-green-600 * {
+  color: #ffffff !important;
+}
+
+@layer base {
+  body {
+    background-color: rgb(var(--color-bg-dark-rgb));
+    color: rgb(var(--color-text-light-rgb));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body ::selection {
+    background-color: rgb(var(--color-primary-rgb));
+    color: white;
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+  }
+
+  .admin-sidebar {
+    background: rgb(30, 41, 59); /* Slate 800 - clearly lighter than Slate 900 bg */
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  /* Hide scrollbar utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+}
+
+.light .admin-sidebar {
+  background: rgb(226, 232, 240); /* Slate 200 - clearly darker than light bg */
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+}
