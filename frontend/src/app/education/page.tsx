@@ -250,9 +250,43 @@ export default function EducationPage() {
 
                   {/* Summary */}
                   {edu.short_summary && (
-                    <p className="text-text-light text-lg mb-6 border-l-4 border-primary pl-4 py-1 italic">
-                      {edu.short_summary}
-                    </p>
+                    <div>
+                      {/* Mobile: Collapsible */}
+                      <div className="md:hidden">
+                        <p
+                          className={`text-text-light text-lg mb-6 border-l-4 border-primary pl-4 py-1 italic ${!expandedDescriptions[`${edu.id}-summary`] ? 'line-clamp-2' : ''
+                            }`}
+                        >
+                          {edu.short_summary}
+                        </p>
+                        {edu.short_summary.length > 100 && (
+                          <button
+                            onClick={() => toggleDescription(`${edu.id}-summary`)}
+                            className="mb-6 text-primary font-semibold text-sm flex items-center gap-1 hover:underline"
+                          >
+                            {expandedDescriptions[`${edu.id}-summary`] ? (
+                              <>
+                                <span>Read Less</span>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                </svg>
+                              </>
+                            ) : (
+                              <>
+                                <span>Read More</span>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                      {/* Desktop: Always show full */}
+                      <p className="hidden md:block text-text-light text-lg mb-6 border-l-4 border-primary pl-4 py-1 italic">
+                        {edu.short_summary}
+                      </p>
+                    </div>
                   )}
 
                   {/* Full Description */}
@@ -307,7 +341,43 @@ export default function EducationPage() {
                         <p className="text-xs text-text-light/70 mb-3">Supervisor: {edu.research_supervisor}</p>
                       )}
                       {edu.research_description && (
-                        <p className="text-sm text-text-light leading-relaxed">{edu.research_description}</p>
+                        <div>
+                          {/* Mobile: Collapsible */}
+                          <div className="md:hidden">
+                            <p
+                              className={`text-sm text-text-light leading-relaxed ${!expandedDescriptions[`${edu.id}-research`] ? 'line-clamp-3' : ''
+                                }`}
+                            >
+                              {edu.research_description}
+                            </p>
+                            {edu.research_description.length > 150 && (
+                              <button
+                                onClick={() => toggleDescription(`${edu.id}-research`)}
+                                className="mt-2 text-primary font-semibold text-xs flex items-center gap-1 hover:underline"
+                              >
+                                {expandedDescriptions[`${edu.id}-research`] ? (
+                                  <>
+                                    <span>Read Less</span>
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                    </svg>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>Read More</span>
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  </>
+                                )}
+                              </button>
+                            )}
+                          </div>
+                          {/* Desktop: Always show full */}
+                          <p className="hidden md:block text-sm text-text-light leading-relaxed">
+                            {edu.research_description}
+                          </p>
+                        </div>
                       )}
                       {edu.research_link && (
                         <a
