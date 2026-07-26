@@ -13,6 +13,9 @@ RUN npm install
 # Copy backend application code
 COPY backend/ ./
 
+# Create uploads directory
+RUN mkdir -p uploads
+
 # Expose port
 EXPOSE 5000
 
