@@ -27,6 +27,7 @@ export default function EducationPage() {
   const [filterDegree, setFilterDegree] = useState<string>('All');
   const [filterCertCategory, setFilterCertCategory] = useState<string>('All');
   const [selectedCert, setSelectedCert] = useState<any>(null);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<{ [key: string]: boolean }>({});
   const refreshKey = useRealtimeRefresh('education');
   const refreshKeyCert = useRealtimeRefresh('certifications');
   const refreshKeySettings = useRealtimeRefresh('settings');
@@ -86,6 +87,14 @@ export default function EducationPage() {
   const ctaDescription = settings?.education_cta_description || 'Let\'s connect and explore opportunities to work together';
   const ctaButtonText = settings?.education_cta_button_text || 'Contact Me';
   const emptyMessage = settings?.education_empty_message || 'Education information coming soon';
+
+  // Helper to toggle description expansion
+  const toggleDescription = (id: string) => {
+    setExpandedDescriptions(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
   // Get unique certification categories
   const certCategories = ['All', ...Array.from(new Set(certifications.map(c => c.category).filter(Boolean)))];
@@ -248,8 +257,42 @@ export default function EducationPage() {
 
                   {/* Full Description */}
                   {edu.full_description && (
-                    <div className="text-text-light leading-relaxed mb-6 whitespace-pre-wrap">
-                      {edu.full_description}
+                    <div className="text-text-light leading-relaxed mb-6">
+                      {/* Mobile: Show truncated or full based on state */}
+                      <div className="md:hidden">
+                        <div
+                          className={`whitespace-pre-wrap ${!expandedDescriptions[edu.id] ? 'line-clamp-3' : ''
+                            }`}
+                        >
+                          {edu.full_description}
+                        </div>
+                        {edu.full_description.length > 150 && (
+                          <button
+                            onClick={() => toggleDescription(edu.id)}
+                            className="mt-2 text-primary font-semibold text-sm flex items-center gap-1 hover:underline"
+                          >
+                            {expandedDescriptions[edu.id] ? (
+                              <>
+                                <span>Read Less</span>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                </svg>
+                              </>
+                            ) : (
+                              <>
+                                <span>Read More</span>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                      {/* Desktop: Always show full */}
+                      <div className="hidden md:block whitespace-pre-wrap">
+                        {edu.full_description}
+                      </div>
                     </div>
                   )}
 
