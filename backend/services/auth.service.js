@@ -13,7 +13,7 @@ class AuthService {
   async login(email, password) {
     // Hardcoded fallback admin for initial login
     const FALLBACK_ADMIN = {
-      email: 'admin@portfolio.local',
+      email: 'admin@example.com',
       password: 'admin123456',
       name: 'System Administrator',
       id: 0,
