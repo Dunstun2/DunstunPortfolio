@@ -11,7 +11,7 @@ class AboutController {
   async getPublished(req, res) {
     try { 
       const about = await aboutService.getPublished();
-      if (!about) return res.status(404).json({ success: false, message: 'No published about section found' });
+      if (!about) return res.status(200).json({ success: true, data: null, message: 'No published about section found' });
       res.json({ success: true, data: about }); 
     }
     catch (e) { res.status(500).json({ success: false, message: e.message }); }

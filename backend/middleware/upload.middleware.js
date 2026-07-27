@@ -1,7 +1,14 @@
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const crypto = require('crypto');
 const { AppError } = require('./errorHandler.middleware');
+
+// Ensure uploads directory exists
+const uploadDir = path.join(__dirname, '..', '..', 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Allowed MIME types for different file categories
 const ALLOWED_IMAGE_TYPES = [

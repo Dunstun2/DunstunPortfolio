@@ -6,26 +6,37 @@ import Link from 'next/link';
 export default function AboutPage() {
   const [about, setAbout] = useState<any>(null);
   const [hero, setHero] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchApi('/about/published')
-      .then(res => setAbout(res.data))
-      .catch(console.error);
-
-    fetchApi('/hero/published')
-      .then(res => setHero(res.data))
-      .catch(err => {
-        console.warn('Could not fetch hero data, using default:', err);
-        setHero(null);
-      });
+    Promise.all([
+      fetchApi('/about/published')
+        .then(res => setAbout(res.data))
+        .catch(err => {
+          console.warn('No published about section found:', err);
+          setAbout(null);
+        }),
+      fetchApi('/hero/published')
+        .then(res => setHero(res.data))
+        .catch(err => {
+          console.warn('Could not fetch hero data, using default:', err);
+          setHero(null);
+        })
+    ]).finally(() => {
+      setLoading(false);
+    });
   }, []);
 
-  if (!about) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  if (!about) {
+    return null;
   }
 
   const validHighlights = about.highlights?.filter((h: any) => h.title) || [];

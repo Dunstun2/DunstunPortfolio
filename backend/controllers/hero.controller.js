@@ -12,7 +12,7 @@ class HeroController {
     try { 
       // Using the new method that fetches socials if enabled
       const hero = await heroService.getPublishedWithSocials();
-      if (!hero) return res.status(404).json({ success: false, message: 'No active published hero found' });
+      if (!hero) return res.status(200).json({ success: true, data: null, message: 'No active published hero found' });
       res.json({ success: true, data: hero }); 
     }
     catch (e) { res.status(500).json({ success: false, message: e.message }); }
