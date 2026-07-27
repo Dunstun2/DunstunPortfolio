@@ -1,92 +1,248 @@
 const nodemailer = require('nodemailer');
+const logger = require('../config/logger');
 
-/**
- * Email Service for sending reply emails to contact form visitors.
- * Uses Nodemailer with Gmail SMTP (App Password) by default.
- * Configure via environment variables in .env
- */
 class EmailService {
   constructor() {
     this.transporter = null;
+    this.from = process.env.EMAIL_FROM || 'noreply@portfolio.com';
+    this.initialized = false;
   }
 
-  /**
-   * Initialize the transporter lazily on first use
-   */
-  _getTransporter() {
-    if (this.transporter) return this.transporter;
+  async initialize() {
+    if (this.initialized) return;
 
-    const host = process.env.SMTP_HOST || 'smtp.gmail.com';
-    const port = parseInt(process.env.SMTP_PORT || '587', 10);
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
+    try {
+      // Create transporter based on environment variables
+      if (process.env.EMAIL_SERVICE === 'gmail') {
+        this.transporter = nodemailer.createTransport({
+          service: 'gmail',
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASSWORD, // App password, not regular password
+          },
+        });
+      } else if (process.env.SMTP_HOST) {
+        // Generic SMTP configuration
+        this.transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: parseInt(process.env.SMTP_PORT || '587'),
+          secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASSWORD,
+          },
+        });
+      } else {
+        // Development mode - use ethereal email (fake SMTP)
+        const testAccount = await nodemailer.createTestAccount();
+        this.transporter = nodemailer.createTransport({
+          host: 'smtp.ethereal.email',
+          port: 587,
+          secure: false,
+          auth: {
+            user: testAccount.user,
+            pass: testAccount.pass,
+          },
+        });
+        logger.info('Email service using Ethereal (test mode)');
+        logger.info(`Preview emails at: https://ethereal.email`);
+      }
 
-    if (!user || !pass) {
-      throw new Error(
-        'Email not configured. Set SMTP_USER and SMTP_PASS in your .env file. ' +
-        'For Gmail, use an App Password: https://myaccount.google.com/apppasswords'
-      );
+      // Verify connection
+      await this.transporter.verify();
+      this.initialized = true;
+      logger.info('Email service initialized successfully');
+    } catch (error) {
+      logger.error('Failed to initialize email service:', error);
+      this.transporter = null;
+    }
+  }
+
+  async sendPasswordResetEmail(email, token, userName) {
+    await this.initialize();
+
+    if (!this.transporter) {
+      logger.error('Email service not available. Token:', token);
+      // Fallback to console logging
+      console.log('===========================================');
+      console.log('PASSWORD RESET TOKEN (copy this):');
+      console.log(token);
+      console.log('For user:', email);
+      console.log('Expires in 1 hour.');
+      console.log('===========================================');
+      return false;
     }
 
-    this.transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth: { user, pass },
-    });
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/reset-password?token=${token}`;
 
-    return this.transporter;
+    const mailOptions = {
+      from: `"Portfolio Admin" <${this.from}>`,
+      to: email,
+      subject: 'Password Reset Request',
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+    .button { display: inline-block; padding: 15px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0; }
+    .token-box { background: #fff; border: 2px dashed #667eea; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 14px; word-break: break-all; margin: 20px 0; }
+    .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+    .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 style="margin: 0;">🔐 Password Reset Request</h1>
+    </div>
+    <div class="content">
+      <p>Hi <strong>${userName}</strong>,</p>
+      
+      <p>We received a request to reset your password for your admin account. Click the button below to set a new password:</p>
+      
+      <div style="text-align: center;">
+        <a href="${resetUrl}" class="button">Reset Password</a>
+      </div>
+      
+      <p>Or copy and paste this link into your browser:</p>
+      <div class="token-box">${resetUrl}</div>
+      
+      <div class="warning">
+        <strong>⚠️ Important:</strong>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+          <li>This link expires in <strong>1 hour</strong></li>
+          <li>If you didn't request this, please ignore this email</li>
+          <li>Your password won't change until you create a new one</li>
+        </ul>
+      </div>
+      
+      <p style="margin-top: 30px;">Need help? Reply to this email and we'll assist you.</p>
+      
+      <p style="margin-top: 20px;">
+        Best regards,<br>
+        <strong>Portfolio Admin Team</strong>
+      </p>
+    </div>
+    <div class="footer">
+      <p>This is an automated email. Please do not reply directly to this message.</p>
+      <p>© ${new Date().getFullYear()} Portfolio Admin. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+      `,
+      text: `
+Hi ${userName},
+
+We received a request to reset your password for your admin account.
+
+Reset your password by visiting this link:
+${resetUrl}
+
+This link expires in 1 hour.
+
+If you didn't request this, please ignore this email. Your password won't change until you create a new one.
+
+Best regards,
+Portfolio Admin Team
+      `,
+    };
+
+    try {
+      const info = await this.transporter.sendMail(mailOptions);
+      logger.info(`Password reset email sent to ${email}`);
+
+      // Log preview URL for ethereal emails
+      if (process.env.NODE_ENV === 'development' && info.messageId) {
+        const previewUrl = nodemailer.getTestMessageUrl(info);
+        if (previewUrl) {
+          logger.info(`Preview email: ${previewUrl}`);
+        }
+      }
+
+      return true;
+    } catch (error) {
+      logger.error('Failed to send email:', error);
+      // Fallback to console logging
+      console.log('===========================================');
+      console.log('EMAIL SEND FAILED - PASSWORD RESET TOKEN:');
+      console.log(token);
+      console.log('For user:', email);
+      console.log('===========================================');
+      return false;
+    }
   }
 
-  /**
-   * Send a reply email to the visitor who submitted the contact form.
-   * @param {Object} opts
-   * @param {string} opts.to - Visitor's email address
-   * @param {string} opts.visitorName - Visitor's name
-   * @param {string} opts.originalSubject - Original message subject
-   * @param {string} opts.originalMessage - Original message content
-   * @param {string} opts.replyBody - The reply message text
-   * @param {string} opts.senderName - Portfolio owner's display name
-   */
-  async sendReply({ to, visitorName, originalSubject, originalMessage, replyBody, senderName }) {
-    const transporter = this._getTransporter();
-    const fromAddress = process.env.SMTP_USER;
-    const displayName = senderName || process.env.SENDER_NAME || 'Portfolio Owner';
+  async sendWelcomeEmail(email, name) {
+    await this.initialize();
 
-    const subject = `Re: ${originalSubject || 'Your Message'}`;
+    if (!this.transporter) {
+      logger.warn('Email service not available for welcome email');
+      return false;
+    }
 
-    // Build a clean HTML email
-    const htmlBody = `
-      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #f8fafc; border-radius: 12px;">
-        <div style="background: linear-gradient(135deg, #1e3a8a, #1d4ed8); padding: 24px; border-radius: 12px 12px 0 0; text-align: center;">
-          <h2 style="color: #ffffff; margin: 0; font-size: 20px;">${displayName}</h2>
-          <p style="color: #93c5fd; margin: 4px 0 0; font-size: 13px;">Reply to your message</p>
-        </div>
-        <div style="background: #ffffff; padding: 28px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 12px 12px;">
-          <p style="color: #334155; margin: 0 0 8px; font-size: 15px;">Hi <strong>${visitorName}</strong>,</p>
-          <div style="color: #1e293b; font-size: 15px; line-height: 1.7; white-space: pre-wrap; margin: 16px 0 24px;">${replyBody}</div>
-          
-          <div style="background: #f1f5f9; border-left: 4px solid #94a3b8; padding: 16px; margin: 32px 0 16px; border-radius: 0 8px 8px 0;">
-            <p style="color: #64748b; font-size: 12px; font-weight: bold; text-transform: uppercase; margin: 0 0 8px; letter-spacing: 0.5px;">On ${new Date().toLocaleDateString()}, you wrote:</p>
-            <div style="color: #475569; font-size: 14px; font-style: italic; white-space: pre-wrap; margin: 0;">"${originalMessage}"</div>
-          </div>
-          
-          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
-          <p style="color: #94a3b8; font-size: 12px; margin: 0; padding-bottom: 4px;"><strong>Reply from:</strong> Dunstun Wambutsi's Portfolio</p>
-          <p style="color: #94a3b8; font-size: 12px; margin: 0;"><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-        </div>
+    const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/login`;
+
+    const mailOptions = {
+      from: `"Portfolio Admin" <${this.from}>`,
+      to: email,
+      subject: 'Welcome to Portfolio Admin',
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+    .button { display: inline-block; padding: 15px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 style="margin: 0;">🎉 Welcome to Portfolio Admin</h1>
+    </div>
+    <div class="content">
+      <p>Hi <strong>${name}</strong>,</p>
+      
+      <p>Your admin account has been created successfully! You can now manage your portfolio content.</p>
+      
+      <div style="text-align: center;">
+        <a href="${loginUrl}" class="button">Login to Admin Panel</a>
       </div>
-    `;
+      
+      <p><strong>Your login email:</strong> ${email}</p>
+      
+      <p>If you have any questions, feel free to reach out to the administrator.</p>
+      
+      <p style="margin-top: 30px;">
+        Best regards,<br>
+        <strong>Portfolio Admin Team</strong>
+      </p>
+    </div>
+  </div>
+</body>
+</html>
+      `,
+    };
 
-    const info = await transporter.sendMail({
-      from: `"${displayName}" <${fromAddress}>`,
-      to,
-      subject,
-      text: `Hi ${visitorName},\n\n${replyBody}\n\n---\nReply from: Dunstun Wambutsi's Portfolio\nDate: ${new Date().toLocaleDateString()}\n\nOn ${new Date().toLocaleDateString()}, you wrote:\n"${originalMessage}"`,
-      html: htmlBody,
-    });
-
-    return info;
+    try {
+      await this.transporter.sendMail(mailOptions);
+      logger.info(`Welcome email sent to ${email}`);
+      return true;
+    } catch (error) {
+      logger.error('Failed to send welcome email:', error);
+      return false;
+    }
   }
 }
 

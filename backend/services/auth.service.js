@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { User } = require('../models');
 const { AppError } = require('../middleware/errorHandler.middleware');
+const emailService = require('./email.service');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_for_development';
 
@@ -120,13 +121,8 @@ class AuthService {
     const token = crypto.randomBytes(32).toString('hex');
     resetTokens.set(token, { userId: user.id, expires: Date.now() + 3600000 }); // 1 hour
 
-    // In production, send this via email. For now, log it.
-    console.log('===========================================');
-    console.log('PASSWORD RESET TOKEN (copy this):');
-    console.log(token);
-    console.log('For user:', email);
-    console.log('Expires in 1 hour.');
-    console.log('===========================================');
+    // Send email with reset token
+    await emailService.sendPasswordResetEmail(email, token, user.name);
 
     return { message: 'If that email exists, a reset link has been sent.' };
   }
