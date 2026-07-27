@@ -8,7 +8,7 @@ export default function AdminAbout() {
   const refreshKey = useRealtimeRefresh('about');
   const [activeTab, setActiveTab] = useState('general');
   const [editId, setEditId] = useState('');
-  
+
   const initialFormState = {
     title: '', content: '', image_url: '',
     hero_title: '', hero_image_url: '',
@@ -18,7 +18,7 @@ export default function AdminAbout() {
     drive_title: '', drive_statement: '', drive_description: '', drive_image_url: '',
     identity_cards: [], values: [], explorations: [], highlights: []
   };
-  
+
   const [formData, setFormData] = useState<any>(initialFormState);
   const [uploadingImage, setUploadingImage] = useState<string | null>(null);
 
@@ -37,13 +37,13 @@ export default function AdminAbout() {
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: uploadData,
       });
-      
+
       if (!res.ok) throw new Error('Upload failed');
       const resData = await res.json();
-      
+
       const filePath = resData.data.file_path;
       const fullUrl = getFileUrl(filePath);
-      
+
       setFormData((prev: any) => ({ ...prev, [fieldName]: fullUrl }));
     } catch (error) {
       console.error(error);
@@ -89,14 +89,14 @@ export default function AdminAbout() {
 
   const startEdit = (item: any, heroData?: any) => {
     const sanitizedItem = { ...item };
-    
+
     // Replace nulls with empty strings to prevent React uncontrolled input warnings
     for (const key in sanitizedItem) {
       if (sanitizedItem[key] === null) {
         sanitizedItem[key] = '';
       }
     }
-    
+
     // Ensure arrays default to empty arrays
     const arrayFields = ['identity_cards', 'values', 'explorations', 'highlights'];
     arrayFields.forEach(field => {
@@ -104,8 +104,8 @@ export default function AdminAbout() {
     });
 
     // Merge hero professional titles
-    const heroTitles = heroData?.professional_title 
-      ? heroData.professional_title.split('|').map((t: string) => t.trim()).filter(Boolean) 
+    const heroTitles = heroData?.professional_title
+      ? heroData.professional_title.split('|').map((t: string) => t.trim()).filter(Boolean)
       : [];
 
     const existingCards = [...sanitizedItem.identity_cards];
@@ -130,17 +130,17 @@ export default function AdminAbout() {
     setFormData({ ...initialFormState, ...sanitizedItem });
     setEditId(item.id);
   };
-  
+
   const handleArrayChange = (key: string, index: number, field: string, value: any) => {
     const newArray = [...formData[key]];
     newArray[index] = { ...newArray[index], [field]: value };
     setFormData({ ...formData, [key]: newArray });
   };
-  
+
   const addArrayItem = (key: string, template: any) => {
     setFormData({ ...formData, [key]: [...formData[key], template] });
   };
-  
+
   const removeArrayItem = (key: string, index: number) => {
     const newArray = formData[key].filter((_: any, i: number) => i !== index);
     setFormData({ ...formData, [key]: newArray });
@@ -157,15 +157,15 @@ export default function AdminAbout() {
   return (
     <div>
       <h1 className="text-xl sm:text-3xl font-bold mb-6 sm:mb-8 whitespace-nowrap">About Page Management</h1>
-      
+
       <div className="bg-gray-800 rounded-lg mb-12 border border-gray-700 overflow-hidden">
         <div className="p-6 border-b border-gray-700 flex justify-between items-center">
           <h2 className="text-xl font-bold">Edit About Page</h2>
         </div>
-        
+
         <div className="flex border-b border-gray-700 overflow-x-auto">
           {tabs.map(tab => (
-            <button 
+            <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`px-6 py-3 font-medium whitespace-nowrap transition-colors ${activeTab === tab.id ? 'bg-primary/20 text-primary border-b-2 border-primary' : 'text-gray-400 hover:text-white hover:bg-gray-750'}`}
@@ -176,14 +176,14 @@ export default function AdminAbout() {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          
+
           {/* GENERAL TAB */}
           <div className={activeTab === 'general' ? 'block' : 'hidden'}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-sm mb-1 text-gray-400">Profile Image URL (Home section)</label>
                 <div className="flex gap-2">
-                  <input type="text" value={formData.image_url} onChange={e => setFormData({...formData, image_url: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
+                  <input type="text" value={formData.image_url} onChange={e => setFormData({ ...formData, image_url: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
                   <label className="cursor-pointer bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors whitespace-nowrap flex items-center justify-center">
                     {uploadingImage === 'image_url' ? 'Uploading...' : 'Upload'}
                     <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'image_url')} />
@@ -195,12 +195,12 @@ export default function AdminAbout() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm mb-1 text-gray-400">Hero Title</label>
-                <input type="text" value={formData.hero_title} onChange={e => setFormData({...formData, hero_title: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
+                <input type="text" value={formData.hero_title} onChange={e => setFormData({ ...formData, hero_title: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
               </div>
               <div>
                 <label className="block text-sm mb-1 text-gray-400">Hero Media URL (Image or Video Background)</label>
                 <div className="flex gap-2">
-                  <input type="text" value={formData.hero_image_url} onChange={e => setFormData({...formData, hero_image_url: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
+                  <input type="text" value={formData.hero_image_url} onChange={e => setFormData({ ...formData, hero_image_url: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
                   <label className="cursor-pointer bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors whitespace-nowrap flex items-center justify-center">
                     {uploadingImage === 'hero_image_url' ? 'Uploading...' : 'Upload'}
                     <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleImageUpload(e, 'hero_image_url')} />
@@ -213,18 +213,18 @@ export default function AdminAbout() {
           {/* STORY TAB */}
           <div className={activeTab === 'story' ? 'block' : 'hidden'}>
             <div className="mb-6">
-              <label className="block text-sm mb-1 text-gray-400">Intro Content (HTML allowed, shown on Home & Full Page)</label>
-              <textarea required rows={5} value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
+              <label className="block text-sm mb-1 text-gray-400">Intro Content</label>
+              <textarea required rows={5} value={formData.content} onChange={e => setFormData({ ...formData, content: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
             </div>
             <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">My Story / Journey</h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm mb-1 text-gray-400">Story Title</label>
-                <input type="text" value={formData.story_title} onChange={e => setFormData({...formData, story_title: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
+                <input type="text" value={formData.story_title} onChange={e => setFormData({ ...formData, story_title: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-400">Story Content (HTML allowed)</label>
-                <textarea rows={8} value={formData.story_content} onChange={e => setFormData({...formData, story_content: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
+                <label className="block text-sm mb-1 text-gray-400">Story Content</label>
+                <textarea rows={8} value={formData.story_content} onChange={e => setFormData({ ...formData, story_content: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
               </div>
             </div>
           </div>
@@ -236,35 +236,35 @@ export default function AdminAbout() {
                 <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">My Philosophy</h3>
                 <div>
                   <label className="block text-sm mb-1 text-gray-400">Title</label>
-                  <input type="text" value={formData.philosophy_title} onChange={e => setFormData({...formData, philosophy_title: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
+                  <input type="text" value={formData.philosophy_title} onChange={e => setFormData({ ...formData, philosophy_title: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm mb-1 text-gray-400">Statement</label>
-                  <textarea rows={3} value={formData.philosophy_statement} onChange={e => setFormData({...formData, philosophy_statement: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
+                  <textarea rows={3} value={formData.philosophy_statement} onChange={e => setFormData({ ...formData, philosophy_statement: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
                 </div>
                 <div>
                   <label className="block text-sm mb-1 text-gray-400">Description</label>
-                  <textarea rows={5} value={formData.philosophy_description} onChange={e => setFormData({...formData, philosophy_description: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
+                  <textarea rows={5} value={formData.philosophy_description} onChange={e => setFormData({ ...formData, philosophy_description: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
                 </div>
               </div>
               <div className="space-y-4">
                 <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">What Drives Me</h3>
                 <div>
                   <label className="block text-sm mb-1 text-gray-400">Title</label>
-                  <input type="text" value={formData.drive_title} onChange={e => setFormData({...formData, drive_title: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
+                  <input type="text" value={formData.drive_title} onChange={e => setFormData({ ...formData, drive_title: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm mb-1 text-gray-400">Statement</label>
-                  <textarea rows={3} value={formData.drive_statement} onChange={e => setFormData({...formData, drive_statement: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
+                  <textarea rows={3} value={formData.drive_statement} onChange={e => setFormData({ ...formData, drive_statement: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
                 </div>
                 <div>
                   <label className="block text-sm mb-1 text-gray-400">Description</label>
-                  <textarea rows={5} value={formData.drive_description} onChange={e => setFormData({...formData, drive_description: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
+                  <textarea rows={5} value={formData.drive_description} onChange={e => setFormData({ ...formData, drive_description: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
                 </div>
                 <div>
                   <label className="block text-sm mb-1 text-gray-400">Drive Image URL</label>
                   <div className="flex gap-2">
-                    <input type="text" value={formData.drive_image_url} onChange={e => setFormData({...formData, drive_image_url: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
+                    <input type="text" value={formData.drive_image_url} onChange={e => setFormData({ ...formData, drive_image_url: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
                     <label className="cursor-pointer bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors whitespace-nowrap flex items-center justify-center">
                       {uploadingImage === 'drive_image_url' ? 'Uploading...' : 'Upload'}
                       <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'drive_image_url')} />
@@ -280,15 +280,15 @@ export default function AdminAbout() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm mb-1 text-gray-400">Vision Title</label>
-                <input type="text" value={formData.vision_title} onChange={e => setFormData({...formData, vision_title: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
+                <input type="text" value={formData.vision_title} onChange={e => setFormData({ ...formData, vision_title: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
               </div>
               <div>
                 <label className="block text-sm mb-1 text-gray-400">Vision Statement</label>
-                <textarea rows={3} value={formData.vision_statement} onChange={e => setFormData({...formData, vision_statement: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
+                <textarea rows={3} value={formData.vision_statement} onChange={e => setFormData({ ...formData, vision_statement: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
               </div>
               <div>
                 <label className="block text-sm mb-1 text-gray-400">Vision Description</label>
-                <textarea rows={5} value={formData.vision_description} onChange={e => setFormData({...formData, vision_description: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
+                <textarea rows={5} value={formData.vision_description} onChange={e => setFormData({ ...formData, vision_description: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
               </div>
             </div>
           </div>
@@ -296,22 +296,22 @@ export default function AdminAbout() {
           {/* LISTS TAB */}
           <div className={activeTab === 'lists' ? 'block' : 'hidden'}>
             <div className="space-y-12">
-              
+
               {/* Identity Cards */}
               <div>
                 <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
                   <h3 className="text-lg font-bold text-white">Who I Am (Cards)</h3>
-                  <button type="button" onClick={() => addArrayItem('identity_cards', {title:'', description:'', icon_name:''})} className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded">Add Card</button>
+                  <button type="button" onClick={() => addArrayItem('identity_cards', { title: '', description: '', icon_name: '' })} className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded">Add Card</button>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
                   {formData.identity_cards?.map((item: any, i: number) => (
                     <div key={i} className="flex gap-4 items-start bg-gray-900 p-4 rounded border border-gray-700">
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center gap-2">
-                          <input 
-                            placeholder="Title" 
-                            value={item.title} 
-                            onChange={e => handleArrayChange('identity_cards', i, 'title', e.target.value)} 
+                          <input
+                            placeholder="Title"
+                            value={item.title}
+                            onChange={e => handleArrayChange('identity_cards', i, 'title', e.target.value)}
                             disabled={item.isHeroTitle}
                             className={`w-full bg-gray-800 border border-gray-700 rounded p-2 text-sm focus:border-primary focus:outline-none ${item.isHeroTitle ? 'bg-gray-950/50 text-gray-500 cursor-not-allowed border-dashed' : ''}`}
                           />
@@ -337,7 +337,7 @@ export default function AdminAbout() {
               <div>
                 <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
                   <h3 className="text-lg font-bold text-white">My Values</h3>
-                  <button type="button" onClick={() => addArrayItem('values', {title:'', description:'', icon_name:''})} className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded">Add Value</button>
+                  <button type="button" onClick={() => addArrayItem('values', { title: '', description: '', icon_name: '' })} className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded">Add Value</button>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
                   {formData.values?.map((item: any, i: number) => (
@@ -356,7 +356,7 @@ export default function AdminAbout() {
               <div>
                 <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
                   <h3 className="text-lg font-bold text-white">Currently Exploring</h3>
-                  <button type="button" onClick={() => addArrayItem('explorations', {category:'', title:'', link_url:''})} className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded">Add Item</button>
+                  <button type="button" onClick={() => addArrayItem('explorations', { category: '', title: '', link_url: '' })} className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded">Add Item</button>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
                   {formData.explorations?.map((item: any, i: number) => (
@@ -374,7 +374,7 @@ export default function AdminAbout() {
               <div>
                 <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
                   <h3 className="text-lg font-bold text-white">Story Timeline (Highlights)</h3>
-                  <button type="button" onClick={() => addArrayItem('highlights', {title:'', date:'', description:''})} className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded">Add Highlight</button>
+                  <button type="button" onClick={() => addArrayItem('highlights', { title: '', date: '', description: '' })} className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded">Add Highlight</button>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
                   {formData.highlights?.map((item: any, i: number) => (
