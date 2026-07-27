@@ -5,13 +5,14 @@ import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
 import { API_BASE_URL, getFileUrl } from '@/utils/urls';
 
 export default function AdminAbout() {
-  const refreshKey = useRealtimeRefresh('about');
   const [activeTab, setActiveTab] = useState('general');
   const [editId, setEditId] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<'draft' | 'published' | 'archived'>('draft');
   const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
   const skipNextAutoSave = useRef(false);
+
+  const refreshKey = useRealtimeRefresh('about', isLoaded);
 
   const initialFormState = {
     title: '', content: '', image_url: '',
