@@ -79,7 +79,9 @@ export default function AdminAbout() {
     });
   };
 
-  useEffect(() => { loadData(); }, [refreshKey]);
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const saveData = async (publish: boolean, dataToSave: any) => {
     // Clean temporary isHeroTitle flags before sending to database
