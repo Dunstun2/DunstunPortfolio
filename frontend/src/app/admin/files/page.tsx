@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { fetchApi } from '@/utils/api';
+import { API_BASE_URL, getFileUrl } from '@/utils/urls';
 
 interface MediaFile {
   id: string;
@@ -69,7 +70,7 @@ export default function FileManagerPage() {
     try {
       // Remove Content-Type so the browser sets it automatically with the boundary for FormData
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/media', {
+      const res = await fetch(`${API_BASE_URL}/media`, {
         method: 'POST',
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: formData,
@@ -371,7 +372,7 @@ export default function FileManagerPage() {
                 <div key={file.id} className="bg-gray-800 border border-gray-700 rounded-lg p-3 group relative hover:border-primary/50 transition-all">
                   <div className="aspect-square mb-3 bg-gray-900 rounded-md flex items-center justify-center overflow-hidden">
                     {file.mime_type.startsWith('image/') ? (
-                      <img src={`http://localhost:5000${file.file_path}`} alt={file.file_name} className="w-full h-full object-cover" />
+                      <img src={getFileUrl(file.file_path)} alt={file.file_name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="text-4xl text-gray-600">
                         {file.file_name.endsWith('.pdf') ? '📄' : file.file_name.endsWith('.doc') || file.file_name.endsWith('.docx') ? '📝' : '📁'}
@@ -388,7 +389,7 @@ export default function FileManagerPage() {
                   {/* Actions overlay */}
                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col space-y-1">
                     <button 
-                      onClick={() => window.open(`http://localhost:5000${file.file_path}`, '_blank')}
+                      onClick={() => window.open(getFileUrl(file.file_path), '_blank')}
                       className="bg-gray-900/80 text-white p-1.5 rounded-md hover:bg-primary transition-colors"
                       title="View/Download"
                     >

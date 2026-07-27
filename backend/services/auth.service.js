@@ -7,8 +7,9 @@ const emailService = require('./email.service');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_for_development';
 
-// In-memory store for reset tokens (in production, use a database table or Redis)
-const resetTokens = new Map();
+// In-memory store for reset codes (in production, use a database table or Redis)
+// key: email, value: { code, userId, expires }
+const resetCodes = new Map();
 
 class AuthService {
   async login(email, password) {
@@ -115,27 +116,28 @@ class AuthService {
     const user = await User.findOne({ where: { email } });
     if (!user) {
       // Don't reveal whether the email exists
-      return { message: 'If that email exists, a reset link has been sent.' };
+      return { message: 'If that email exists, a reset code has been sent.' };
     }
 
-    const token = crypto.randomBytes(32).toString('hex');
-    resetTokens.set(token, { userId: user.id, expires: Date.now() + 3600000 }); // 1 hour
+    // Generate a 6-digit numeric code
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    resetCodes.set(email.toLowerCase(), { code, userId: user.id, expires: Date.now() + 3600000 }); // 1 hour
 
-    // Send email with reset token
-    await emailService.sendPasswordResetEmail(email, token, user.name);
+    // Send email with reset code
+    await emailService.sendPasswordResetEmail(email, code, user.name);
 
-    return { message: 'If that email exists, a reset link has been sent.' };
+    return { message: 'If that email exists, a reset code has been sent.' };
   }
 
-  async resetPassword(token, newPassword) {
-    const entry = resetTokens.get(token);
-    if (!entry) {
-      throw new AppError('Invalid or expired reset token', 400);
+  async resetPassword(email, code, newPassword) {
+    const entry = resetCodes.get(email.toLowerCase());
+    if (!entry || entry.code !== code) {
+      throw new AppError('Invalid or expired reset code', 400);
     }
 
     if (Date.now() > entry.expires) {
-      resetTokens.delete(token);
-      throw new AppError('Reset token has expired', 400);
+      resetCodes.delete(email.toLowerCase());
+      throw new AppError('Reset code has expired', 400);
     }
 
     if (newPassword.length < 6) {
@@ -150,7 +152,7 @@ class AuthService {
     user.password_hash = await bcrypt.hash(newPassword, 10);
     await user.save();
 
-    resetTokens.delete(token);
+    resetCodes.delete(email.toLowerCase());
 
     return { message: 'Password has been reset successfully' };
   }

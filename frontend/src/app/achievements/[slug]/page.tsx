@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { fetchApi } from '@/utils/api';
+import { getFileUrl } from '@/utils/urls';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -215,7 +216,7 @@ export default function AchievementDetail() {
               <div className="bg-gray-800 rounded-lg p-6">
                 <h3 className="text-lg font-bold mb-3">Certificate</h3>
                 <a
-                  href={item.certificate_file.startsWith('http') ? item.certificate_file : `http://localhost:5000${item.certificate_file}`}
+                  href={getFileUrl(item.certificate_file)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-3 bg-primary hover:bg-primary/90 rounded-lg text-white font-medium transition"

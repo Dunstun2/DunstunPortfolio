@@ -25,13 +25,13 @@ const authLimiter = rateLimit({
   skipSuccessfulRequests: false,
 });
 
-// Medium rate limiter for password reset - 3 attempts per hour
+// Medium rate limiter for password reset - 10 attempts per 15 minutes
 const passwordResetLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3,
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
   message: {
     success: false,
-    message: 'Too many password reset attempts, please try again after 1 hour.',
+    message: 'Too many password reset attempts, please try again after 15 minutes.',
   },
   standardHeaders: true,
   legacyHeaders: false,

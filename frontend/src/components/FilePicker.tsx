@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchApi } from '@/utils/api';
+import { getFileUrl } from '@/utils/urls';
 
 interface MediaFile {
   id: string;
@@ -151,12 +152,12 @@ export default function FilePicker({ onSelect, onCancel }: FilePickerProps) {
                 {files.map(file => (
                   <div 
                     key={file.id} 
-                    onClick={() => onSelect(`http://localhost:5000${file.file_path}`)}
+                    onClick={() => onSelect(getFileUrl(file.file_path))}
                     className="bg-gray-800 border border-gray-700 rounded-lg p-3 cursor-pointer hover:border-primary group transition-all"
                   >
                     <div className="aspect-square mb-2 bg-gray-900 rounded flex items-center justify-center overflow-hidden">
                       {file.mime_type.startsWith('image/') ? (
-                        <img src={`http://localhost:5000${file.file_path}`} alt={file.file_name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                        <img src={getFileUrl(file.file_path)} alt={file.file_name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                       ) : (
                         <div className="text-3xl text-gray-600">
                           {file.file_name.endsWith('.pdf') ? '📄' : '📝'}

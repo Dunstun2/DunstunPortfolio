@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
+import { API_BASE_URL, getFileUrl } from '@/utils/urls';
 
 const DEFAULT_CATEGORIES = [
   'Software Development',
@@ -70,14 +71,14 @@ export default function AdminProjects() {
     uploadData.append('file', file);
     uploadData.append('folder', '/projects');
     const token = localStorage.getItem('token');
-    const res = await fetch('http://localhost:5000/api/media', {
+    const res = await fetch(`${API_BASE_URL}/media`, {
       method: 'POST',
       headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: uploadData,
     });
     if (!res.ok) throw new Error('Upload failed');
     const resData = await res.json();
-    return `http://localhost:5000${resData.data.file_path}`;
+    return getFileUrl(resData.data.file_path);
   };
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

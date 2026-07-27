@@ -46,8 +46,8 @@ class AuthController {
   });
 
   resetPassword = asyncHandler(async (req, res) => {
-    const { token, newPassword } = req.body;
-    const result = await authService.resetPassword(token, newPassword);
+    const { email, code, newPassword } = req.body;
+    const result = await authService.resetPassword(email, code, newPassword);
 
     return res.json({ success: true, data: result });
   });

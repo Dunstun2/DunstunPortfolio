@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
+import { API_BASE_URL, getFileUrl } from '@/utils/urls';
 
 export default function AdminAbout() {
   const refreshKey = useRealtimeRefresh('about');
@@ -31,7 +32,7 @@ export default function AdminAbout() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/media', {
+      const res = await fetch(`${API_BASE_URL}/media`, {
         method: 'POST',
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: uploadData,
@@ -41,7 +42,7 @@ export default function AdminAbout() {
       const resData = await res.json();
       
       const filePath = resData.data.file_path;
-      const fullUrl = `http://localhost:5000${filePath}`;
+      const fullUrl = getFileUrl(filePath);
       
       setFormData((prev: any) => ({ ...prev, [fieldName]: fullUrl }));
     } catch (error) {

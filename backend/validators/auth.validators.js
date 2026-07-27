@@ -56,8 +56,14 @@ const forgotPasswordSchema = {
 
 const resetPasswordSchema = {
   body: Joi.object({
-    token: Joi.string().required().messages({
-      'any.required': 'Reset token is required',
+    email: Joi.string().email().required().messages({
+      'string.email': 'Please provide a valid email address',
+      'any.required': 'Email is required',
+    }),
+    code: Joi.string().length(6).pattern(/^\d+$/).required().messages({
+      'string.length': 'Reset code must be 6 digits',
+      'string.pattern.base': 'Reset code must be numeric',
+      'any.required': 'Reset code is required',
     }),
     newPassword: Joi.string().min(6).max(100).required().messages({
       'string.min': 'New password must be at least 6 characters',

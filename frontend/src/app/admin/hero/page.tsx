@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
+import { API_BASE_URL, getFileUrl } from '@/utils/urls';
 import FilePicker from '@/components/FilePicker';
 
 const emptyForm = {
@@ -343,14 +344,14 @@ export default function AdminHero() {
                             const uploadPromises = Array.from(e.target.files).map(async (file) => {
                               const fd = new FormData();
                               fd.append('file', file);
-                              const res = await fetch('http://localhost:5000/api/media', {
+                              const res = await fetch(`${API_BASE_URL}/media`, {
                                 method: 'POST',
                                 headers: { 'Authorization': `Bearer ${token}` },
                                 body: fd
                               });
                               const data = await res.json();
                               if (data.success) {
-                                return `http://localhost:5000${data.data.file_path}`;
+                                return getFileUrl(data.data.file_path);
                               } else {
                                 alert(data.message || 'Upload failed');
                               }
@@ -687,7 +688,7 @@ export default function AdminHero() {
                                       body: JSON.stringify({ url: img.url })
                                     });
                                     if (res.success) {
-                                      const fullUrl = `http://localhost:5000${res.data.file_path}`;
+                                      const fullUrl = getFileUrl(res.data.file_path);
                                       handleFieldChange('bg_image_url', fullUrl);
                                       // Refresh media list to show the newly downloaded image in the uploads gallery
                                       fetchApi('/media').then(mediaRes => {
@@ -727,7 +728,7 @@ export default function AdminHero() {
                         <p className="text-xs text-gray-500 mb-3">Images you have previously uploaded.</p>
                         <div className="grid grid-cols-4 gap-3">
                           {mediaFiles.map((img: any) => {
-                            const fullUrl = `http://localhost:5000${img.file_path}`;
+                            const fullUrl = getFileUrl(img.file_path);
                             const isSelected = formData.bg_image_url === fullUrl;
                             return (
                               <div
@@ -752,7 +753,7 @@ export default function AdminHero() {
                     <div className="mt-4 pt-4 border-t border-gray-700">
                       <label className="block text-sm mb-2 text-gray-400 font-medium">Upload New Background</label>
                       <div className="flex items-center gap-3">
-                        {formData.bg_image_url && !formData.bg_image_url.startsWith('/system-images') && !mediaFiles.some(m => `http://localhost:5000${m.file_path}` === formData.bg_image_url) && (
+                        {formData.bg_image_url && !formData.bg_image_url.startsWith('/system-images') && !mediaFiles.some(m => getFileUrl(m.file_path) === formData.bg_image_url) && (
                           <div className="w-16 h-10 rounded overflow-hidden border border-gray-600 flex-shrink-0">
                             <img src={formData.bg_image_url} alt="Current BG" className="w-full h-full object-cover" />
                           </div>
@@ -769,14 +770,14 @@ export default function AdminHero() {
                               const uploadPromises = Array.from(e.target.files).map(async (file) => {
                                 const fd = new FormData();
                                 fd.append('file', file);
-                                const res = await fetch('http://localhost:5000/api/media', {
+                                const res = await fetch(`${API_BASE_URL}/media`, {
                                   method: 'POST',
                                   headers: { 'Authorization': `Bearer ${token}` },
                                   body: fd
                                 });
                                 const data = await res.json();
                                 if (data.success) {
-                                  return `http://localhost:5000${data.data.file_path}`;
+                                  return getFileUrl(data.data.file_path);
                                 } else {
                                   alert(data.message || 'Upload failed');
                                 }

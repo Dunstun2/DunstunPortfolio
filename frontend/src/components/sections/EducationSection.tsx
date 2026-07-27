@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
+import { getFileUrl } from '@/utils/urls';
 
 export default function EducationSection({ variant = 'full' }: { variant?: 'full' | 'highlights' }) {
   const [education, setEducation] = useState<any[]>([]);
@@ -120,7 +121,7 @@ export default function EducationSection({ variant = 'full' }: { variant?: 'full
                 <div className="flex items-center gap-4 mb-4">
                   {edu.institution_logo && (
                     <img
-                      src={edu.institution_logo.startsWith('http') ? edu.institution_logo : `http://localhost:5000${edu.institution_logo}`}
+                      src={getFileUrl(edu.institution_logo)}
                       alt={`${edu.institution} logo`}
                       className="w-12 h-12 md:w-14 md:h-14 rounded-xl object-contain bg-white/10 p-1.5 border border-text-light/10 flex-shrink-0"
                     />

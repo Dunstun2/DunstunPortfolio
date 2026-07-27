@@ -4,8 +4,13 @@ const logger = require('../config/logger');
 class EmailService {
   constructor() {
     this.transporter = null;
-    this.from = process.env.EMAIL_FROM || 'noreply@portfolio.com';
     this.initialized = false;
+  }
+
+  get from() {
+    const name = process.env.SENDER_NAME || 'Portfolio Admin';
+    const email = process.env.SENDER_EMAIL || process.env.SMTP_USER || 'noreply@portfolio.com';
+    return `"${name}" <${email}>`;
   }
 
   async initialize() {
@@ -29,7 +34,7 @@ class EmailService {
           secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
           auth: {
             user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASSWORD,
+            pass: process.env.SMTP_PASS || process.env.SMTP_PASSWORD,
           },
         });
       } else {
@@ -58,27 +63,25 @@ class EmailService {
     }
   }
 
-  async sendPasswordResetEmail(email, token, userName) {
+  async sendPasswordResetEmail(email, code, userName) {
     await this.initialize();
 
     if (!this.transporter) {
-      logger.error('Email service not available. Token:', token);
+      logger.error('Email service not available. Code:', code);
       // Fallback to console logging
       console.log('===========================================');
-      console.log('PASSWORD RESET TOKEN (copy this):');
-      console.log(token);
+      console.log('PASSWORD RESET CODE:');
+      console.log(code);
       console.log('For user:', email);
       console.log('Expires in 1 hour.');
       console.log('===========================================');
       return false;
     }
 
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/reset-password?token=${token}`;
-
     const mailOptions = {
-      from: `"Portfolio Admin" <${this.from}>`,
+      from: this.from,
       to: email,
-      subject: 'Password Reset Request',
+      subject: `${code} is your password reset code`,
       html: `
 <!DOCTYPE html>
 <html>
@@ -86,52 +89,48 @@ class EmailService {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; }
     .container { max-width: 600px; margin: 0 auto; padding: 20px; }
     .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-    .button { display: inline-block; padding: 15px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0; }
-    .token-box { background: #fff; border: 2px dashed #667eea; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 14px; word-break: break-all; margin: 20px 0; }
-    .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
-    .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 5px; }
+    .content { background: #ffffff; padding: 30px; border-radius: 0 0 10px 10px; }
+    .code-box { background: #f0f4ff; border: 2px solid #667eea; padding: 20px; border-radius: 10px; text-align: center; margin: 25px 0; }
+    .code-digits { font-family: 'Courier New', monospace; font-size: 42px; font-weight: bold; letter-spacing: 12px; color: #333; }
+    .footer { text-align: center; margin-top: 20px; color: #999; font-size: 12px; }
+    .warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 5px; font-size: 14px; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1 style="margin: 0;">🔐 Password Reset Request</h1>
+      <h1 style="margin: 0; font-size: 24px;">🔐 Password Reset</h1>
     </div>
     <div class="content">
       <p>Hi <strong>${userName}</strong>,</p>
       
-      <p>We received a request to reset your password for your admin account. Click the button below to set a new password:</p>
+      <p>We received a request to reset your password. Enter this code on the reset page:</p>
       
-      <div style="text-align: center;">
-        <a href="${resetUrl}" class="button">Reset Password</a>
+      <div class="code-box">
+        <div class="code-digits">${code}</div>
+        <p style="margin: 10px 0 0; color: #666; font-size: 14px;">Your verification code</p>
       </div>
-      
-      <p>Or copy and paste this link into your browser:</p>
-      <div class="token-box">${resetUrl}</div>
       
       <div class="warning">
         <strong>⚠️ Important:</strong>
         <ul style="margin: 10px 0; padding-left: 20px;">
-          <li>This link expires in <strong>1 hour</strong></li>
+          <li>This code expires in <strong>1 hour</strong></li>
           <li>If you didn't request this, please ignore this email</li>
-          <li>Your password won't change until you create a new one</li>
+          <li>Never share this code with anyone</li>
         </ul>
       </div>
       
-      <p style="margin-top: 30px;">Need help? Reply to this email and we'll assist you.</p>
-      
-      <p style="margin-top: 20px;">
+      <p style="margin-top: 30px;">
         Best regards,<br>
-        <strong>Portfolio Admin Team</strong>
+        <strong>${process.env.SENDER_NAME || 'Portfolio Admin'}</strong>
       </p>
     </div>
     <div class="footer">
-      <p>This is an automated email. Please do not reply directly to this message.</p>
-      <p>© ${new Date().getFullYear()} Portfolio Admin. All rights reserved.</p>
+      <p>This is an automated email. Please do not reply directly.</p>
+      <p>&copy; ${new Date().getFullYear()} Portfolio Admin. All rights reserved.</p>
     </div>
   </div>
 </body>
@@ -140,17 +139,18 @@ class EmailService {
       text: `
 Hi ${userName},
 
-We received a request to reset your password for your admin account.
+We received a request to reset your password.
 
-Reset your password by visiting this link:
-${resetUrl}
+Your password reset code is: ${code}
 
-This link expires in 1 hour.
+Enter this code on the password reset page.
 
-If you didn't request this, please ignore this email. Your password won't change until you create a new one.
+This code expires in 1 hour.
+
+If you didn't request this, please ignore this email.
 
 Best regards,
-Portfolio Admin Team
+${process.env.SENDER_NAME || 'Portfolio Admin'}
       `,
     };
 
@@ -171,8 +171,8 @@ Portfolio Admin Team
       logger.error('Failed to send email:', error);
       // Fallback to console logging
       console.log('===========================================');
-      console.log('EMAIL SEND FAILED - PASSWORD RESET TOKEN:');
-      console.log(token);
+      console.log('EMAIL SEND FAILED - PASSWORD RESET CODE:');
+      console.log(code);
       console.log('For user:', email);
       console.log('===========================================');
       return false;
@@ -190,7 +190,7 @@ Portfolio Admin Team
     const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/login`;
 
     const mailOptions = {
-      from: `"Portfolio Admin" <${this.from}>`,
+      from: this.from,
       to: email,
       subject: 'Welcome to Portfolio Admin',
       html: `

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
+import { getFileUrl } from '@/utils/urls';
 import Link from 'next/link';
 
 export default function ExperiencePage() {
@@ -141,7 +142,7 @@ export default function ExperiencePage() {
                   <div className="flex items-center gap-4 mb-6">
                     {exp.company_logo && (
                       <img
-                        src={exp.company_logo.startsWith('http') ? exp.company_logo : `http://localhost:5000${exp.company_logo}`}
+                        src={getFileUrl(exp.company_logo)}
                         alt={`${exp.company} logo`}
                         className="w-16 h-16 rounded-xl object-contain bg-white/10 p-2 border border-text-light/10"
                       />

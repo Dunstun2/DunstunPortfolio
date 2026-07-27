@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
+import { API_BASE_URL, getFileUrl } from '@/utils/urls';
 import Link from 'next/link';
 
 export default function TestimonialsSection() {
@@ -47,13 +48,13 @@ export default function TestimonialsSection() {
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/media`, {
+      const res = await fetch(`${API_BASE_URL}/media`, {
         method: 'POST',
         body: fd,
       });
       const json = await res.json();
       const url = json.success && json.data?.file_path
-        ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${json.data.file_path}`
+        ? getFileUrl(json.data.file_path)
         : null;
       if (url) {
         setFormData(prev => ({ ...prev, avatar_url: url }));

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
+import { getFileUrl } from '@/utils/urls';
 import Link from 'next/link';
 
 // Utility function to strip HTML tags
@@ -209,7 +210,7 @@ export default function EducationPage() {
                   <div className="flex items-center gap-4 mb-6">
                     {edu.institution_logo && (
                       <img
-                        src={edu.institution_logo.startsWith('http') ? edu.institution_logo : `http://localhost:5000${edu.institution_logo}`}
+                        src={getFileUrl(edu.institution_logo)}
                         alt={`${edu.institution} logo`}
                         className="w-16 h-16 rounded-xl object-contain bg-white/10 p-2 border border-text-light/10"
                       />
