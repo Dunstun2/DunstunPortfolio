@@ -92,10 +92,17 @@ export default function AdminAccount() {
       return;
     }
 
+    if (!selectedAdmin) return;
+
     try {
-      const res = await fetchApi('/auth/change-password', {
+      // Admin can change any account's password
+      const res = await fetchApi('/auth/admin-change-password', {
         method: 'PUT',
-        body: JSON.stringify({ currentPassword, newPassword }),
+        body: JSON.stringify({
+          adminId: selectedAdmin.id,
+          currentPassword,
+          newPassword,
+        }),
       });
       setPwMessage(res.data?.message || 'Password changed successfully!');
       setCurrentPassword('');
@@ -229,8 +236,8 @@ export default function AdminAccount() {
             <div
               key={admin.id}
               className={`flex items-center justify-between p-4 rounded-xl border transition-all ${admin.id === currentUser?.id
-                  ? 'bg-primary/10 border-primary/30'
-                  : 'bg-gray-800/50 border-gray-700'
+                ? 'bg-primary/10 border-primary/30'
+                : 'bg-gray-800/50 border-gray-700'
                 }`}
             >
               <div className="flex items-center gap-4">
@@ -259,12 +266,7 @@ export default function AdminAccount() {
               <div className="flex gap-2">
                 <button
                   onClick={() => openPasswordModal(admin)}
-                  disabled={admin.id !== currentUser?.id}
-                  className={`px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-1.5 transition ${admin.id === currentUser?.id
-                      ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
-                      : 'bg-gray-700/50 text-gray-500 cursor-not-allowed'
-                    }`}
-                  title={admin.id !== currentUser?.id ? 'You can only change your own password' : ''}
+                  className="px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-1.5 transition bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -276,7 +278,7 @@ export default function AdminAccount() {
                   </svg>
                   Change Password
                 </button>
-                {!admin.isFallback && admin.id !== currentUser?.id && (
+                {!admin.isFallback && (
                   <button
                     onClick={() => openDeleteModal(admin)}
                     className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition font-semibold text-sm flex items-center gap-1.5"
@@ -302,7 +304,9 @@ export default function AdminAccount() {
       {showPasswordModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="glass max-w-md w-full p-6 rounded-2xl border border-white/10 shadow-2xl">
-            <h3 className="text-xl font-bold mb-4">Change Password</h3>
+            <h3 className="text-xl font-bold mb-4">
+              Change Password for {selectedAdmin?.name}
+            </h3>
 
             {pwMessage && (
               <div className="mb-4 p-3 bg-green-500/20 text-green-400 rounded border border-green-800">
@@ -317,22 +321,27 @@ export default function AdminAccount() {
 
             <form onSubmit={handleChangePassword} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold mb-2">Current Password</label>
+                <label className="block text-sm font-semibold mb-2">Your Current Password (for verification)</label>
                 <input
                   required
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter your admin password"
                   className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-primary"
                 />
+                <p className="text-xs text-text-light/50 mt-1">
+                  Enter your own password to verify you have permission to make this change
+                </p>
               </div>
               <div>
-                <label className="block text-sm font-semibold mb-2">New Password</label>
+                <label className="block text-sm font-semibold mb-2">New Password for {selectedAdmin?.name}</label>
                 <input
                   required
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password (min 6 characters)"
                   className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-primary"
                   minLength={6}
                 />
@@ -344,6 +353,7 @@ export default function AdminAccount() {
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter new password"
                   className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-primary"
                   minLength={6}
                 />

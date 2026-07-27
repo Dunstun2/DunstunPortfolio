@@ -233,6 +233,34 @@ class AuthService {
 
     return { message: 'Admin account deleted successfully' };
   }
+
+  async adminChangePassword(currentAdminId, currentPassword, targetAdminId, newPassword) {
+    // Verify the current admin's password first
+    const isValidPassword = await this.verifyPassword(currentAdminId, currentPassword);
+    if (!isValidPassword) {
+      throw new AppError('Current password is incorrect', 401);
+    }
+
+    if (newPassword.length < 6) {
+      throw new AppError('New password must be at least 6 characters', 400);
+    }
+
+    // Handle fallback admin
+    if (targetAdminId === 0) {
+      throw new AppError('Cannot change the default admin password. Create a new admin account instead.', 400);
+    }
+
+    // Change the target admin's password
+    const targetUser = await User.findByPk(targetAdminId);
+    if (!targetUser) {
+      throw new AppError('Target admin not found', 404);
+    }
+
+    targetUser.password_hash = await bcrypt.hash(newPassword, 10);
+    await targetUser.save();
+
+    return { message: `Password updated successfully for ${targetUser.name}` };
+  }
 }
 
 module.exports = new AuthService();

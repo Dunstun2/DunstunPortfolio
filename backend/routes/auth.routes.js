@@ -22,6 +22,7 @@ router.post('/reset-password', passwordResetLimiter, validate(resetPasswordSchem
 router.get('/me', authMiddleware, authController.me);
 router.get('/admins', authMiddleware, authController.getAllAdmins);
 router.put('/change-password', authMiddleware, validate(changePasswordSchema), authController.changePassword);
+router.put('/admin-change-password', authMiddleware, authController.adminChangePassword);
 router.post('/register', authMiddleware, validate(registerSchema), authController.register);
 router.post('/verify-password', authMiddleware, authController.verifyPassword);
 router.delete('/admin/:id', authMiddleware, authController.deleteAdmin);

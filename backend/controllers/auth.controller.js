@@ -80,6 +80,21 @@ class AuthController {
       data: result
     });
   });
+
+  adminChangePassword = asyncHandler(async (req, res) => {
+    const { adminId, currentPassword, newPassword } = req.body;
+    const result = await authService.adminChangePassword(
+      req.user.id,
+      currentPassword,
+      adminId,
+      newPassword
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: result
+    });
+  });
 }
 
 module.exports = new AuthController();
