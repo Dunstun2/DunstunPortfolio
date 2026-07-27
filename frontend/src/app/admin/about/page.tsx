@@ -10,7 +10,6 @@ export default function AdminAbout() {
   const [editId, setEditId] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<'draft' | 'published' | 'archived'>('draft');
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
   const skipNextAutoSave = useRef(false);
 
@@ -104,23 +103,18 @@ export default function AdminAbout() {
 
   useEffect(() => {
     if (!isLoaded) return;
-    
+
     if (skipNextAutoSave.current) {
       skipNextAutoSave.current = false;
       return;
     }
-    
-    setSaveStatus('saving');
-    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
-    
+
     autoSaveTimer.current = setTimeout(() => {
       saveData(false, formData)
-        .then(() => setSaveStatus('saved'))
         .catch((err) => {
           console.error(err);
-          setSaveStatus('idle');
         });
-    }, 1000);
+    }, 60000);
   }, [formData]);
 
   const handlePublish = async (e: React.MouseEvent) => {
@@ -220,10 +214,6 @@ export default function AdminAbout() {
       <div className="bg-gray-800 rounded-lg mb-12 border border-gray-700 overflow-hidden">
         <div className="p-6 border-b border-gray-700 flex justify-between items-center">
           <h2 className="text-xl font-bold">Edit About Page</h2>
-          <div className="flex items-center gap-4">
-            {saveStatus === 'saving' && <span className="text-sm text-yellow-400 animate-pulse">Saving changes...</span>}
-            {saveStatus === 'saved' && <span className="text-sm text-green-400">✓ All changes saved live</span>}
-          </div>
         </div>
 
         <div className="flex border-b border-gray-700 overflow-x-auto">
@@ -470,11 +460,10 @@ export default function AdminAbout() {
           <div className="pt-6 border-t border-gray-700 mt-6">
             <div className="flex items-center gap-3 mb-4">
               <span className="text-sm text-gray-400">Current Status:</span>
-              <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                currentStatus === 'published' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+              <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${currentStatus === 'published' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
                 currentStatus === 'archived' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                'bg-gray-500/20 text-gray-400 border border-gray-500/30'
-              }`}>
+                  'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                }`}>
                 {currentStatus === 'published' ? '● Published' : currentStatus === 'archived' ? '● Archived' : '● Draft'}
               </span>
             </div>
