@@ -195,8 +195,8 @@ class AuthService {
 
     // Get all users from database
     const dbAdmins = await User.findAll({
-      attributes: ['id', 'name', 'email', 'role', 'createdAt'],
-      order: [['createdAt', 'DESC']],
+      attributes: ['id', 'name', 'email', 'role', 'created_at'],
+      order: [['created_at', 'DESC']],
     });
 
     // Format and include fallback admin
@@ -205,7 +205,7 @@ class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
-      created_at: user.createdAt,
+      created_at: user.created_at,
       isFallback: false,
     }));
 
