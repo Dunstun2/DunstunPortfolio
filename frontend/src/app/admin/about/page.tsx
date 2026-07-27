@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
 import { API_BASE_URL, getFileUrl } from '@/utils/urls';
@@ -8,6 +8,10 @@ export default function AdminAbout() {
   const refreshKey = useRealtimeRefresh('about');
   const [activeTab, setActiveTab] = useState('general');
   const [editId, setEditId] = useState('');
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
+  const skipNextAutoSave = useRef(false);
 
   const initialFormState = {
     title: '', content: '', image_url: '',
@@ -56,7 +60,9 @@ export default function AdminAbout() {
 
   const loadData = () => {
     Promise.all([
-      fetchApi('/about/published'),
+      fetchApi('/about').then(res => {
+        return { data: res.data && res.data.length > 0 ? res.data[0] : null };
+      }),
       fetchApi('/hero/published').catch(err => {
         console.warn('Could not fetch hero data:', err);
         return { data: null };
@@ -65,25 +71,63 @@ export default function AdminAbout() {
       if (aboutRes.data) {
         startEdit(aboutRes.data, heroRes.data);
       }
-    }).catch(console.error);
+      setIsLoaded(true);
+    }).catch(err => {
+      console.error(err);
+      setIsLoaded(true);
+    });
   };
 
   useEffect(() => { loadData(); }, [refreshKey]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const saveData = async (publish: boolean, dataToSave: any) => {
+    // Clean temporary isHeroTitle flags before sending to database
+    const cleanedCards = (dataToSave.identity_cards || []).map(({ isHeroTitle, ...card }: any) => card);
+    const cleanedFormData = { ...dataToSave, identity_cards: cleanedCards };
+    let currentId = editId;
+
+    if (currentId) {
+      await fetchApi(`/about/${currentId}`, { method: 'PUT', body: JSON.stringify(cleanedFormData) });
+    } else {
+      const res = await fetchApi('/about', { method: 'POST', body: JSON.stringify(cleanedFormData) });
+      if (res.data && res.data.id) {
+        currentId = res.data.id;
+        setEditId(currentId);
+      }
+    }
+
+    if (publish && currentId) {
+      await fetchApi(`/about/${currentId}/status`, { method: 'PUT', body: JSON.stringify({ status: 'published' }) });
+    }
+  };
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    
+    if (skipNextAutoSave.current) {
+      skipNextAutoSave.current = false;
+      return;
+    }
+    
+    setSaveStatus('saving');
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    
+    autoSaveTimer.current = setTimeout(() => {
+      saveData(false, formData)
+        .then(() => setSaveStatus('saved'))
+        .catch((err) => {
+          console.error(err);
+          setSaveStatus('idle');
+        });
+    }, 1000);
+  }, [formData]);
+
+  const handlePublish = async (e: React.MouseEvent) => {
     e.preventDefault();
     try {
-      // Clean temporary isHeroTitle flags before sending to database
-      const cleanedCards = formData.identity_cards.map(({ isHeroTitle, ...card }: any) => card);
-      const cleanedFormData = { ...formData, identity_cards: cleanedCards };
-
-      if (editId) {
-        await fetchApi(`/about/${editId}`, { method: 'PUT', body: JSON.stringify(cleanedFormData) });
-      } else {
-        await fetchApi('/about', { method: 'POST', body: JSON.stringify({ ...cleanedFormData, status: 'published' }) });
-      }
+      await saveData(true, formData);
       loadData();
-      alert('Saved successfully!');
+      alert('Saved and published successfully!');
     } catch (err) { console.error(err); }
   };
 
@@ -127,6 +171,7 @@ export default function AdminAbout() {
 
     sanitizedItem.identity_cards = mergedCards;
 
+    skipNextAutoSave.current = true;
     setFormData({ ...initialFormState, ...sanitizedItem });
     setEditId(item.id);
   };
@@ -161,6 +206,10 @@ export default function AdminAbout() {
       <div className="bg-gray-800 rounded-lg mb-12 border border-gray-700 overflow-hidden">
         <div className="p-6 border-b border-gray-700 flex justify-between items-center">
           <h2 className="text-xl font-bold">Edit About Page</h2>
+          <div className="flex items-center gap-4">
+            {saveStatus === 'saving' && <span className="text-sm text-yellow-400 animate-pulse">Saving changes...</span>}
+            {saveStatus === 'saved' && <span className="text-sm text-green-400">✓ All changes saved live</span>}
+          </div>
         </div>
 
         <div className="flex border-b border-gray-700 overflow-x-auto">
@@ -175,16 +224,19 @@ export default function AdminAbout() {
           ))}
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={(e) => e.preventDefault()} className="p-6 space-y-6">
 
           {/* GENERAL TAB */}
           <div className={activeTab === 'general' ? 'block' : 'hidden'}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-sm mb-1 text-gray-400">Profile Image URL (Home section)</label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
+                  {formData.image_url && (
+                    <img src={formData.image_url} alt="Preview" className="w-10 h-10 rounded object-cover border border-gray-700 bg-gray-800 shrink-0" />
+                  )}
                   <input type="text" value={formData.image_url} onChange={e => setFormData({ ...formData, image_url: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
-                  <label className="cursor-pointer bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors whitespace-nowrap flex items-center justify-center">
+                  <label className="cursor-pointer bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors whitespace-nowrap flex items-center justify-center shrink-0">
                     {uploadingImage === 'image_url' ? 'Uploading...' : 'Upload'}
                     <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'image_url')} />
                   </label>
@@ -199,9 +251,12 @@ export default function AdminAbout() {
               </div>
               <div>
                 <label className="block text-sm mb-1 text-gray-400">Hero Media URL (Image or Video Background)</label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
+                  {formData.hero_image_url && formData.hero_image_url.match(/\.(jpeg|jpg|gif|png|webp)$/i) && (
+                    <img src={formData.hero_image_url} alt="Preview" className="w-10 h-10 rounded object-cover border border-gray-700 bg-gray-800 shrink-0" />
+                  )}
                   <input type="text" value={formData.hero_image_url} onChange={e => setFormData({ ...formData, hero_image_url: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
-                  <label className="cursor-pointer bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors whitespace-nowrap flex items-center justify-center">
+                  <label className="cursor-pointer bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors whitespace-nowrap flex items-center justify-center shrink-0">
                     {uploadingImage === 'hero_image_url' ? 'Uploading...' : 'Upload'}
                     <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleImageUpload(e, 'hero_image_url')} />
                   </label>
@@ -263,9 +318,12 @@ export default function AdminAbout() {
                 </div>
                 <div>
                   <label className="block text-sm mb-1 text-gray-400">Drive Image URL</label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
+                    {formData.drive_image_url && (
+                      <img src={formData.drive_image_url} alt="Preview" className="w-10 h-10 rounded object-cover border border-gray-700 bg-gray-800 shrink-0" />
+                    )}
                     <input type="text" value={formData.drive_image_url} onChange={e => setFormData({ ...formData, drive_image_url: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
-                    <label className="cursor-pointer bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors whitespace-nowrap flex items-center justify-center">
+                    <label className="cursor-pointer bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors whitespace-nowrap flex items-center justify-center shrink-0">
                       {uploadingImage === 'drive_image_url' ? 'Uploading...' : 'Upload'}
                       <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'drive_image_url')} />
                     </label>
@@ -395,9 +453,9 @@ export default function AdminAbout() {
             </div>
           </div>
 
-          <div className="pt-6 border-t border-gray-700 mt-6">
-            <button type="submit" className="px-6 py-3 bg-primary rounded font-bold text-white hover:bg-blue-600 transition-colors w-full md:w-auto">
-              Save All Changes
+          <div className="pt-6 border-t border-gray-700 mt-6 flex flex-col sm:flex-row gap-4">
+            <button type="button" onClick={handlePublish} className="px-6 py-3 bg-primary rounded font-bold text-white hover:bg-blue-600 transition-colors w-full sm:w-auto">
+              Publish Changes
             </button>
           </div>
         </form>
