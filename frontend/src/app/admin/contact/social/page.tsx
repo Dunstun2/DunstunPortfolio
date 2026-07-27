@@ -98,7 +98,7 @@ export default function AdminSocialAccounts() {
     setMessage('Saving...');
     try {
       if (account.isNew) {
-        const { isNew, ...payload } = account;
+        const { isNew, id, ...payload } = account;
         const res = await fetchApi('/social', {
           method: 'POST',
           body: JSON.stringify(payload),
@@ -250,8 +250,8 @@ export default function AdminSocialAccounts() {
             <div
               key={account.id}
               className={`glass p-6 rounded-2xl border transition-all ${account.isNew
-                  ? 'border-primary/50 ring-1 ring-primary/20'
-                  : 'border-white/10'
+                ? 'border-primary/50 ring-1 ring-primary/20'
+                : 'border-white/10'
                 }`}
             >
               <div className="flex justify-between items-start mb-4">
@@ -339,40 +339,20 @@ export default function AdminSocialAccounts() {
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-2">
-                    Icon Class (Optional)
-                  </label>
+              <div className="flex items-start">
+                <label className="flex items-center gap-2 cursor-pointer">
                   <input
-                    type="text"
-                    value={account.icon_class}
+                    type="checkbox"
+                    checked={account.is_favorite}
                     onChange={(e) =>
-                      updateField(index, 'icon_class', e.target.value)
+                      updateField(index, 'is_favorite', e.target.checked)
                     }
-                    placeholder="e.g., fab fa-github"
-                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-primary"
+                    className="w-4 h-4"
                   />
-                  <p className="text-xs text-text-light/50 mt-1">
-                    FontAwesome or custom icon class
-                  </p>
-                </div>
-
-                <div className="flex items-end">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={account.is_favorite}
-                      onChange={(e) =>
-                        updateField(index, 'is_favorite', e.target.checked)
-                      }
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm font-semibold">
-                      Mark as Favorite (Priority Display)
-                    </span>
-                  </label>
-                </div>
+                  <span className="text-sm font-semibold">
+                    Mark as Favorite (Priority Display)
+                  </span>
+                </label>
               </div>
 
               {/* Preview */}
