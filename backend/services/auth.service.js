@@ -166,6 +166,23 @@ class AuthService {
       throw new AppError('Invalid token', 401);
     }
   }
+
+  async verifyPassword(userId, password) {
+    // Check if using fallback admin (id: 0)
+    if (userId === 0) {
+      const FALLBACK_ADMIN_PASSWORD = 'admin123456';
+      return password === FALLBACK_ADMIN_PASSWORD;
+    }
+
+    // Regular database user
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return false;
+    }
+
+    const isValid = await bcrypt.compare(password, user.password_hash);
+    return isValid;
+  }
 }
 
 module.exports = new AuthService();

@@ -22,5 +22,6 @@ router.post('/reset-password', passwordResetLimiter, validate(resetPasswordSchem
 router.get('/me', authMiddleware, authController.me);
 router.put('/change-password', authMiddleware, validate(changePasswordSchema), authController.changePassword);
 router.post('/register', authMiddleware, validate(registerSchema), authController.register);
+router.post('/verify-password', authMiddleware, authController.verifyPassword);
 
 module.exports = router;

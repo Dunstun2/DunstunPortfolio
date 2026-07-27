@@ -51,6 +51,16 @@ class AuthController {
 
     return res.json({ success: true, data: result });
   });
+
+  verifyPassword = asyncHandler(async (req, res) => {
+    const { password } = req.body;
+    const result = await authService.verifyPassword(req.user.id, password);
+
+    return res.status(200).json({
+      success: result,
+      message: result ? 'Password verified' : 'Incorrect password'
+    });
+  });
 }
 
 module.exports = new AuthController();

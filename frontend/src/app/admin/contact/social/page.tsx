@@ -8,6 +8,12 @@ export default function AdminSocialAccounts() {
   const [message, setMessage] = useState('');
   const [showFloater, setShowFloater] = useState(false);
 
+  // Delete confirmation dialog state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+
   useEffect(() => {
     loadData();
   }, []);
@@ -55,6 +61,16 @@ export default function AdminSocialAccounts() {
     return cleaned ? `https://wa.me/${cleaned}` : '';
   };
 
+  const ensureHttps = (url: string) => {
+    if (!url) return '';
+    // If it's already a full URL with protocol, return as-is
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    // Otherwise, add https://
+    return `https://${url}`;
+  };
+
   const addAccount = () => {
     setSocialAccounts([
       ...socialAccounts,
@@ -93,6 +109,8 @@ export default function AdminSocialAccounts() {
         setTimeout(() => setMessage(''), 3000);
         return;
       }
+      // Automatically add https:// if not present
+      account.url = ensureHttps(account.url);
     }
 
     setMessage('Saving...');
@@ -133,18 +151,60 @@ export default function AdminSocialAccounts() {
       setSocialAccounts(updated);
       return;
     }
-    if (!confirm('Delete this social link?')) return;
-    setMessage('Deleting...');
+    // Open delete confirmation dialog
+    setDeleteIndex(index);
+    setDeletePassword('');
+    setDeleteError('');
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletePassword) {
+      setDeleteError('Password is required');
+      return;
+    }
+
+    if (deleteIndex === null) return;
+
+    setMessage('Verifying password...');
     try {
+      // Verify password with backend
+      const verifyRes = await fetchApi('/auth/verify-password', {
+        method: 'POST',
+        body: JSON.stringify({ password: deletePassword }),
+      });
+
+      if (!verifyRes.success) {
+        setDeleteError('Incorrect password');
+        setMessage('');
+        return;
+      }
+
+      // Password verified, proceed with deletion
+      const account = socialAccounts[deleteIndex];
+      setMessage('Deleting...');
       await fetchApi(`/social/${account.id}`, { method: 'DELETE' });
+
       const updated = [...socialAccounts];
-      updated.splice(index, 1);
+      updated.splice(deleteIndex, 1);
       setSocialAccounts(updated);
-      setMessage('Deleted!');
+
+      setMessage('Social account deleted!');
+      setShowDeleteDialog(false);
+      setDeleteIndex(null);
+      setDeletePassword('');
       setTimeout(() => setMessage(''), 3000);
     } catch (err: any) {
-      setMessage(`Error: ${err.message}`);
+      setDeleteError(err.message || 'Failed to delete');
+      setMessage('');
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteDialog(false);
+    setDeleteIndex(null);
+    setDeletePassword('');
+    setDeleteError('');
   };
 
   return (
@@ -283,13 +343,17 @@ export default function AdminSocialAccounts() {
                     placeholder={
                       isWhatsApp(account.platform_name)
                         ? 'e.g., 0712345678 or +254712345678'
-                        : 'e.g., https://github.com/username'
+                        : 'e.g., github.com/username or https://github.com/username'
                     }
                     className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-primary"
                   />
-                  {isWhatsApp(account.platform_name) && (
+                  {isWhatsApp(account.platform_name) ? (
                     <p className="text-xs text-green-400 mt-1">
                       WhatsApp link will be auto-generated
+                    </p>
+                  ) : (
+                    <p className="text-xs text-text-light/50 mt-1">
+                      https:// will be added automatically if not provided
                     </p>
                   )}
                 </div>
@@ -322,7 +386,7 @@ export default function AdminSocialAccounts() {
                       href={
                         isWhatsApp(account.platform_name)
                           ? buildWhatsAppUrl(account.url)
-                          : account.url
+                          : ensureHttps(account.url)
                       }
                       target="_blank"
                       rel="noopener noreferrer"
@@ -429,6 +493,90 @@ export default function AdminSocialAccounts() {
           </li>
         </ul>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteDialog && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass max-w-md w-full p-6 rounded-2xl border border-white/10 shadow-2xl animate-fade-in">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-heading-light mb-2">Confirm Deletion</h3>
+                <p className="text-sm text-text-light/70 mb-1">
+                  You are about to delete{' '}
+                  <span className="font-semibold text-primary">
+                    {deleteIndex !== null ? socialAccounts[deleteIndex]?.platform_name : ''}
+                  </span>
+                </p>
+                <p className="text-sm text-text-light/70">
+                  Enter your admin password to confirm this action.
+                </p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-semibold mb-2">Admin Password</label>
+              <input
+                type="password"
+                value={deletePassword}
+                onChange={(e) => {
+                  setDeletePassword(e.target.value);
+                  setDeleteError('');
+                }}
+                onKeyDown={(e) => e.key === 'Enter' && confirmDelete()}
+                placeholder="Enter your password"
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-red-500"
+                autoFocus
+              />
+              {deleteError && (
+                <p className="text-xs text-red-400 mt-2 flex items-center gap-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  {deleteError}
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={cancelDelete}
+                className="flex-1 px-4 py-2.5 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-4 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-semibold flex items-center justify-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

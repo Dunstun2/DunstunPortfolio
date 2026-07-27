@@ -224,24 +224,27 @@ export default function ContactPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  {socialAccounts.map((account) => (
-                    <a
-                      key={account.id}
-                      href={account.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3.5 bg-black/20 hover:bg-primary/15 border border-text-light/10 hover:border-primary/45 rounded-2xl transition-all duration-300 group"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-text-light/10 flex items-center justify-center text-text-light group-hover:text-primary transition-colors">
-                        {getSocialIcon(account.platform_name)}
-                      </div>
-                      <div className="overflow-hidden">
-                        <span className="block text-heading-light text-sm font-bold truncate">
-                          {account.platform_name}
-                        </span>
-                      </div>
-                    </a>
-                  ))}
+                  {socialAccounts.map((account) => {
+                    const href = account.url?.startsWith('http') ? account.url : `https://${account.url}`;
+                    return (
+                      <a
+                        key={account.id}
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-3.5 bg-black/20 hover:bg-primary/15 border border-text-light/10 hover:border-primary/45 rounded-2xl transition-all duration-300 group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-text-light/10 flex items-center justify-center text-text-light group-hover:text-primary transition-colors">
+                          {getSocialIcon(account.platform_name)}
+                        </div>
+                        <div className="overflow-hidden">
+                          <span className="block text-heading-light text-sm font-bold truncate">
+                            {account.platform_name}
+                          </span>
+                        </div>
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
             )}
