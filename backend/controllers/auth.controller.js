@@ -61,6 +61,25 @@ class AuthController {
       message: result ? 'Password verified' : 'Incorrect password'
     });
   });
+
+  getAllAdmins = asyncHandler(async (req, res) => {
+    const admins = await authService.getAllAdmins();
+
+    return res.status(200).json({
+      success: true,
+      data: admins
+    });
+  });
+
+  deleteAdmin = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const result = await authService.deleteAdmin(parseInt(id), req.user.id);
+
+    return res.status(200).json({
+      success: true,
+      data: result
+    });
+  });
 }
 
 module.exports = new AuthController();

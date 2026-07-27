@@ -183,6 +183,56 @@ class AuthService {
     const isValid = await bcrypt.compare(password, user.password_hash);
     return isValid;
   }
+
+  async getAllAdmins() {
+    const FALLBACK_ADMIN = {
+      id: 0,
+      email: 'admin@example.com',
+      name: 'System Administrator',
+      role: 'admin',
+      isFallback: true,
+    };
+
+    // Get all users from database
+    const dbAdmins = await User.findAll({
+      attributes: ['id', 'name', 'email', 'role', 'createdAt'],
+      order: [['createdAt', 'DESC']],
+    });
+
+    // Format and include fallback admin
+    const admins = dbAdmins.map(user => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      created_at: user.createdAt,
+      isFallback: false,
+    }));
+
+    // Add fallback admin at the beginning
+    return [FALLBACK_ADMIN, ...admins];
+  }
+
+  async deleteAdmin(adminId, currentUserId) {
+    // Prevent deleting fallback admin
+    if (adminId === 0) {
+      throw new AppError('Cannot delete the default admin account', 400);
+    }
+
+    // Prevent self-deletion
+    if (adminId === currentUserId) {
+      throw new AppError('You cannot delete your own account', 400);
+    }
+
+    const user = await User.findByPk(adminId);
+    if (!user) {
+      throw new AppError('Admin not found', 404);
+    }
+
+    await user.destroy();
+
+    return { message: 'Admin account deleted successfully' };
+  }
 }
 
 module.exports = new AuthService();

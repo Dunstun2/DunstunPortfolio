@@ -20,8 +20,10 @@ router.post('/reset-password', passwordResetLimiter, validate(resetPasswordSchem
 
 // Protected routes
 router.get('/me', authMiddleware, authController.me);
+router.get('/admins', authMiddleware, authController.getAllAdmins);
 router.put('/change-password', authMiddleware, validate(changePasswordSchema), authController.changePassword);
 router.post('/register', authMiddleware, validate(registerSchema), authController.register);
 router.post('/verify-password', authMiddleware, authController.verifyPassword);
+router.delete('/admin/:id', authMiddleware, authController.deleteAdmin);
 
 module.exports = router;
