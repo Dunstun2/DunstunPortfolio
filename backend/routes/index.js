@@ -25,6 +25,7 @@ const analyticsRoutes = require('./analytics.routes');
 const achievementRoutes = require('./achievement.routes');
 const certificationRoutes = require('./certification.routes');
 const cvImportRoutes = require('./cvImport.routes');
+const sectionStatusRoutes = require('./sectionStatus.routes');
 const router = express.Router();
 
 router.get('/health', (req, res) => {
@@ -57,5 +58,6 @@ router.use('/analytics', analyticsRoutes);
 router.use('/achievements', achievementRoutes);
 router.use('/certifications', certificationRoutes);
 router.use('/cv', cvImportRoutes);
+router.use('/sections', sectionStatusRoutes);
 
 module.exports = router;

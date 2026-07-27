@@ -9,6 +9,7 @@ export default function AdminAbout() {
   const [activeTab, setActiveTab] = useState('general');
   const [editId, setEditId] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState<'draft' | 'published' | 'archived'>('draft');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
   const skipNextAutoSave = useRef(false);
@@ -126,8 +127,20 @@ export default function AdminAbout() {
     e.preventDefault();
     try {
       await saveData(true, formData);
+      setCurrentStatus('published');
       loadData();
       alert('Saved and published successfully!');
+    } catch (err) { console.error(err); }
+  };
+
+  const handleArchive = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!editId) return;
+    if (!confirm('Are you sure you want to archive this? It will be hidden from the public site.')) return;
+    try {
+      await fetchApi(`/about/${editId}/status`, { method: 'PUT', body: JSON.stringify({ status: 'archived' }) });
+      setCurrentStatus('archived');
+      alert('About section archived. It is now hidden from the public site.');
     } catch (err) { console.error(err); }
   };
 
@@ -174,6 +187,7 @@ export default function AdminAbout() {
     skipNextAutoSave.current = true;
     setFormData({ ...initialFormState, ...sanitizedItem });
     setEditId(item.id);
+    setCurrentStatus(item.status || 'draft');
   };
 
   const handleArrayChange = (key: string, index: number, field: string, value: any) => {
@@ -453,10 +467,37 @@ export default function AdminAbout() {
             </div>
           </div>
 
-          <div className="pt-6 border-t border-gray-700 mt-6 flex flex-col sm:flex-row gap-4">
-            <button type="button" onClick={handlePublish} className="px-6 py-3 bg-primary rounded font-bold text-white hover:bg-blue-600 transition-colors w-full sm:w-auto">
-              Publish Changes
-            </button>
+          <div className="pt-6 border-t border-gray-700 mt-6">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-sm text-gray-400">Current Status:</span>
+              <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                currentStatus === 'published' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                currentStatus === 'archived' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+              }`}>
+                {currentStatus === 'published' ? '● Published' : currentStatus === 'archived' ? '● Archived' : '● Draft'}
+              </span>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              {currentStatus !== 'published' && (
+                <button type="button" onClick={handlePublish} className="px-6 py-3 bg-green-600 rounded font-bold text-white hover:bg-green-500 transition-colors w-full sm:w-auto">
+                  ✓ Publish
+                </button>
+              )}
+              {currentStatus === 'published' && (
+                <button type="button" onClick={handlePublish} className="px-6 py-3 bg-primary rounded font-bold text-white hover:bg-blue-600 transition-colors w-full sm:w-auto">
+                  ↻ Update & Republish
+                </button>
+              )}
+              {currentStatus !== 'archived' && editId && (
+                <button type="button" onClick={handleArchive} className="px-6 py-3 bg-yellow-600/20 border border-yellow-600/40 rounded font-bold text-yellow-400 hover:bg-yellow-600/30 transition-colors w-full sm:w-auto">
+                  Archive
+                </button>
+              )}
+              {currentStatus === 'archived' && (
+                <span className="text-sm text-gray-500 self-center">This section is hidden from the public site. Publish it to make it visible again.</span>
+              )}
+            </div>
           </div>
         </form>
       </div>

@@ -1,14 +1,47 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ThemeToggle from '@/components/ThemeToggle';
 import { usePathname } from 'next/navigation';
+import { fetchApi } from '@/utils/api';
+
+// All possible nav links — order matters
+const ALL_NAV_LINKS = [
+  { key: 'about', label: 'About', href: '/about' },
+  { key: 'services', label: 'Services', href: '/services' },
+  { key: 'projects', label: 'Projects', href: '/projects' },
+  { key: 'achievements', label: 'Achievements', href: '/achievements' },
+  { key: 'education', label: 'Education', href: '/education' },
+  { key: 'experience', label: 'Experience', href: '/experience' },
+  { key: 'skills', label: 'Skills', href: '/skills' },
+  { key: 'events', label: 'Events', href: '/events' },
+  { key: 'blog', label: 'Blog', href: '/blog' },
+  { key: 'testimonials', label: 'Testimonials', href: '/testimonials' },
+  { key: 'contact', label: 'Contact', href: '/contact' },
+];
 
 export default function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [availableSections, setAvailableSections] = useState<Record<string, boolean> | null>(null);
+
+  useEffect(() => {
+    fetchApi('/sections/available')
+      .then(res => setAvailableSections(res.data))
+      .catch(() => {
+        // If the endpoint fails, show all links as fallback
+        const all: Record<string, boolean> = {};
+        ALL_NAV_LINKS.forEach(l => { all[l.key] = true; });
+        setAvailableSections(all);
+      });
+  }, []);
 
   if (pathname?.startsWith('/admin')) return null;
+
+  // Filter to only show links for sections that have published content
+  const visibleLinks = availableSections
+    ? ALL_NAV_LINKS.filter(link => availableSections[link.key])
+    : ALL_NAV_LINKS; // show all while loading to prevent flash
 
   return (
     <nav className="fixed top-0 w-full z-50 glass">
@@ -21,17 +54,9 @@ export default function Navbar() {
           </div>
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
-              <Link href="/about" className="text-nav-text hover:text-primary transition-colors duration-300">About</Link>
-              <Link href="/services" className="text-nav-text hover:text-primary transition-colors duration-300">Services</Link>
-              <Link href="/projects" className="text-nav-text hover:text-primary transition-colors duration-300">Projects</Link>
-              <Link href="/achievements" className="text-nav-text hover:text-primary transition-colors duration-300">Achievements</Link>
-              <Link href="/education" className="text-nav-text hover:text-primary transition-colors duration-300">Education</Link>
-              <Link href="/experience" className="text-nav-text hover:text-primary transition-colors duration-300">Experience</Link>
-              <Link href="/skills" className="text-nav-text hover:text-primary transition-colors duration-300">Skills</Link>
-              <Link href="/events" className="text-nav-text hover:text-primary transition-colors duration-300">Events</Link>
-              <Link href="/blog" className="text-nav-text hover:text-primary transition-colors duration-300">Blog</Link>
-              <Link href="/testimonials" className="text-nav-text hover:text-primary transition-colors duration-300">Testimonials</Link>
-              <Link href="/contact" className="text-nav-text hover:text-primary transition-colors duration-300">Contact</Link>
+              {visibleLinks.map(link => (
+                <Link key={link.key} href={link.href} className="text-nav-text hover:text-primary transition-colors duration-300">{link.label}</Link>
+              ))}
             </div>
           </div>
           <div className="flex items-center ml-auto md:ml-4 gap-4">
@@ -60,17 +85,9 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden glass border-t border-text-light/10">
           <div className="px-4 pt-2 pb-4 space-y-1 flex flex-col">
-            <Link href="/about" onClick={() => setIsOpen(false)} className="text-nav-text hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 block px-3 py-3 rounded-md text-base font-medium transition-colors">About</Link>
-            <Link href="/services" onClick={() => setIsOpen(false)} className="text-nav-text hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 block px-3 py-3 rounded-md text-base font-medium transition-colors">Services</Link>
-            <Link href="/projects" onClick={() => setIsOpen(false)} className="text-nav-text hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 block px-3 py-3 rounded-md text-base font-medium transition-colors">Projects</Link>
-            <Link href="/achievements" onClick={() => setIsOpen(false)} className="text-nav-text hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 block px-3 py-3 rounded-md text-base font-medium transition-colors">Achievements</Link>
-            <Link href="/education" onClick={() => setIsOpen(false)} className="text-nav-text hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 block px-3 py-3 rounded-md text-base font-medium transition-colors">Education</Link>
-            <Link href="/experience" onClick={() => setIsOpen(false)} className="text-nav-text hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 block px-3 py-3 rounded-md text-base font-medium transition-colors">Experience</Link>
-            <Link href="/skills" onClick={() => setIsOpen(false)} className="text-nav-text hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 block px-3 py-3 rounded-md text-base font-medium transition-colors">Skills</Link>
-            <Link href="/events" onClick={() => setIsOpen(false)} className="text-nav-text hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 block px-3 py-3 rounded-md text-base font-medium transition-colors">Events</Link>
-            <Link href="/blog" onClick={() => setIsOpen(false)} className="text-nav-text hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 block px-3 py-3 rounded-md text-base font-medium transition-colors">Blog</Link>
-            <Link href="/testimonials" onClick={() => setIsOpen(false)} className="text-nav-text hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 block px-3 py-3 rounded-md text-base font-medium transition-colors">Testimonials</Link>
-            <Link href="/contact" onClick={() => setIsOpen(false)} className="text-nav-text hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 block px-3 py-3 rounded-md text-base font-medium transition-colors">Contact</Link>
+            {visibleLinks.map(link => (
+              <Link key={link.key} href={link.href} onClick={() => setIsOpen(false)} className="text-nav-text hover:text-primary hover:bg-black/5 dark:hover:bg-white/5 block px-3 py-3 rounded-md text-base font-medium transition-colors">{link.label}</Link>
+            ))}
           </div>
         </div>
       )}
