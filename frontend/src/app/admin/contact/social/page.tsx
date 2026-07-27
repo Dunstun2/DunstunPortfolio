@@ -6,7 +6,7 @@ import { getSocialIcon } from '@/utils/socialIcons';
 export default function AdminSocialAccounts() {
   const [socialAccounts, setSocialAccounts] = useState<any[]>([]);
   const [message, setMessage] = useState('');
-  const [showFloater, setShowFloater] = useState(true);
+  const [showFloater, setShowFloater] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -22,7 +22,7 @@ export default function AdminSocialAccounts() {
       // Load social floater setting
       const settingsRes = await fetchApi('/settings');
       if (settingsRes.data) {
-        setShowFloater(settingsRes.data.show_social_floater !== false);
+        setShowFloater(settingsRes.data.show_social_floater === true);
       }
     } catch (err) {
       console.error(err);
@@ -199,24 +199,10 @@ export default function AdminSocialAccounts() {
       {/* Add Account Button */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">Your Social Links</h2>
-        <button
-          onClick={addAccount}
-          className="px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition flex items-center gap-2 font-semibold"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Add Social Account
-        </button>
       </div>
 
       {/* Social Accounts List */}
-      <div className="space-y-4">
+      <div className="space-y-4 mb-6">
         {socialAccounts.length === 0 ? (
           <div className="p-12 border-2 border-dashed border-gray-700 rounded-xl text-center glass">
             <svg
@@ -254,7 +240,7 @@ export default function AdminSocialAccounts() {
                 : 'border-white/10'
                 }`}
             >
-              <div className="flex justify-between items-start mb-4">
+              <div className="mb-4">
                 <h3 className="text-lg font-bold flex items-center gap-2">
                   {account.platform_name || 'New Social Account'}
                   {account.is_favorite && (
@@ -263,36 +249,6 @@ export default function AdminSocialAccounts() {
                     </span>
                   )}
                 </h3>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => saveAccount(index)}
-                    className="px-4 py-2 bg-primary/20 text-primary rounded-lg hover:bg-primary/30 transition font-semibold text-sm flex items-center gap-1.5"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
-                      />
-                    </svg>
-                    Save
-                  </button>
-                  <button
-                    onClick={() => deleteAccount(index)}
-                    className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition font-semibold text-sm flex items-center gap-1.5"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                    Delete
-                  </button>
-                </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-4 mb-4">
@@ -358,36 +314,88 @@ export default function AdminSocialAccounts() {
               {/* Preview */}
               {account.url && (
                 <div className="mt-4 pt-4 border-t border-white/10">
-                  <p className="text-xs font-semibold text-text-light/70 mb-2">
+                  <p className="text-xs font-semibold text-text-light/70 mb-3">
                     Preview:
                   </p>
-                  <a
-                    href={
-                      isWhatsApp(account.platform_name)
-                        ? buildWhatsAppUrl(account.url)
-                        : account.url
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition text-sm font-medium"
-                  >
-                    {getSocialIcon(account.platform_name)}
-                    <span>{account.platform_name}</span>
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                      />
-                    </svg>
-                  </a>
+                  <div className="flex items-center justify-between">
+                    <a
+                      href={
+                        isWhatsApp(account.platform_name)
+                          ? buildWhatsAppUrl(account.url)
+                          : account.url
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition text-sm font-medium"
+                    >
+                      {getSocialIcon(account.platform_name)}
+                      <span>{account.platform_name}</span>
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
+                    </a>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => saveAccount(index)}
+                        className="px-4 py-2 bg-primary/20 text-primary rounded-lg hover:bg-primary/30 transition font-semibold text-sm flex items-center gap-1.5"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                          />
+                        </svg>
+                        Save
+                      </button>
+                      <button
+                        onClick={() => deleteAccount(index)}
+                        className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition font-semibold text-sm flex items-center gap-1.5"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
           ))
         )}
       </div>
+
+      {/* Add Account Button - Below existing accounts */}
+      {socialAccounts.length > 0 && (
+        <div className="flex justify-center mb-8">
+          <button
+            onClick={addAccount}
+            className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition flex items-center gap-2 font-semibold shadow-lg"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Add Social Account
+          </button>
+        </div>
+      )}
 
       {/* Help Section */}
       <div className="mt-8 glass p-6 rounded-2xl border border-white/10">

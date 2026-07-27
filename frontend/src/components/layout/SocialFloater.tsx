@@ -10,7 +10,7 @@ export default function SocialFloater() {
   const pathname = usePathname();
   if (pathname?.startsWith('/admin')) return null;
   const [socials, setSocials] = useState<any[]>([]);
-  const [showFloater, setShowFloater] = useState(true);
+  const [showFloater, setShowFloater] = useState(false);
   const refreshKeySocials = useRealtimeRefresh('social');
   const refreshKeySettings = useRealtimeRefresh('settings');
 
@@ -20,8 +20,8 @@ export default function SocialFloater() {
       fetchApi('/settings'),
       fetchApi('/social')
     ]).then(([settingsRes, socialRes]) => {
-      if (settingsRes.data && settingsRes.data.show_social_floater === 'false') {
-        setShowFloater(false);
+      if (settingsRes.data && settingsRes.data.show_social_floater === 'true') {
+        setShowFloater(true);
       }
       if (socialRes.success) {
         setSocials(socialRes.data || []);
@@ -36,10 +36,10 @@ export default function SocialFloater() {
       {socials.map((social: any) => {
         const href = social.url?.startsWith('http') ? social.url : `https://${social.url}`;
         return (
-          <Link 
-            key={social.id} 
-            href={href} 
-            target="_blank" 
+          <Link
+            key={social.id}
+            href={href}
+            target="_blank"
             className="w-11 h-11 rounded-full flex items-center justify-center text-text-light hover:text-white hover:bg-primary transition-all duration-300 hover:scale-110"
             title={social.platform_name}
           >

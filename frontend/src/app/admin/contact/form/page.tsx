@@ -8,25 +8,25 @@ export default function AdminContactForm() {
   const [formData, setFormData] = useState({
     // Form Status
     form_enabled: true,
-    
+
     // Form Fields Configuration
     require_name: true,
     require_email: true,
     require_subject: false,
     require_phone: false,
     require_message: true,
-    
+
     // Additional Fields
     show_organization: false,
     show_website: false,
     show_budget: false,
-    
+
     // Reason for Contact Options (comma-separated)
     contact_reasons: 'General Inquiry,Job Opportunity,Freelance Project,Collaboration,Partnership,Speaking / Event,Mentorship,Feedback,Other',
-    
+
     // Success Message
     success_message: 'Thank you for reaching out! Your message has been received. I\'ll get back to you as soon as possible.',
-    
+
     // Redirect After Submission
     redirect_after_submit: false,
     redirect_url: '',
@@ -40,9 +40,21 @@ export default function AdminContactForm() {
     try {
       const res = await fetchApi('/settings');
       if (res.success && res.data) {
+        const data = res.data;
         setFormData(prev => ({
           ...prev,
-          ...res.data,
+          ...data,
+          // Ensure boolean fields are properly coerced
+          form_enabled: data.form_enabled === true || data.form_enabled === 'true',
+          require_name: data.require_name === true || data.require_name === 'true',
+          require_email: data.require_email === true || data.require_email === 'true',
+          require_subject: data.require_subject === true || data.require_subject === 'true',
+          require_phone: data.require_phone === true || data.require_phone === 'true',
+          require_message: data.require_message === true || data.require_message === 'true',
+          show_organization: data.show_organization === true || data.show_organization === 'true',
+          show_website: data.show_website === true || data.show_website === 'true',
+          show_budget: data.show_budget === true || data.show_budget === 'true',
+          redirect_after_submit: data.redirect_after_submit === true || data.redirect_after_submit === 'true',
         }));
       }
     } catch (error) {
