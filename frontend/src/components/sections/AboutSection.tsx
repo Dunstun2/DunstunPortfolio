@@ -12,14 +12,19 @@ export default function AboutSection() {
 
   useEffect(() => {
     Promise.all([
-      fetchApi('/about/published'),
+      fetchApi('/about/published')
+        .then(res => setAbout(res.data))
+        .catch(err => {
+          console.warn('Could not fetch about section:', err);
+          setAbout(null);
+        }),
       fetchApi('/settings')
-    ])
-      .then(([aboutRes, settingsRes]) => {
-        setAbout(aboutRes.data);
-        setSettings(settingsRes.data);
-      })
-      .catch(() => { });
+        .then(res => setSettings(res.data))
+        .catch(err => {
+          console.warn('Could not fetch settings:', err);
+          setSettings(null);
+        })
+    ]);
   }, [refreshKey, refreshKeySettings]);
 
   if (!about) return null;
