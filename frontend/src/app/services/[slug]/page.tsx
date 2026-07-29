@@ -178,7 +178,7 @@ export default function ServiceDetailPage() {
                 {ctaDescription}
               </p>
               <Link
-                href={service.cta_url}
+                href={service.cta_url || '/contact'}
                 className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-primary rounded-full hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.5)] transition-all hover:-translate-y-1"
               >
                 {service.cta_text || 'Get Started'} &rarr;
