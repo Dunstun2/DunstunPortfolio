@@ -241,6 +241,7 @@ export default function EducationSection({ variant = 'full' }: { variant?: 'full
                             <span className="hidden md:inline-block text-xs font-bold text-text-light/60 uppercase">External Links</span>
                             <div className="flex flex-wrap gap-2">
                               {edu.external_links.map((link: string, i: number) => {
+                                if (!link) return null;
                                 let label = link.replace(/^https?:\/\/(www\.)?/, '');
                                 if (label.length > 30) label = label.substring(0, 30) + '...';
                                 const href = link.startsWith('http') ? link : `https://${link}`;

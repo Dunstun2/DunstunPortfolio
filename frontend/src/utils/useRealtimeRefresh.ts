@@ -9,7 +9,7 @@ const socketListeners = new Map<string, Set<() => void>>();
 function getOrCreateSocket(): Socket {
   // Check if socket already exists (regardless of connection state)
   if (globalSocket) {
-    console.log('[useRealtimeRefresh] Reusing existing socket:', globalSocket?.id, 'Status:', globalSocket?.connected);
+    // console.log('[useRealtimeRefresh] Reusing existing socket:', globalSocket?.id, 'Status:', globalSocket?.connected);
     return globalSocket;
   }
 

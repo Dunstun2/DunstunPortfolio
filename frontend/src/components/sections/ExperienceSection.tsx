@@ -218,6 +218,7 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
                           <span className="hidden md:inline-block text-xs font-bold text-muted-light uppercase">External Links</span>
                           <div className="flex flex-wrap gap-2">
                             {exp.external_links.map((link: string, i: number) => {
+                              if (!link) return null;
                               let label = link.replace(/^https?:\/\/(www\.)?/, '');
                               if (label.length > 30) label = label.substring(0, 30) + '...';
                               const href = link.startsWith('http') ? link : `https://${link}`;

@@ -461,6 +461,7 @@ export default function EducationPage() {
                             <span className="text-xs font-bold text-text-light/70 uppercase block mb-2">External Links</span>
                             <div className="flex flex-wrap gap-2">
                               {edu.external_links.map((link: string, i: number) => {
+                                if (!link) return null;
                                 const href = link.startsWith('http') ? link : `https://${link}`;
                                 return (
                                   <a
