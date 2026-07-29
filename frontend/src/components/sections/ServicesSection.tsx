@@ -106,7 +106,7 @@ export default function ServicesSection() {
 
               {/* CTA Button */}
               <Link
-                href={service.cta_url.startsWith('http') ? service.cta_url : `/services/${service.slug}`}
+                href={service.cta_url?.startsWith('http') ? service.cta_url : `/services/${service.slug}`}
                 className="inline-flex items-center justify-center px-5 py-2.5 md:px-6 md:py-3 text-xs md:text-sm font-bold text-white bg-primary/80 rounded-full hover:bg-primary transition-all hover:shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.4)] group-hover:translate-x-1"
               >
                 {service.cta_text || 'Learn More'} &rarr;
