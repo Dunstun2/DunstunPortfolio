@@ -676,28 +676,9 @@ export default function AdminHero() {
                             return (
                               <div
                                 key={img.id}
-                                onClick={async () => {
-                                  if (isDownloading) return;
-                                  setDownloadingId(img.id);
-                                  try {
-                                    const token = localStorage.getItem('token');
-                                    const res = await fetchApi('/media/download', {
-                                      method: 'POST',
-                                      body: JSON.stringify({ url: img.url })
-                                    });
-                                    if (res.success) {
-                                      const fullUrl = getFileUrl(res.data.file_path);
-                                      handleFieldChange('bg_image_url', fullUrl);
-                                      // Refresh media list to show the newly downloaded image in the uploads gallery
-                                      fetchApi('/media').then(mediaRes => {
-                                        if (mediaRes.success) setMediaFiles(mediaRes.data.filter((m: any) => m.mime_type?.startsWith('image/')));
-                                      });
-                                    }
-                                  } catch (err) {
-                                    console.error('Download failed', err);
-                                  } finally {
-                                    setDownloadingId(null);
-                                  }
+                                onClick={() => {
+                                  // Use the external URL directly as a preview — only saved to Cloudinary when user saves the form
+                                  handleFieldChange('bg_image_url', img.url);
                                 }}
                                 className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all group ${isDownloading ? 'border-primary opacity-75' : 'border-gray-700 hover:border-gray-400'}`}
                               >
