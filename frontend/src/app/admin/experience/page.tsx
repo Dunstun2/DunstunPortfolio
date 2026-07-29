@@ -47,7 +47,7 @@ function SkillSearch({ availableSkills, selected, onToggle }: {
 const PRESET_EMPLOYMENT_TYPES = ['Full-time', 'Part-time', 'Internship', 'Contract', 'Freelance'];
 
 export default function AdminExperience() {
-  const refreshKey = useRealtimeRefresh('experience');
+  const refreshKey = useRealtimeRefresh('experience', false);
   const [items, setItems] = useState<any[]>([]);
   const [availableSkills, setAvailableSkills] = useState<any[]>([]);
 
@@ -111,10 +111,10 @@ export default function AdminExperience() {
       const today = new Date().toISOString().split('T')[0];
       const payload = {
         ...data,
-        company:    data.company    || '(Draft)',
-        position:   data.position   || '(Draft)',
+        company: data.company || '(Draft)',
+        position: data.position || '(Draft)',
         start_date: data.start_date || today,
-        end_date:   data.is_current ? null : data.end_date,
+        end_date: data.is_current ? null : data.end_date,
       };
 
       if (editing && id) {
@@ -236,13 +236,13 @@ export default function AdminExperience() {
   const SaveIndicator = () => {
     const statusStyles: Record<string, string> = {
       saving: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40',
-      saved:  'bg-green-500/20 text-green-400 border-green-500/40',
-      error:  'bg-red-500/20 text-red-400 border-red-500/40',
+      saved: 'bg-green-500/20 text-green-400 border-green-500/40',
+      error: 'bg-red-500/20 text-red-400 border-red-500/40',
     };
     const statusLabels: Record<string, string> = {
       saving: '⟳ Autosaving…',
-      saved:  '✓ Draft saved',
-      error:  '✕ Save failed',
+      saved: '✓ Draft saved',
+      error: '✕ Save failed',
     };
     return (
       <div className="flex items-center gap-2">

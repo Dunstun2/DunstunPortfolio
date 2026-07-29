@@ -10,7 +10,7 @@ const initialForm = {
 };
 
 export default function AdminAchievements() {
-  const refreshKey = useRealtimeRefresh('achievements');
+  const refreshKey = useRealtimeRefresh('achievements', false);
   const [items, setItems] = useState<any[]>([]);
   const [formData, setFormData] = useState<any>(initialForm);
   const [isEditing, setIsEditing] = useState(false);

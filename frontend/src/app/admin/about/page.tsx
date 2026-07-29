@@ -12,7 +12,7 @@ export default function AdminAbout() {
   const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
   const skipNextAutoSave = useRef(false);
 
-  const refreshKey = useRealtimeRefresh('about', isLoaded);
+  const refreshKey = useRealtimeRefresh('about', false);
 
   const initialFormState = {
     title: '', content: '', image_url: '',
@@ -63,6 +63,9 @@ export default function AdminAbout() {
     Promise.all([
       fetchApi('/about').then(res => {
         return { data: res.data && res.data.length > 0 ? res.data[0] : null };
+      }).catch(err => {
+        console.error('Failed to fetch about data:', err);
+        return { data: null };
       }),
       fetchApi('/hero/published').catch(err => {
         console.warn('Could not fetch hero data:', err);
@@ -81,7 +84,7 @@ export default function AdminAbout() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [refreshKey]);
 
   const saveData = async (publish: boolean, dataToSave: any) => {
     // Clean temporary isHeroTitle flags before sending to database

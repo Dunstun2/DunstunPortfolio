@@ -6,32 +6,32 @@ import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
 const PRESET_INSTITUTION_TYPES = ['University', 'College', 'High School', 'Technical Institute', 'Bootcamp', 'Other'];
 
 export default function AdminEducation() {
-  const refreshKey = useRealtimeRefresh('education');
+  const refreshKey = useRealtimeRefresh('education', false);
   const [items, setItems] = useState<any[]>([]);
 
   const initialForm = {
     // Basic Info
-    degree: '', institution: '', institution_logo: '', institution_type: '', 
+    degree: '', institution: '', institution_logo: '', institution_type: '',
     field_of_study: '', specialization: '', faculty: '', department: '',
-    
+
     // Duration
     start_date: '', end_date: '', is_current: false, expected_graduation: '',
-    
+
     // Performance
     grade: '', gpa: '', honors: '',
-    
+
     // Description
     short_summary: '', full_description: '',
-    
+
     // Relations & Lists
-    coursework: [] as string[], related_projects: [] as string[], 
-    achievements: [] as string[], activities: [] as string[], 
+    coursework: [] as string[], related_projects: [] as string[],
+    achievements: [] as string[], activities: [] as string[],
     certifications: [] as string[], external_links: [] as string[],
     media: [] as string[],
-    
+
     // Research
     research_title: '', research_description: '', research_supervisor: '', research_link: '',
-    
+
     // Publishing & SEO
     status: 'draft', featured: false, seo_title: '', seo_description: '', seo_image: ''
   };
@@ -150,10 +150,10 @@ export default function AdminEducation() {
   const startEdit = (item: any) => {
     const instType = item.institution_type || '';
     setInstitutionTypeSelectVal(PRESET_INSTITUTION_TYPES.includes(instType) ? instType : instType ? 'Other' : '');
-    
+
     const isDraftRecord = item.degree === '(Draft)' || item.institution === '(Draft)' || item.field_of_study === '(Draft)';
     setIsDraft(isDraftRecord);
-    
+
     setFormData({
       degree: isDraftRecord && item.degree === '(Draft)' ? '' : (item.degree || ''),
       institution: isDraftRecord && item.institution === '(Draft)' ? '' : (item.institution || ''),
@@ -178,7 +178,7 @@ export default function AdminEducation() {
       status: item.status || 'draft', featured: item.featured || false,
       seo_title: item.seo_title || '', seo_description: item.seo_description || '', seo_image: item.seo_image || ''
     });
-    
+
     isFirstRender.current = true;
     setIsEditing(true);
     setEditId(item.id);
@@ -215,13 +215,13 @@ export default function AdminEducation() {
   const SaveIndicator = () => {
     const statusStyles: Record<string, string> = {
       saving: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40',
-      saved:  'bg-green-500/20 text-green-400 border-green-500/40',
-      error:  'bg-red-500/20 text-red-400 border-red-500/40',
+      saved: 'bg-green-500/20 text-green-400 border-green-500/40',
+      error: 'bg-red-500/20 text-red-400 border-red-500/40',
     };
     const statusLabels: Record<string, string> = {
       saving: '⟳ Autosaving…',
-      saved:  '✓ Draft saved',
-      error:  '✕ Save failed',
+      saved: '✓ Draft saved',
+      error: '✕ Save failed',
     };
     return (
       <div className="flex items-center gap-2">
@@ -275,7 +275,7 @@ export default function AdminEducation() {
                 <div><label className="block text-sm mb-1 text-gray-400">Qualification Level / Type *</label><input required type="text" placeholder="e.g. Bachelor's Degree, Diploma, Certificate" value={formData.degree} onChange={e => setFormData({ ...formData, degree: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" /></div>
                 <div><label className="block text-sm mb-1 text-gray-400">Institution Name *</label><input required type="text" value={formData.institution} onChange={e => setFormData({ ...formData, institution: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" /></div>
                 <div><label className="block text-sm mb-1 text-gray-400">Field of Study / Major *</label><input required type="text" value={formData.field_of_study} onChange={e => setFormData({ ...formData, field_of_study: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" /></div>
-                
+
                 <div>
                   <label className="block text-sm mb-1 text-gray-400">Institution Type</label>
                   <select
@@ -320,7 +320,7 @@ export default function AdminEducation() {
                   <div>
                     <label className="block text-sm mb-1 text-gray-400">Start Date *</label>
                     <input required type="date" value={formData.start_date} onChange={e => setFormData({ ...formData, start_date: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white" />
-                    
+
                     <label className="flex items-center gap-2 mt-4 text-sm text-gray-300">
                       <input type="checkbox" checked={formData.is_current} onChange={e => setFormData({ ...formData, is_current: e.target.checked })} className="w-4 h-4 rounded bg-gray-900 border-gray-700 text-primary" />
                       I am currently studying here
@@ -447,7 +447,7 @@ export default function AdminEducation() {
                   ))}
                 </div>
               </div>
-              
+
               {/* Certifications */}
               <div>
                 <label className="block text-sm mb-1 text-gray-400">Related Certifications</label>
@@ -463,7 +463,7 @@ export default function AdminEducation() {
                   ))}
                 </div>
               </div>
-              
+
               {/* External Links */}
               <div>
                 <label className="block text-sm mb-1 text-gray-400">External Links</label>

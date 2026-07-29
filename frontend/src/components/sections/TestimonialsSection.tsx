@@ -42,6 +42,8 @@ export default function TestimonialsSection() {
       .catch(() => { });
   }, [refreshKey, refreshKeySettings]);
 
+  if (!testimonials.length) return null;
+
   const handlePhotoUpload = async (file: File) => {
     if (!file) return;
     setUploadingPhoto(true);
@@ -167,17 +169,7 @@ export default function TestimonialsSection() {
               </button>
             </div>
           </>
-        ) : (
-          <div className="text-center py-12 glass rounded-2xl p-8 max-w-xl mx-auto">
-            <p className="text-text-light/70 mb-4">No published testimonials yet. Be the first to leave feedback!</p>
-            <button
-              onClick={() => { setShowModal(true); setSubmitted(false); }}
-              className="px-6 py-2.5 bg-primary text-white font-bold text-sm rounded-full hover:bg-primary/80 transition-colors"
-            >
-              Leave Feedback
-            </button>
-          </div>
-        )}
+        ) : null}
 
       </div>
 

@@ -1,30 +1,46 @@
 const { About, AboutIdentityCard, AboutValue, AboutExploration, AboutHighlight } = require('../models');
 
-const includeConfig = [
-  { model: AboutIdentityCard, as: 'identity_cards' },
-  { model: AboutValue, as: 'values' },
-  { model: AboutExploration, as: 'explorations' },
-  { model: AboutHighlight, as: 'highlights' }
-];
+// Helper: fetch an About record with its children using separate queries
+// instead of Sequelize's `include` (which hydrates massive object graphs
+// through the sqlite3 N-API layer, causing an OOM leak on Node 22 + Windows).
+async function fetchAboutWithChildren(about) {
+  if (!about) return null;
+  const id = about.id || about.get('id');
+  const plain = about.toJSON ? about.toJSON() : { ...about };
+
+  const [cards, values, explorations, highlights] = await Promise.all([
+    AboutIdentityCard.findAll({ where: { about_id: id }, raw: true }),
+    AboutValue.findAll({ where: { about_id: id }, raw: true }),
+    AboutExploration.findAll({ where: { about_id: id }, raw: true }),
+    AboutHighlight.findAll({ where: { about_id: id }, raw: true }),
+  ]);
+
+  plain.identity_cards = cards;
+  plain.values = values;
+  plain.explorations = explorations;
+  plain.highlights = highlights;
+  return plain;
+}
 
 class AboutService {
   async getAll() {
-    return await About.findAll({ 
+    const abouts = await About.findAll({
       order: [['created_at', 'DESC']],
-      include: includeConfig
     });
+    return Promise.all(abouts.map(a => fetchAboutWithChildren(a)));
   }
 
   async getPublished() {
-    return await About.findOne({ 
+    const about = await About.findOne({
       where: { status: 'published' },
       order: [['published_at', 'DESC']],
-      include: includeConfig
     });
+    return fetchAboutWithChildren(about);
   }
 
   async getById(id) {
-    return await About.findByPk(id, { include: includeConfig });
+    const about = await About.findByPk(id);
+    return fetchAboutWithChildren(about);
   }
 
   async create(data) {
@@ -32,7 +48,7 @@ class AboutService {
   }
 
   async update(id, data) {
-    const about = await About.findByPk(id, { include: includeConfig });
+    const about = await About.findByPk(id);
     if (!about) throw new Error('About section not found');
     const { status, published_at, identity_cards, values, explorations, highlights, ...updateData } = data;
     
@@ -58,7 +74,7 @@ class AboutService {
       await AboutHighlight.bulkCreate(highlights.map(item => ({ ...item, about_id: id, id: undefined, created_at: undefined, updated_at: undefined })));
     }
 
-    return await About.findByPk(id, { include: includeConfig });
+    return await this.getById(id);
   }
 
   async changeStatus(id, newStatus) {

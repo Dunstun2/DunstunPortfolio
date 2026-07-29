@@ -29,10 +29,32 @@ class BlogService {
   }
 
   async getFeatured() {
-    return await BlogPost.findAll({ 
+    const DESIRED = 3;
+
+    // 1. Fetch explicitly featured posts
+    const featuredPosts = await BlogPost.findAll({ 
       where: { status: 'published', featured: true },
       order: [['published_at', 'DESC']]
     });
+
+    if (featuredPosts.length >= DESIRED) {
+      return featuredPosts.slice(0, DESIRED);
+    }
+
+    // 2. Fill remaining slots with other published posts
+    const needed = DESIRED - featuredPosts.length;
+    const featuredIds = featuredPosts.map(p => p.id);
+
+    const additionalPosts = await BlogPost.findAll({
+      where: {
+        status: 'published',
+        ...(featuredIds.length ? { id: { [Op.notIn]: featuredIds } } : {}),
+      },
+      order: [['published_at', 'DESC'], ['created_at', 'DESC']],
+      limit: needed,
+    });
+
+    return [...featuredPosts, ...additionalPosts];
   }
 
   async getBySlug(slug) {

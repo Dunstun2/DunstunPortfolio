@@ -11,7 +11,7 @@ const initialForm = {
 };
 
 export default function AdminCertifications() {
-  const refreshKey = useRealtimeRefresh('certifications');
+  const refreshKey = useRealtimeRefresh('certifications', false);
   const [items, setItems] = useState<any[]>([]);
   const [formData, setFormData] = useState<any>(initialForm);
   const [isEditing, setIsEditing] = useState(false);

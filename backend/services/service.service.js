@@ -47,9 +47,12 @@ class ServiceService {
 
   /**
    * Get featured services (max 3 for homepage)
+   * If there are less than 3 featured services, it fills the remaining
+   * slots with other published services to ensure 3 are shown.
    */
   async getFeatured() {
-    return await Service.findAll({ 
+    // 1. Fetch explicitly featured services
+    const featuredServices = await Service.findAll({ 
       where: { 
         status: 'published',
         featured: true,
@@ -57,6 +60,26 @@ class ServiceService {
       order: [['display_order', 'ASC'], ['published_at', 'DESC']],
       limit: 3,
     });
+
+    // 2. If we have 3, return them
+    if (featuredServices.length >= 3) {
+      return featuredServices;
+    }
+
+    // 3. If less than 3, fetch additional published services to fill the gap
+    const needed = 3 - featuredServices.length;
+    const featuredIds = featuredServices.map(s => s.id);
+
+    const additionalServices = await Service.findAll({
+      where: {
+        status: 'published',
+        id: { [Op.notIn]: featuredIds }
+      },
+      order: [['display_order', 'ASC'], ['published_at', 'DESC']],
+      limit: needed,
+    });
+
+    return [...featuredServices, ...additionalServices];
   }
 
   /**

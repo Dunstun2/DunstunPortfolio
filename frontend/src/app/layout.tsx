@@ -7,6 +7,7 @@ import ThemeProvider from "@/components/ThemeProvider";
 import SocialFloater from "@/components/layout/SocialFloater";
 import ContactCTA from "@/components/layout/ContactCTA";
 import AnalyticsProvider from "@/components/AnalyticsProvider";
+import BackButton from "@/components/layout/BackButton";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -56,6 +57,7 @@ export default function RootLayout({
           <AnalyticsProvider />
           <Navbar />
           <SocialFloater />
+          <BackButton />
           <main className="min-h-screen pt-16">
             {children}
           </main>

@@ -6,14 +6,28 @@ const routes = require('./routes');
 const path = require('path');
 const logger = require('./config/logger');
 const { errorHandler, notFound } = require('./middleware/errorHandler.middleware');
-const swaggerUi = require('swagger-ui-express');
-const swaggerSpec = require('./config/swagger');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Monitor memory usage (RSS-based, less noisy)
+if (process.env.NODE_ENV !== 'production') {
+  setInterval(() => {
+    const memUsage = process.memoryUsage();
+    const rssMB = Math.round(memUsage.rss / 1024 / 1024);
+    // Only warn if RSS exceeds 512MB (sqlite3 on Node 22 uses significant memory)
+    if (rssMB > 512) {
+      logger.warn(`High memory usage: RSS ${rssMB}MB, Heap ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`);
+      if (global.gc) global.gc(); // Hint GC if --expose-gc is enabled
+    }
+  }, 60000); // Check every 60s instead of 30s
+}
+
 // Trust Railway/Vercel proxy headers (required for rate limiting and IP detection)
-app.set('trust proxy', true);
+// Only enable in production — in dev, 'true' causes express-rate-limit to reject all requests
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', true);
+}
 
 // CORS Configuration
 const corsOptions = {
@@ -45,11 +59,30 @@ app.use((req, res, next) => {
   next();
 });
 
-// API Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Portfolio CMS API Documentation',
-}));
+// API Documentation — lazy-loaded to save ~11MB of memory at startup
+let swaggerMiddleware = null;
+app.use('/api-docs', (req, res, next) => {
+  if (!swaggerMiddleware) {
+    const swaggerUi = require('swagger-ui-express');
+    const swaggerSpec = require('./config/swagger');
+    swaggerMiddleware = [
+      ...swaggerUi.serve,
+      swaggerUi.setup(swaggerSpec, {
+        customCss: '.swagger-ui .topbar { display: none }',
+        customSiteTitle: 'Portfolio CMS API Documentation',
+      }),
+    ];
+  }
+  // Run the swagger middleware chain
+  const run = (i) => {
+    if (i >= swaggerMiddleware.length) return;
+    swaggerMiddleware[i](req, res, (err) => {
+      if (err) return next(err);
+      run(i + 1);
+    });
+  };
+  run(0);
+});
 
 // Serve static files from the uploads directory with correct Content-Type from DB
 const { Media } = require('./models');

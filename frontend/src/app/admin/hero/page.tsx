@@ -9,30 +9,30 @@ const emptyForm = {
   internal_name: 'Homepage Hero',
   is_active: true,
   status: 'published',
-  
+
   greeting: '',
   title_prefix: '',
   headline: '',
   professional_title: '',
   subheadline: '',
   highlighted_text: '',
-  
+
   image_url: '',
   photo_alt_text: '',
   photo_position: 'right',
   photo_shape: 'circle',
   photo_display_style: 'normal',
   content_bg_type: 'none',
-  
+
   cta_buttons: [],
-  
+
   show_social_links: true,
-  
+
   show_availability: false,
   availability_text: '',
   availability_type: 'available',
   availability_link: '',
-  
+
   bg_type: 'image',
   bg_color: '',
   bg_gradient: '',
@@ -40,18 +40,18 @@ const emptyForm = {
   bg_video_url: '',
   bg_overlay_color: '',
   bg_overlay_opacity: 0.5,
-  
+
   layout_template: 'split',
-  
+
   full_height: true,
   content_alignment: 'start',
   text_alignment: 'left',
   animation_type: 'slide-up',
   animation_speed: 'normal',
   show_scroll_indicator: true,
-  
+
   mobile_layout: {},
-  
+
   seo_title: '',
   seo_description: '',
   heading_level: 'h1',
@@ -59,7 +59,7 @@ const emptyForm = {
 };
 
 export default function AdminHero() {
-  const refreshKey = useRealtimeRefresh('hero');
+  const refreshKey = useRealtimeRefresh('hero', false);
   const [formData, setFormData] = useState<any>({ ...emptyForm });
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState('');
@@ -108,8 +108,8 @@ export default function AdminHero() {
     }
   };
 
-  useEffect(() => { 
-    loadData(); 
+  useEffect(() => {
+    loadData();
     refreshBackgrounds();
   }, [refreshKey]);
 
@@ -173,9 +173,8 @@ export default function AdminHero() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`whitespace-nowrap px-4 py-2 rounded text-sm font-medium transition-colors ${
-                  activeTab === tab.id ? 'bg-primary text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-gray-200'
-                }`}
+                className={`whitespace-nowrap px-4 py-2 rounded text-sm font-medium transition-colors ${activeTab === tab.id ? 'bg-primary text-white' : 'text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+                  }`}
               >
                 {tab.label}
               </button>
@@ -330,8 +329,8 @@ export default function AdminHero() {
                       </div>
                     )}
                     <div className="flex-1">
-                      <input 
-                        type="file" 
+                      <input
+                        type="file"
                         accept="image/*"
                         multiple
                         onChange={async (e) => {
@@ -339,7 +338,7 @@ export default function AdminHero() {
                           try {
                             const token = localStorage.getItem('token');
                             let lastUrl = '';
-                            
+
                             // Upload all selected files concurrently
                             const uploadPromises = Array.from(e.target.files).map(async (file) => {
                               const fd = new FormData();
@@ -359,7 +358,7 @@ export default function AdminHero() {
                             });
 
                             const results = await Promise.all(uploadPromises);
-                            
+
                             // Set the image url to the last successfully uploaded image
                             const successfulUrls = results.filter(url => url !== null);
                             if (successfulUrls.length > 0) {
@@ -434,11 +433,10 @@ export default function AdminHero() {
                       <div
                         key={opt.value}
                         onClick={() => handleFieldChange('content_bg_type', opt.value)}
-                        className={`cursor-pointer p-3 rounded-lg border-2 transition-all ${
-                          formData.content_bg_type === opt.value
+                        className={`cursor-pointer p-3 rounded-lg border-2 transition-all ${formData.content_bg_type === opt.value
                             ? 'border-primary bg-primary/10'
                             : 'border-gray-700 bg-gray-900 hover:border-gray-500'
-                        }`}
+                          }`}
                       >
                         <div className="font-medium text-sm text-white">{opt.label}</div>
                         <div className="text-xs text-gray-500 mt-0.5">{opt.desc}</div>
@@ -457,7 +455,7 @@ export default function AdminHero() {
               <div className="space-y-5 animate-fade-in">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold text-white">Call to Action Buttons</h3>
-                  <button 
+                  <button
                     onClick={() => {
                       if ((formData.cta_buttons || []).length >= 3) return;
                       const newButtons = [...(formData.cta_buttons || []), { label: 'New Button', style: 'primary', link_type: 'internal', target: '', is_hidden: true }];
@@ -479,19 +477,19 @@ export default function AdminHero() {
                     <div key={index} className="p-4 bg-gray-900 border border-gray-700 rounded-lg relative">
                       <div className="absolute top-4 right-4 flex items-center space-x-6">
                         <label className="flex items-center space-x-2 text-sm text-gray-400 cursor-pointer hover:text-gray-300">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             checked={btn.is_hidden || false}
                             onChange={(e) => {
                               const newButtons = [...formData.cta_buttons];
                               newButtons[index].is_hidden = e.target.checked;
                               handleFieldChange('cta_buttons', newButtons);
                             }}
-                            className="rounded border-gray-700 text-primary bg-gray-800 focus:ring-primary focus:ring-offset-gray-900 cursor-pointer" 
+                            className="rounded border-gray-700 text-primary bg-gray-800 focus:ring-primary focus:ring-offset-gray-900 cursor-pointer"
                           />
                           <span>Hide</span>
                         </label>
-                        <button 
+                        <button
                           onClick={() => {
                             const newButtons = [...formData.cta_buttons];
                             newButtons.splice(index, 1);
@@ -543,12 +541,12 @@ export default function AdminHero() {
                           </label>
                           {(btn.link_type === 'file' || btn.link_type === 'view') ? (
                             <div className="flex space-x-2">
-                              <input 
-                                type="text" 
-                                value={btn.target || ''} 
+                              <input
+                                type="text"
+                                value={btn.target || ''}
                                 readOnly
-                                className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-sm focus:border-primary opacity-70" 
-                                placeholder="Select a file..." 
+                                className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white text-sm focus:border-primary opacity-70"
+                                placeholder="Select a file..."
                               />
                               <button
                                 onClick={() => {
@@ -578,12 +576,12 @@ export default function AdminHero() {
             {activeTab === 'layout' && (
               <div className="space-y-6 animate-fade-in">
                 <h3 className="text-lg font-semibold mb-4 text-white">Layout & Display Settings</h3>
-                
+
                 <div>
                   <label className="block text-sm mb-3 text-gray-400">Layout Template</label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {['split', 'centered', 'photo-background'].map(layout => (
-                      <div 
+                      <div
                         key={layout}
                         onClick={() => handleFieldChange('layout_template', layout)}
                         className={`cursor-pointer border-2 rounded-lg p-4 text-center transition-all ${formData.layout_template === layout ? 'border-primary bg-primary/10' : 'border-gray-700 bg-gray-900 hover:border-gray-500'}`}
@@ -652,12 +650,12 @@ export default function AdminHero() {
 
                 {formData.bg_type === 'image' && (
                   <div className="space-y-5 border p-4 border-gray-700 rounded-lg bg-gray-900">
-                    
+
                     {/* Discover Backgrounds Gallery */}
                     <div>
                       <div className="flex justify-between items-center mb-2">
                         <label className="block text-sm text-gray-400 font-medium">Discover Backgrounds</label>
-                        <button 
+                        <button
                           onClick={refreshBackgrounds}
                           disabled={isDiscovering}
                           className="text-xs bg-gray-800 hover:bg-gray-700 text-white px-2 py-1 rounded border border-gray-600 transition-colors disabled:opacity-50"
@@ -666,7 +664,7 @@ export default function AdminHero() {
                         </button>
                       </div>
                       <p className="text-xs text-gray-500 mb-3">Click an image to download and set it as your background.</p>
-                      
+
                       {isDiscovering && discoveredBackgrounds.length === 0 ? (
                         <div className="h-20 flex items-center justify-center border-2 border-dashed border-gray-700 rounded-lg">
                           <span className="text-sm text-gray-500">Fetching images...</span>
@@ -766,7 +764,7 @@ export default function AdminHero() {
                             if (!e.target.files || e.target.files.length === 0) return;
                             try {
                               const token = localStorage.getItem('token');
-                              
+
                               const uploadPromises = Array.from(e.target.files).map(async (file) => {
                                 const fd = new FormData();
                                 fd.append('file', file);
@@ -786,7 +784,7 @@ export default function AdminHero() {
 
                               const results = await Promise.all(uploadPromises);
                               const successfulUrls = results.filter(url => url !== null);
-                              
+
                               if (successfulUrls.length > 0) {
                                 // Refresh media list so all new uploads appear in the gallery above
                                 fetchApi('/media').then(mediaRes => {
@@ -839,7 +837,7 @@ export default function AdminHero() {
             {activeTab === 'availability' && (
               <div className="space-y-5 animate-fade-in">
                 <h3 className="text-lg font-semibold mb-4 text-white">Availability Status</h3>
-                
+
                 <div className="flex items-center justify-between p-4 bg-gray-900 border border-gray-700 rounded-lg">
                   <div>
                     <h4 className="font-semibold text-white">Enable Availability Badge</h4>

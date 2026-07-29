@@ -3,27 +3,10 @@ import { useState, useEffect } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
 
-// Icon mappings for services
-const ICON_OPTIONS = [
-  { value: '💻', label: '💻 Computer/Development' },
-  { value: '🎨', label: '🎨 Design/Creative' },
-  { value: '📱', label: '📱 Mobile' },
-  { value: '🌐', label: '🌐 Web' },
-  { value: '🛠️', label: '🛠️ Tools/Build' },
-  { value: '🚀', label: '🚀 Launch/Deploy' },
-  { value: '📊', label: '📊 Analytics/Data' },
-  { value: '🔒', label: '🔒 Security' },
-  { value: '☁️', label: '☁️ Cloud' },
-  { value: '🤖', label: '🤖 AI/Automation' },
-  { value: '📝', label: '📝 Content/Writing' },
-  { value: '🎯', label: '🎯 Strategy/Consulting' },
-  { value: '⚡', label: '⚡ Performance' },
-  { value: '🔧', label: '🔧 Maintenance' },
-  { value: '💡', label: '💡 Innovation' },
-];
+import { API_BASE_URL, getFileUrl } from '@/utils/urls';
 
 export default function AdminServices() {
-  const refreshKey = useRealtimeRefresh('services');
+  const refreshKey = useRealtimeRefresh('services', false);
   const [items, setItems] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState('');
@@ -32,7 +15,7 @@ export default function AdminServices() {
   const initialForm = {
     name: '',
     description: '',
-    icon: '💻',
+    image_url: '',
     features: [] as string[],
     featured: false,
     status: 'published',
@@ -40,13 +23,44 @@ export default function AdminServices() {
 
   const [formData, setFormData] = useState<any>(initialForm);
   const [featureInput, setFeatureInput] = useState('');
+  const [uploadingImage, setUploadingImage] = useState<boolean>(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    setUploadingImage(true);
+    const file = e.target.files[0];
+    const uploadData = new FormData();
+    uploadData.append('file', file);
+    uploadData.append('folder', '/services');
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/media`, {
+        method: 'POST',
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: uploadData,
+      });
+
+      if (!res.ok) throw new Error('Upload failed');
+      const resData = await res.json();
+      
+      const fullUrl = getFileUrl(resData.data.file_path);
+      setFormData((prev: any) => ({ ...prev, image_url: fullUrl }));
+    } catch (error) {
+      console.error(error);
+      alert('Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
+    }
+  };
 
   const loadData = () => {
     fetchApi('/services/admin/all').then(res => {
       setItems(res.data);
       const featured = res.data.filter((s: any) => s.featured).length;
       setFeaturedCount(featured);
-    }).catch(console.error);
+    }).catch(err => console.error(err.message));
   };
 
   useEffect(() => { loadData(); }, [refreshKey]);
@@ -79,9 +93,9 @@ export default function AdminServices() {
       resetForm();
       loadData();
       alert(isEditing ? '✅ Service updated successfully!' : '✅ Service created successfully!');
-    } catch (err) {
-      console.error(err);
-      alert('❌ Failed to save service. Please try again.');
+    } catch (err: any) {
+      console.error(err.message);
+      alert(err.message || '❌ Failed to save service. Please try again.');
     }
   };
 
@@ -96,7 +110,7 @@ export default function AdminServices() {
     setFormData({
       name: item.name || '',
       description: item.description || '',
-      icon: item.icon || '💻',
+      image_url: item.image_url || '',
       features: Array.isArray(item.features) ? item.features : [],
       featured: !!item.featured,
       status: item.status || 'published',
@@ -109,8 +123,8 @@ export default function AdminServices() {
     try {
       await fetchApi(`/services/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
       loadData();
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error(err.message);
       alert('❌ Failed to update status.');
     }
   };
@@ -129,7 +143,7 @@ export default function AdminServices() {
       });
       loadData();
     } catch (err: any) {
-      console.error(err);
+      console.error(err.message);
       if (err.message?.includes('Maximum 3')) {
         alert('⚠️ Maximum 3 featured services allowed.');
       } else {
@@ -144,8 +158,8 @@ export default function AdminServices() {
       await fetchApi(`/services/${id}`, { method: 'DELETE' });
       loadData();
       alert('✅ Service deleted successfully!');
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error(err.message);
       alert('❌ Failed to delete service.');
     }
   };
@@ -203,17 +217,23 @@ export default function AdminServices() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold mb-1 text-gray-300">Icon *</label>
-                <select
-                  required
-                  value={formData.icon}
-                  onChange={e => setFormData({ ...formData, icon: e.target.value })}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary"
-                >
-                  {ICON_OPTIONS.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
+                <label className="block text-sm font-semibold mb-1 text-gray-300">Cover Image</label>
+                <div className="flex gap-2 items-center">
+                  {formData.image_url && (
+                    <img src={formData.image_url} alt="Preview" className="w-12 h-12 rounded object-cover border border-gray-700 bg-gray-800 shrink-0" />
+                  )}
+                  <input
+                    type="text"
+                    value={formData.image_url}
+                    onChange={e => setFormData({ ...formData, image_url: e.target.value })}
+                    className="flex-1 bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary"
+                    placeholder="Image URL"
+                  />
+                  <label className="cursor-pointer bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white px-4 py-3 rounded-xl transition-colors whitespace-nowrap flex items-center justify-center shrink-0">
+                    {uploadingImage ? 'Uploading...' : 'Upload'}
+                    <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                  </label>
+                </div>
               </div>
             </div>
 
@@ -325,7 +345,7 @@ export default function AdminServices() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-900 border-b border-gray-700 text-xs sm:text-sm text-gray-300">
-                <th className="p-3 sm:p-4 font-semibold">Icon</th>
+                <th className="p-3 sm:p-4 font-semibold">Cover Image</th>
                 <th className="p-3 sm:p-4 font-semibold">Service Name</th>
                 <th className="p-3 sm:p-4 font-semibold hidden md:table-cell">Features Count</th>
                 <th className="p-3 sm:p-4 font-semibold hidden sm:table-cell">Status</th>
@@ -343,7 +363,13 @@ export default function AdminServices() {
               )}
               {items.map(item => (
                 <tr key={item.id} className="border-b border-gray-700/50 hover:bg-gray-750">
-                  <td className="p-3 sm:p-4 text-2xl">{item.icon}</td>
+                  <td className="p-3 sm:p-4">
+                    {item.image_url ? (
+                      <img src={item.image_url} alt={item.name} className="w-10 h-10 rounded object-cover border border-gray-700" />
+                    ) : (
+                      <div className="w-10 h-10 rounded bg-gray-800 border border-gray-700 flex items-center justify-center text-xs text-gray-500">None</div>
+                    )}
+                  </td>
                   <td className="p-3 sm:p-4 text-xs sm:text-sm font-medium text-white">{item.name}</td>
                   <td className="p-3 sm:p-4 text-xs sm:text-sm text-gray-400 hidden md:table-cell">
                     {Array.isArray(item.features) ? item.features.length : 0} features

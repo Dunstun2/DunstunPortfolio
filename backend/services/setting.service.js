@@ -2,7 +2,7 @@ const { Setting } = require('../models');
 
 class SettingService {
   async getAllSettings() {
-    const settings = await Setting.findAll();
+    const settings = await Setting.findAll({ raw: true });
     const result = {};
     settings.forEach(s => result[s.key] = s.value);
 

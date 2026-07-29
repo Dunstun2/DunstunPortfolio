@@ -78,12 +78,10 @@ export default function ServicesSection() {
               key={service.id}
               className="glass rounded-2xl p-6 md:p-8 group hover:-translate-y-2 transition-all duration-300 hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.2)] flex flex-col"
             >
-              {/* Icon */}
-              {service.icon && (
-                <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 md:mb-6 group-hover:bg-primary/20 transition-colors">
-                  <span className="text-2xl md:text-3xl text-primary">
-                    {service.icon}
-                  </span>
+              {/* Cover Image */}
+              {service.image_url && (
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden mb-4 md:mb-6 group-hover:scale-105 transition-transform">
+                  <img src={service.image_url} alt={service.name} className="w-full h-full object-cover" />
                 </div>
               )}
 

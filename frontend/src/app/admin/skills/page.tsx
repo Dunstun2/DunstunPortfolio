@@ -4,7 +4,7 @@ import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
 
 export default function AdminSkills() {
-  const refreshKey = useRealtimeRefresh('skills');
+  const refreshKey = useRealtimeRefresh('skills', false);
   const [items, setItems] = useState<any[]>([]);
   const [formData, setFormData] = useState({ name: '', proficiency: 50, category: '' });
   const [isEditing, setIsEditing] = useState(false);
@@ -40,8 +40,8 @@ export default function AdminSkills() {
   };
 
   const startEdit = (item: any) => {
-    setFormData({ 
-      name: item.name, proficiency: item.proficiency, category: item.category || '' 
+    setFormData({
+      name: item.name, proficiency: item.proficiency, category: item.category || ''
     });
     setIsEditing(true);
     setEditId(item.id);
@@ -50,23 +50,23 @@ export default function AdminSkills() {
   return (
     <div>
       <h1 className="text-xl sm:text-3xl font-bold mb-6 sm:mb-8 whitespace-nowrap">Skills Management</h1>
-      
+
       <div className="bg-gray-800 p-6 rounded-lg mb-12 border border-gray-700">
         <h2 className="text-xl font-bold mb-4">{isEditing ? 'Edit Skill' : 'Add Skill'}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm mb-1">Name</label>
-              <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-primary" />
+              <input required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-primary" />
             </div>
             <div>
               <label className="block text-sm mb-1">Category (e.g. Frontend, Backend)</label>
-              <input required type="text" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-primary" />
+              <input required type="text" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-primary" />
             </div>
           </div>
           <div>
             <label className="block text-sm mb-1">Proficiency ({formData.proficiency}%)</label>
-            <input required type="range" min="1" max="100" value={formData.proficiency} onChange={e => setFormData({...formData, proficiency: parseInt(e.target.value)})} className="w-full" />
+            <input required type="range" min="1" max="100" value={formData.proficiency} onChange={e => setFormData({ ...formData, proficiency: parseInt(e.target.value) })} className="w-full" />
           </div>
 
           <div className="flex gap-4 pt-2">
@@ -74,7 +74,7 @@ export default function AdminSkills() {
               {isEditing ? 'Update' : 'Add'}
             </button>
             {isEditing && (
-              <button type="button" onClick={() => { setIsEditing(false); setFormData({name:'', proficiency:50, category:''}); }} className="px-4 py-2 bg-gray-600 rounded font-bold hover:bg-gray-500">
+              <button type="button" onClick={() => { setIsEditing(false); setFormData({ name: '', proficiency: 50, category: '' }); }} className="px-4 py-2 bg-gray-600 rounded font-bold hover:bg-gray-500">
                 Cancel
               </button>
             )}

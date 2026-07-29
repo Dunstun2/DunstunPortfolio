@@ -26,7 +26,7 @@ const PROJECT_TYPES = [
 ];
 
 export default function AdminProjects() {
-  const refreshKey = useRealtimeRefresh('projects');
+  const refreshKey = useRealtimeRefresh('projects', false);
   const [items, setItems] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'basic' | 'cover' | 'caseStudy' | 'features' | 'tech' | 'gallery' | 'challenges' | 'results'>('basic');
   const [isEditing, setIsEditing] = useState(false);
@@ -245,7 +245,7 @@ export default function AdminProjects() {
   return (
     <div className="pb-16">
       <h1 className="text-xl sm:text-3xl font-bold mb-6 sm:mb-8 whitespace-nowrap">Projects Management</h1>
-      
+
       {/* CMS Form Card */}
       <div className="bg-gray-800 p-6 rounded-2xl mb-12 border border-gray-700 shadow-xl">
         <div className="flex items-center justify-between mb-6">
@@ -273,11 +273,10 @@ export default function AdminProjects() {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 ${
-                activeTab === tab.id
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0 flex items-center gap-1.5 ${activeTab === tab.id
                   ? 'bg-primary text-white shadow-md'
                   : 'bg-gray-900/60 text-gray-400 hover:text-white hover:bg-gray-800'
-              }`}
+                }`}
             >
               {tab.label}
             </button>
@@ -285,18 +284,18 @@ export default function AdminProjects() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          
+
           {/* TAB 1: BASIC INFO */}
           {activeTab === 'basic' && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-gray-300">Project Title *</label>
-                  <input required type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="e.g. Prosthetic Knee Simulator" />
+                  <input required type="text" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="e.g. Prosthetic Knee Simulator" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-gray-300">Category</label>
-                  <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary">
+                  <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary">
                     <option value="">Select Category...</option>
                     {DEFAULT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -306,28 +305,28 @@ export default function AdminProjects() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-gray-300">Project Type</label>
-                  <select value={formData.project_type} onChange={e => setFormData({...formData, project_type: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary">
+                  <select value={formData.project_type} onChange={e => setFormData({ ...formData, project_type: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary">
                     <option value="">Select Project Type...</option>
                     {PROJECT_TYPES.map(pt => <option key={pt} value={pt}>{pt}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-gray-300">Start Date</label>
-                  <input type="text" value={formData.start_date} onChange={e => setFormData({...formData, start_date: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="e.g. Jan 2023" />
+                  <input type="text" value={formData.start_date} onChange={e => setFormData({ ...formData, start_date: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="e.g. Jan 2023" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-gray-300">End Date</label>
-                  <input type="text" value={formData.end_date} onChange={e => setFormData({...formData, end_date: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="e.g. Dec 2023 or Present" />
+                  <input type="text" value={formData.end_date} onChange={e => setFormData({ ...formData, end_date: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="e.g. Dec 2023 or Present" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-300">Short Description *</label>
-                <textarea required rows={3} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="Brief summary displayed on project cards..."></textarea>
+                <textarea required rows={3} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="Brief summary displayed on project cards..."></textarea>
               </div>
 
               <div className="flex items-center gap-3 pt-2">
-                <input type="checkbox" id="featured" checked={formData.featured} onChange={e => setFormData({...formData, featured: e.target.checked})} className="w-5 h-5 rounded bg-gray-900 border-gray-700 text-primary focus:ring-primary" />
+                <input type="checkbox" id="featured" checked={formData.featured} onChange={e => setFormData({ ...formData, featured: e.target.checked })} className="w-5 h-5 rounded bg-gray-900 border-gray-700 text-primary focus:ring-primary" />
                 <label htmlFor="featured" className="text-sm font-semibold text-gray-200 cursor-pointer">Mark as Featured Project</label>
               </div>
             </div>
@@ -344,11 +343,11 @@ export default function AdminProjects() {
                 </label>
                 <span className="text-gray-400 text-sm">or enter URL below</span>
               </div>
-              <input type="text" value={formData.thumbnail_url} onChange={e => setFormData({...formData, thumbnail_url: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="https://..." />
+              <input type="text" value={formData.thumbnail_url} onChange={e => setFormData({ ...formData, thumbnail_url: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="https://..." />
               {formData.thumbnail_url && (
                 <div className="relative w-72 h-44 rounded-xl overflow-hidden border border-gray-700 mt-2">
                   <img src={formData.thumbnail_url} alt="Cover Preview" className="w-full h-full object-cover" />
-                  <button type="button" onClick={() => setFormData({...formData, thumbnail_url: ''})} className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold hover:bg-red-700">✕</button>
+                  <button type="button" onClick={() => setFormData({ ...formData, thumbnail_url: '' })} className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold hover:bg-red-700">✕</button>
                 </div>
               )}
             </div>
@@ -360,32 +359,32 @@ export default function AdminProjects() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-gray-300">My Role</label>
-                  <input type="text" value={formData.my_role} onChange={e => setFormData({...formData, my_role: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="e.g. Lead Engineer & Developer" />
+                  <input type="text" value={formData.my_role} onChange={e => setFormData({ ...formData, my_role: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="e.g. Lead Engineer & Developer" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-gray-300">Team Size / Structure</label>
-                  <input type="text" value={formData.team_size} onChange={e => setFormData({...formData, team_size: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="e.g. Solo Project or 4 Engineers" />
+                  <input type="text" value={formData.team_size} onChange={e => setFormData({ ...formData, team_size: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="e.g. Solo Project or 4 Engineers" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-300">Responsibilities</label>
-                <textarea rows={3} value={formData.responsibilities} onChange={e => setFormData({...formData, responsibilities: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="Key responsibilities handled during this project..."></textarea>
+                <textarea rows={3} value={formData.responsibilities} onChange={e => setFormData({ ...formData, responsibilities: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="Key responsibilities handled during this project..."></textarea>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-300">The Problem</label>
-                <textarea rows={3} value={formData.problem} onChange={e => setFormData({...formData, problem: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="What challenge or problem was this project built to solve?"></textarea>
+                <textarea rows={3} value={formData.problem} onChange={e => setFormData({ ...formData, problem: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="What challenge or problem was this project built to solve?"></textarea>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-300">The Solution</label>
-                <textarea rows={3} value={formData.solution} onChange={e => setFormData({...formData, solution: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="How did your implementation solve the problem?"></textarea>
+                <textarea rows={3} value={formData.solution} onChange={e => setFormData({ ...formData, solution: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="How did your implementation solve the problem?"></textarea>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-300">Full Overview / Detailed Write-up</label>
-                <textarea rows={4} value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="Additional background or deep dive into the project..."></textarea>
+                <textarea rows={4} value={formData.content} onChange={e => setFormData({ ...formData, content: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="Additional background or deep dive into the project..."></textarea>
               </div>
             </div>
           )}
@@ -446,9 +445,9 @@ export default function AdminProjects() {
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">No image</div>
                       )}
-                      <button 
-                        type="button" 
-                        onClick={() => removeScreenshot(idx)} 
+                      <button
+                        type="button"
+                        onClick={() => removeScreenshot(idx)}
                         className="absolute top-2 right-2 z-20 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold hover:bg-red-700 shadow-md"
                       >
                         ✕
@@ -497,15 +496,15 @@ export default function AdminProjects() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-300">Outcomes / Results & Impact</label>
-                <textarea rows={3} value={formData.outcomes} onChange={e => setFormData({...formData, outcomes: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="What were the quantifiable results, launch status, or impact?"></textarea>
+                <textarea rows={3} value={formData.outcomes} onChange={e => setFormData({ ...formData, outcomes: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="What were the quantifiable results, launch status, or impact?"></textarea>
               </div>
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-300">Lessons Learned</label>
-                <textarea rows={3} value={formData.lessons_learned} onChange={e => setFormData({...formData, lessons_learned: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="Key takeaways from this project..."></textarea>
+                <textarea rows={3} value={formData.lessons_learned} onChange={e => setFormData({ ...formData, lessons_learned: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="Key takeaways from this project..."></textarea>
               </div>
               <div>
                 <label className="block text-sm font-semibold mb-1 text-gray-300">Future Improvements</label>
-                <textarea rows={3} value={formData.future_improvements} onChange={e => setFormData({...formData, future_improvements: e.target.value})} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="Planned features or next iterations..."></textarea>
+                <textarea rows={3} value={formData.future_improvements} onChange={e => setFormData({ ...formData, future_improvements: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary" placeholder="Planned features or next iterations..."></textarea>
               </div>
             </div>
           )}
@@ -543,9 +542,8 @@ export default function AdminProjects() {
                   <td className="p-3 sm:p-4 text-xs sm:text-sm font-medium text-white">{item.title}</td>
                   <td className="p-3 sm:p-4 text-xs sm:text-sm text-gray-400 hidden md:table-cell">{item.category || '—'}</td>
                   <td className="p-3 sm:p-4 hidden sm:table-cell">
-                    <span className={`px-2 py-0.5 text-[10px] sm:text-xs font-bold rounded-lg ${
-                      item.status === 'published' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
-                    }`}>
+                    <span className={`px-2 py-0.5 text-[10px] sm:text-xs font-bold rounded-lg ${item.status === 'published' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+                      }`}>
                       {item.status.toUpperCase()}
                     </span>
                   </td>

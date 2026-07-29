@@ -1,5 +1,13 @@
 const { About, Hero, Project, Service, Experience, Education, Skill, Testimonial, Event, BlogPost, Achievement, Certification } = require('../models');
-const { Op } = require('sequelize');
+
+// Helper: count with optional where clause, always returns 0 on error
+const safeCount = async (model, where) => {
+  try {
+    return await model.count(where ? { where } : {});
+  } catch {
+    return 0;
+  }
+};
 
 class SectionStatusController {
   /**
@@ -9,18 +17,18 @@ class SectionStatusController {
   async getAvailableSections(req, res) {
     try {
       const [about, hero, projects, services, experience, education, skills, testimonials, events, blog, achievements, certifications] = await Promise.all([
-        About.count({ where: { status: 'published' } }),
-        Hero.count({ where: { status: 'published' } }),
-        Project.count({ where: { status: 'published' } }),
-        Service.count({ where: { status: 'published' } }),
-        Experience.count(),
-        Education.count(),
-        Skill.count(),
-        Testimonial.count({ where: { status: 'published' } }).catch(() => Testimonial.count()),
-        Event.count({ where: { status: 'published' } }).catch(() => Event.count()),
-        BlogPost.count({ where: { status: 'published' } }).catch(() => BlogPost.count()),
-        Achievement.count({ where: { status: 'published' } }).catch(() => Achievement.count()),
-        Certification.count({ where: { status: 'published' } }).catch(() => Certification.count()),
+        safeCount(About, { status: 'published' }),
+        safeCount(Hero, { status: 'published' }),
+        safeCount(Project, { status: 'published' }),
+        safeCount(Service, { status: 'published' }),
+        safeCount(Experience),
+        safeCount(Education),
+        safeCount(Skill),
+        safeCount(Testimonial, { status: 'published' }),
+        safeCount(Event, { status: 'published' }),
+        safeCount(BlogPost, { status: 'published' }),
+        safeCount(Achievement, { status: 'published' }),
+        safeCount(Certification, { status: 'published' }),
       ]);
 
       res.json({
@@ -38,7 +46,7 @@ class SectionStatusController {
           blog: blog > 0,
           achievements: achievements > 0,
           certifications: certifications > 0,
-          contact: true, // always available
+          contact: true,
         }
       });
     } catch (e) {
@@ -48,3 +56,4 @@ class SectionStatusController {
 }
 
 module.exports = new SectionStatusController();
+

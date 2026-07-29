@@ -25,6 +25,13 @@ if (environment === 'production') {
     dialect: 'sqlite',
     storage: path.join(__dirname, '..', 'database.sqlite'),
     logging: process.env.DB_LOGGING === 'true' ? console.log : false,
+    pool: {
+      max: 1,
+      min: 0,
+      idle: 10000,
+      acquire: 30000,
+      evict: 30000,
+    },
   });
 }
 

@@ -13,7 +13,7 @@ const EVENT_CATEGORIES = [
 const PARTICIPATION_TYPES = ['Attendee', 'Speaker', 'Panelist', 'Organizer', 'Volunteer', 'Mentor', 'Judge', 'Exhibitor'];
 
 export default function AdminEvents() {
-  const refreshKey = useRealtimeRefresh('events');
+  const refreshKey = useRealtimeRefresh('events', false);
   const [items, setItems] = useState<any[]>([]);
 
   const initialForm = {
@@ -82,8 +82,8 @@ export default function AdminEvents() {
         body: fd,
       });
       const json = await res.json();
-      return json.success && json.data?.file_path 
-        ? getFileUrl(json.data.file_path) 
+      return json.success && json.data?.file_path
+        ? getFileUrl(json.data.file_path)
         : null;
     } catch (err) {
       console.error(err);
@@ -234,7 +234,7 @@ export default function AdminEvents() {
   const addSkill = () => { if (!tempSkill.trim()) return; setFormData(prev => ({ ...prev, related_skills: [...prev.related_skills, tempSkill.trim()] })); setTempSkill(''); };
   const addPhotoUrl = () => { if (!tempPhotoUrl.trim()) return; setFormData(prev => ({ ...prev, photos: [...prev.photos, tempPhotoUrl.trim()] })); setTempPhotoUrl(''); };
   const addVideoUrl = () => { if (!tempVideoUrl.trim()) return; setFormData(prev => ({ ...prev, videos: [...prev.videos, tempVideoUrl.trim()] })); setTempVideoUrl(''); };
-  
+
   const addPerson = () => {
     if (!tempPersonName.trim()) return;
     setFormData(prev => ({ ...prev, people_met: [...prev.people_met, { name: tempPersonName.trim(), role: tempPersonRole.trim(), contact: tempPersonContact.trim() }] }));
@@ -249,13 +249,13 @@ export default function AdminEvents() {
   const SaveIndicator = () => {
     const statusStyles: Record<string, string> = {
       saving: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40',
-      saved:  'bg-green-500/20 text-green-400 border-green-500/40',
-      error:  'bg-red-500/20 text-red-400 border-red-500/40',
+      saved: 'bg-green-500/20 text-green-400 border-green-500/40',
+      error: 'bg-red-500/20 text-red-400 border-red-500/40',
     };
     const statusLabels: Record<string, string> = {
       saving: '⟳ Autosaving…',
-      saved:  '✓ Draft saved',
-      error:  '✕ Save failed',
+      saved: '✓ Draft saved',
+      error: '✕ Save failed',
     };
     return (
       <div className="flex items-center gap-2">
@@ -492,7 +492,7 @@ export default function AdminEvents() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {formData.photos.map((photo, i) => (
                     <div key={i} className="relative group rounded border border-gray-700 overflow-hidden bg-gray-900 aspect-video">
-                      <img src={photo} alt={`Photo ${i+1}`} className="w-full h-full object-cover" />
+                      <img src={photo} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
                       <button
                         type="button"
                         onClick={() => removeFromArray('photos', i)}
@@ -656,11 +656,10 @@ export default function AdminEvents() {
                   </td>
                   <td className="p-3 sm:p-4 text-xs sm:text-sm text-gray-300 whitespace-nowrap hidden sm:table-cell">{item.date || '—'}</td>
                   <td className="p-3 sm:p-4 hidden sm:table-cell">
-                    <span className={`px-2 py-0.5 text-[10px] sm:text-xs font-bold rounded ${
-                      item.status === 'published' ? 'bg-green-500/20 text-green-400' :
-                      item.status === 'archived' ? 'bg-gray-600/50 text-gray-400' :
-                      'bg-yellow-500/20 text-yellow-400'
-                    }`}>
+                    <span className={`px-2 py-0.5 text-[10px] sm:text-xs font-bold rounded ${item.status === 'published' ? 'bg-green-500/20 text-green-400' :
+                        item.status === 'archived' ? 'bg-gray-600/50 text-gray-400' :
+                          'bg-yellow-500/20 text-yellow-400'
+                      }`}>
                       {item.status.toUpperCase()}
                     </span>
                   </td>

@@ -8,7 +8,9 @@
   },
   "scripts": {
     "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
-    "backend": "cd backend && node server.js",
+    "dev:high-memory": "concurrently \"npm run backend:high-memory\" \"npm run frontend\"",
+    "backend": "cd backend && npx nodemon --signal SIGTERM --exec \"node --max-old-space-size=512\" server.js",
+    "backend:high-memory": "cd backend && node --max-old-space-size=4096 server.js",
     "frontend": "cd frontend && npm run dev"
   },
   "keywords": [],

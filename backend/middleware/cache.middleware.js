@@ -1,6 +1,9 @@
 const { getClient, isRedisConnected } = require('../config/redis');
 const logger = require('../config/logger');
 
+// Simple in-memory fallback cache to prevent SQLite N-API memory leak on Windows Node 22
+const fallbackCache = new Map();
+
 /**
  * Cache middleware factory
  * @param {Object} options - Cache options
@@ -17,19 +20,34 @@ function cache(options = {}) {
   } = options;
 
   return async (req, res, next) => {
-    // Skip caching if Redis is not connected
-    if (!isRedisConnected()) {
-      return next();
-    }
-
     // Only cache GET requests
     if (req.method !== 'GET') {
       return next();
     }
 
-    const client = getClient();
     const cacheKey = keyGenerator(req);
 
+    // If Redis is not connected, use the in-memory fallback cache
+    if (!isRedisConnected()) {
+      const cachedEntry = fallbackCache.get(cacheKey);
+      if (cachedEntry && cachedEntry.expires > Date.now()) {
+        logger.debug(`[Memory] Cache hit: ${cacheKey}`);
+        return res.json(JSON.parse(cachedEntry.data));
+      }
+
+      logger.debug(`[Memory] Cache miss: ${cacheKey}`);
+      const originalJson = res.json.bind(res);
+      res.json = function (data) {
+        fallbackCache.set(cacheKey, {
+          data: JSON.stringify(data),
+          expires: Date.now() + ttl * 1000
+        });
+        return originalJson(data);
+      };
+      return next();
+    }
+
+    const client = getClient();
     try {
       // Try to get cached data
       const cachedData = await client.get(cacheKey);
@@ -74,6 +92,14 @@ function cache(options = {}) {
  * @param {string} pattern - Redis key pattern (e.g., 'cache:projects:*')
  */
 async function clearCache(pattern) {
+  // Clear from in-memory fallback
+  const regexPattern = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+  for (const key of fallbackCache.keys()) {
+    if (regexPattern.test(key)) {
+      fallbackCache.delete(key);
+    }
+  }
+
   if (!isRedisConnected()) {
     return;
   }
@@ -95,6 +121,8 @@ async function clearCache(pattern) {
  * Clear all cache
  */
 async function clearAllCache() {
+  fallbackCache.clear();
+
   if (!isRedisConnected()) {
     return;
   }
@@ -120,10 +148,6 @@ function invalidateCache(patterns) {
     const originalSend = res.send.bind(res);
 
     const invalidateCacheKeys = async () => {
-      if (!isRedisConnected()) {
-        return;
-      }
-
       const patternArray = Array.isArray(patterns) ? patterns : [patterns];
 
       for (const pattern of patternArray) {

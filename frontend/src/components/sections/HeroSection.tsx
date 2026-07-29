@@ -117,13 +117,13 @@ export default function HeroSection() {
     const justifyClass = text_alignment === 'center' ? 'justify-center' : text_alignment === 'right' ? 'justify-end' : 'justify-start';
     
     return (
-      <div className={`flex flex-wrap items-center gap-4 md:gap-6 mt-8 ${justifyClass}`}>
+      <div className={`flex flex-nowrap items-center gap-4 md:gap-6 mt-8 ${justifyClass}`}>
         {hasCTAs && cta_buttons.filter((btn: any) => !btn.is_hidden).map((btn: any, idx: number) => {
           let styles = '';
-          if (btn.style === 'primary') styles = 'bg-primary text-button-text font-bold hover:shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.5)] border border-primary';
-          else if (btn.style === 'secondary') styles = 'bg-black/5 dark:bg-white/5 border border-text-light/15 text-text-light font-bold hover:bg-black/10 dark:hover:bg-white/10';
-          else if (btn.style === 'outline') styles = 'bg-transparent text-text-light font-bold hover:border-primary hover:text-primary border border-text-light/30';
-          else if (btn.style === 'ghost') styles = 'bg-transparent text-text-light font-bold hover:text-primary underline-offset-4 hover:underline';
+          if (btn.style === 'primary') styles = 'btn-primary';
+          else if (btn.style === 'secondary') styles = 'btn-secondary';
+          else if (btn.style === 'outline') styles = 'btn-outline';
+          else if (btn.style === 'ghost') styles = 'btn-ghost';
           
           return (
             <Link 
@@ -131,7 +131,7 @@ export default function HeroSection() {
               href={btn.target || '#'} 
               target={btn.link_type === 'external' || btn.link_type === 'view' ? '_blank' : '_self'}
               download={btn.link_type === 'file' ? true : undefined}
-              className={`px-8 py-3 rounded-full transition-all transform hover:-translate-y-1 text-center flex items-center justify-center gap-2 ${styles}`}
+              className={`btn btn-md ${styles}`}
             >
               {btn.label}
             </Link>

@@ -136,10 +136,32 @@ const certificationService = {
 
   // Get featured certifications
   async getFeatured() {
-    return await Certification.findAll({
+    const DESIRED = 6;
+
+    // 1. Fetch explicitly featured certifications
+    const featuredCerts = await Certification.findAll({
       where: { featured: true, status: 'published' },
       order: [['order', 'ASC'], ['issue_date', 'DESC']],
     });
+
+    if (featuredCerts.length >= DESIRED) {
+      return featuredCerts.slice(0, DESIRED);
+    }
+
+    // 2. Fill remaining slots with other published certifications
+    const needed = DESIRED - featuredCerts.length;
+    const featuredIds = featuredCerts.map(c => c.id);
+
+    const additionalCerts = await Certification.findAll({
+      where: {
+        status: 'published',
+        ...(featuredIds.length ? { id: { [Op.notIn]: featuredIds } } : {}),
+      },
+      order: [['order', 'ASC'], ['issue_date', 'DESC']],
+      limit: needed,
+    });
+
+    return [...featuredCerts, ...additionalCerts];
   },
 };
 

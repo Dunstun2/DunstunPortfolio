@@ -22,6 +22,9 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
       .catch(() => { });
   }, [refreshKey, refreshKeySettings]);
 
+
+  const [expandedCards, setExpandedCards] = useState<{ [key: string]: boolean }>({});
+
   let publishedExp = experiences.filter(e => e.status === 'published');
 
   // Sort: current roles first, then by most recent date
@@ -33,9 +36,7 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
     return dateB - dateA;
   });
 
-  if (variant === 'highlights') {
-    publishedExp = publishedExp.slice(0, 3);
-  }
+
 
   if (!publishedExp.length) return null;
 
@@ -61,7 +62,7 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
 
   return (
     <section id="experience" className={`px-4 bg-bg-dark text-text-light relative ${variant === 'highlights' ? 'py-12 md:py-16' : 'py-8 md:py-12 pb-16 md:pb-24'}`}>
-      <div className="max-w-4xl mx-auto">
+      <div className={variant === 'highlights' ? 'w-full max-w-full mx-auto md:px-4' : 'max-w-4xl mx-auto'}>
         {variant === 'highlights' ? (
           <h2 className="text-3xl md:text-5xl font-bold text-heading-light mb-16 text-center">
             {sectionTitle.split(' ').map((word: string, i: number, arr: string[]) => (
@@ -88,7 +89,7 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
             const duration = calculateDuration(exp.start_date, exp.end_date, exp.is_current);
 
             return (
-              <div key={exp.id} className="relative animate-fade-in-up glass p-6 md:p-8 rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(var(--color-primary-rgb),0.15)] hover:border-primary/30" style={{ animationDelay: `${index * 100}ms` }}>
+              <div key={exp.id} className="relative animate-fade-in-up glass p-6 md:p-8 -mx-4 md:mx-0 rounded-none md:rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(var(--color-primary-rgb),0.15)] hover:border-primary/30" style={{ animationDelay: `${index * 100}ms` }}>
 
                 {/* Timeline Dot */}
                 <div className="hidden md:block absolute -left-[90px] top-10 w-6 h-6 rounded-full bg-bg-dark border-4 border-primary z-10 shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.5)]"></div>
@@ -135,13 +136,13 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
                   </p>
                 )}
 
-                {variant === 'full' && exp.full_description && (
+                {(variant === 'full' || expandedCards[exp.id]) && exp.full_description && (
                   <div className="text-text-light text-sm md:text-base leading-relaxed mb-6 whitespace-pre-wrap">
                     {exp.full_description}
                   </div>
                 )}
 
-                {variant === 'full' && exp.responsibilities && exp.responsibilities.length > 0 && (
+                {(variant === 'full' || expandedCards[exp.id]) && exp.responsibilities && exp.responsibilities.length > 0 && (
                   <div className="mb-6">
                     <h5 className="text-sm font-bold uppercase tracking-wider text-subheading mb-3">📋 Key Responsibilities</h5>
                     <ul className="space-y-2">
@@ -155,7 +156,7 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
                   </div>
                 )}
 
-                {variant === 'full' && exp.key_contributions && exp.key_contributions.length > 0 && (
+                {(variant === 'full' || expandedCards[exp.id]) && exp.key_contributions && exp.key_contributions.length > 0 && (
                   <div className="mb-6">
                     <h5 className="text-sm font-bold uppercase tracking-wider text-subheading mb-3">🚀 Key Contributions</h5>
                     <ul className="space-y-2">
@@ -169,7 +170,7 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
                   </div>
                 )}
 
-                {variant === 'full' && exp.achievements && exp.achievements.length > 0 && (
+                {(variant === 'full' || expandedCards[exp.id]) && exp.achievements && exp.achievements.length > 0 && (
                   <div className="mb-6">
                     <h5 className="text-sm font-bold uppercase tracking-wider text-subheading mb-3">⭐ Key Achievements</h5>
                     <ul className="space-y-2">
@@ -184,7 +185,7 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
                 )}
 
                 {/* Relational Links */}
-                {variant === 'full' && ((exp.associated_skills && exp.associated_skills.length > 0) ||
+                {(variant === 'full' || expandedCards[exp.id]) && ((exp.associated_skills && exp.associated_skills.length > 0) ||
                   (exp.related_projects && exp.related_projects.length > 0) ||
                   (exp.external_links && exp.external_links.length > 0)) && (
                     <div className="pt-6 border-t border-text-light/10 mt-8 space-y-4">
@@ -233,6 +234,26 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
                     </div>
                   )}
 
+                {/* Load More / Show Less toggle — only in highlights mode */}
+                {variant === 'highlights' && (exp.full_description || (exp.responsibilities && exp.responsibilities.length > 0) || (exp.key_contributions && exp.key_contributions.length > 0) || (exp.achievements && exp.achievements.length > 0) || (exp.associated_skills && exp.associated_skills.length > 0) || (exp.related_projects && exp.related_projects.length > 0) || (exp.external_links && exp.external_links.length > 0)) && (
+                  <button
+                    onClick={() => setExpandedCards(prev => ({ ...prev, [exp.id]: !prev[exp.id] }))}
+                    className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-primary/80 transition-colors group"
+                  >
+                    {expandedCards[exp.id] ? (
+                      <>
+                        Show Less
+                        <svg className="w-4 h-4 transition-transform group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+                      </>
+                    ) : (
+                      <>
+                        Load More
+                        <svg className="w-4 h-4 transition-transform group-hover:translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      </>
+                    )}
+                  </button>
+                )}
+
               </div>
             );
           })}
@@ -240,7 +261,7 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
 
         {variant === 'highlights' && (
           <div className="mt-16 text-center">
-            <a href="/experience" className="inline-flex items-center gap-2 px-8 py-4 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 hover:border-primary/60 rounded-full font-bold transition-all hover:-translate-y-1">
+            <a href="/experience" className="btn btn-md btn-secondary">
               View Full Experience Details
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
             </a>

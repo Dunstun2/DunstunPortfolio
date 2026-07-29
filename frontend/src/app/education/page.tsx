@@ -195,58 +195,39 @@ export default function EducationPage() {
                   )}
 
                   {/* Header */}
-                  <div className="mb-4">
-                    <h3 className="text-2xl md:text-3xl font-bold text-heading-light mb-2">
-                      {edu.degree && <span className="text-secondary">{edu.degree}</span>}
+                  <div className="mb-2 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-heading-light">
+                      {edu.degree && <span className="text-orange-500">{edu.degree}</span>}
                       {edu.degree && edu.field_of_study && ' in '}
                       {edu.field_of_study && <span className="text-primary">{edu.field_of_study}</span>}
                     </h3>
-                    <div className="text-sm font-bold text-primary bg-primary/10 px-4 py-2 rounded-full border border-primary/20 inline-block">
+                    <div className="text-sm font-bold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20 inline-block w-max">
                       {startStr} – {endStr}
                     </div>
                   </div>
 
                   {/* Institution Info */}
-                  <div className="flex items-center gap-4 mb-6">
+                  <div className="flex items-center gap-4 mb-4">
                     {edu.institution_logo && (
                       <img
                         src={getFileUrl(edu.institution_logo)}
                         alt={`${edu.institution} logo`}
-                        className="w-16 h-16 rounded-xl object-contain bg-white/10 p-2 border border-text-light/10"
+                        className="w-12 h-12 md:w-14 md:h-14 rounded-xl object-contain bg-white/10 p-1.5 border border-text-light/10 flex-shrink-0"
                       />
                     )}
-                    <div>
-                      <h4 className="text-xl font-semibold text-primary">{edu.institution}</h4>
-                      {(edu.faculty || edu.department) && (
-                        <p className="text-text-light/70 text-sm mt-1">
-                          {[edu.faculty, edu.department].filter(Boolean).join(' • ')}
-                        </p>
-                      )}
-                    </div>
+                    <h4 className="text-xl font-semibold text-subheading">
+                      {edu.institution}
+                      {edu.faculty && <span className="text-muted-light font-normal"> | {edu.faculty}</span>}
+                      {edu.department && <span className="text-muted-light font-normal"> | {edu.department}</span>}
+                    </h4>
                   </div>
 
                   {/* Meta Tags */}
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    {edu.gpa && (
-                      <span className="text-xs font-semibold bg-secondary/10 text-secondary px-3 py-1 rounded-lg border border-secondary/30">
-                        GPA: {edu.gpa}
-                      </span>
-                    )}
-                    {edu.grade && (
-                      <span className="text-xs font-semibold bg-secondary/10 text-secondary px-3 py-1 rounded-lg border border-secondary/30">
-                        Grade: {edu.grade}
-                      </span>
-                    )}
-                    {edu.honors && (
-                      <span className="text-xs font-semibold bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-lg border border-yellow-500/30">
-                        {edu.honors}
-                      </span>
-                    )}
-                    {edu.specialization && (
-                      <span className="text-xs font-semibold bg-primary/10 text-primary px-3 py-1 rounded-lg border border-primary/20">
-                        {edu.specialization}
-                      </span>
-                    )}
+                  <div className="flex overflow-x-auto md:flex-wrap gap-2 mb-6 pb-2 md:pb-0 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    {edu.gpa && <span className="text-xs font-mono bg-black/5 dark:bg-white/5 text-muted-light px-2 py-1 rounded border border-text-light/15 whitespace-nowrap flex-shrink-0">GPA: {edu.gpa}</span>}
+                    {edu.grade && <span className="text-xs font-mono bg-black/5 dark:bg-white/5 text-muted-light px-2 py-1 rounded border border-text-light/15 whitespace-nowrap flex-shrink-0">Grade: {edu.grade}</span>}
+                    {edu.honors && <span className="text-xs font-mono bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 px-2 py-1 rounded border border-yellow-500/20 whitespace-nowrap flex-shrink-0">{edu.honors}</span>}
+                    {edu.specialization && <span className="text-xs font-mono bg-black/5 dark:bg-white/5 text-muted-light px-2 py-1 rounded border border-text-light/15 whitespace-nowrap flex-shrink-0">Spec: {edu.specialization}</span>}
                   </div>
 
                   {/* Summary */}
@@ -603,7 +584,7 @@ export default function EducationPage() {
                       )}
 
                       {/* View Details Button */}
-                      <button className="w-full px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary font-medium rounded-lg transition-colors text-sm border border-primary/30">
+                      <button className="btn btn-sm btn-secondary w-full">
                         View Details →
                       </button>
                     </div>
