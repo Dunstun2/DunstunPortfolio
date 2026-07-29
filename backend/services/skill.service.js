@@ -10,6 +10,10 @@ class SkillService {
   }
 
   async create(data) {
+    if (data.name) {
+      const existing = await Skill.findOne({ where: { name: data.name } });
+      if (existing) throw new Error('A skill with this name already exists.');
+    }
     return await Skill.create(data);
   }
 

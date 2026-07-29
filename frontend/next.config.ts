@@ -67,12 +67,11 @@ const nextConfig: NextConfig = {
   // Redirects (if needed)
   async redirects() {
     return [
-      // Example: Redirect old URLs
-      // {
-      //   source: '/old-path',
-      //   destination: '/new-path',
-      //   permanent: true,
-      // },
+      {
+        source: '/login',
+        destination: '/admin/login',
+        permanent: true,
+      },
     ];
   },
 };

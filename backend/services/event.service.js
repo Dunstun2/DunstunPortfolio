@@ -25,6 +25,10 @@ class EventService {
   }
 
   async create(data) {
+    if (data.title) {
+      const existing = await Event.findOne({ where: { title: data.title } });
+      if (existing) throw new Error('An event with this title already exists.');
+    }
     const slug = data.title 
       ? data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Date.now().toString().slice(-4)
       : `event-${Date.now()}`;

@@ -10,6 +10,10 @@ class EducationService {
   }
 
   async create(data) {
+    if (data.degree && data.institution) {
+      const existing = await Education.findOne({ where: { degree: data.degree, institution: data.institution } });
+      if (existing) throw new Error('An education entry with this degree and institution already exists.');
+    }
     return await Education.create(data);
   }
 

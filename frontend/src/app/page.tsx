@@ -7,19 +7,38 @@ import ExperienceSection from '@/components/sections/ExperienceSection';
 import EducationSection from '@/components/sections/EducationSection';
 import SkillsSection from '@/components/sections/SkillsSection';
 import TestimonialsSection from '@/components/sections/TestimonialsSection';
+import SectionErrorBoundary from '@/components/SectionErrorBoundary';
 
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
-      <HeroSection />
-      <AboutSection />
-      <ServicesSection />
-      <EducationSection variant="highlights" />
-      <ExperienceSection variant="highlights" />
-      <SkillsSection variant="highlights" />
-      <ProjectsSection />
-      <EventsSection />
-      <TestimonialsSection />
+      <SectionErrorBoundary sectionName="Hero">
+        <HeroSection />
+      </SectionErrorBoundary>
+      <SectionErrorBoundary sectionName="About">
+        <AboutSection />
+      </SectionErrorBoundary>
+      <SectionErrorBoundary sectionName="Services">
+        <ServicesSection />
+      </SectionErrorBoundary>
+      <SectionErrorBoundary sectionName="Education">
+        <EducationSection variant="highlights" />
+      </SectionErrorBoundary>
+      <SectionErrorBoundary sectionName="Experience">
+        <ExperienceSection variant="highlights" />
+      </SectionErrorBoundary>
+      <SectionErrorBoundary sectionName="Skills">
+        <SkillsSection variant="highlights" />
+      </SectionErrorBoundary>
+      <SectionErrorBoundary sectionName="Projects">
+        <ProjectsSection />
+      </SectionErrorBoundary>
+      <SectionErrorBoundary sectionName="Events">
+        <EventsSection />
+      </SectionErrorBoundary>
+      <SectionErrorBoundary sectionName="Testimonials">
+        <TestimonialsSection />
+      </SectionErrorBoundary>
     </div>
   );
 }

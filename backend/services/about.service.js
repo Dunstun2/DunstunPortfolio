@@ -1,5 +1,18 @@
 const { About, AboutIdentityCard, AboutValue, AboutExploration, AboutHighlight } = require('../models');
 
+// Deduplication helper for array updates
+function uniqueByTitle(arr) {
+  if (!arr || !Array.isArray(arr)) return arr;
+  const seen = new Set();
+  return arr.filter(item => {
+    const title = (item.title || item.name || '').toString().toLowerCase().trim();
+    if (!title) return true; // Let validation handle empty titles
+    if (seen.has(title)) return false;
+    seen.add(title);
+    return true;
+  });
+}
+
 // Helper: fetch an About record with its children using separate queries
 // instead of Sequelize's `include` (which hydrates massive object graphs
 // through the sqlite3 N-API layer, causing an OOM leak on Node 22 + Windows).
@@ -56,22 +69,26 @@ class AboutService {
 
     if (identity_cards && Array.isArray(identity_cards)) {
       await AboutIdentityCard.destroy({ where: { about_id: id } });
-      await AboutIdentityCard.bulkCreate(identity_cards.map(item => ({ ...item, about_id: id, id: undefined, created_at: undefined, updated_at: undefined })));
+      const uniqueCards = uniqueByTitle(identity_cards);
+      await AboutIdentityCard.bulkCreate(uniqueCards.map(item => ({ ...item, about_id: id, id: undefined, created_at: undefined, updated_at: undefined })));
     }
     
     if (values && Array.isArray(values)) {
       await AboutValue.destroy({ where: { about_id: id } });
-      await AboutValue.bulkCreate(values.map(item => ({ ...item, about_id: id, id: undefined, created_at: undefined, updated_at: undefined })));
+      const uniqueValues = uniqueByTitle(values);
+      await AboutValue.bulkCreate(uniqueValues.map(item => ({ ...item, about_id: id, id: undefined, created_at: undefined, updated_at: undefined })));
     }
     
     if (explorations && Array.isArray(explorations)) {
       await AboutExploration.destroy({ where: { about_id: id } });
-      await AboutExploration.bulkCreate(explorations.map(item => ({ ...item, about_id: id, id: undefined, created_at: undefined, updated_at: undefined })));
+      const uniqueExplorations = uniqueByTitle(explorations);
+      await AboutExploration.bulkCreate(uniqueExplorations.map(item => ({ ...item, about_id: id, id: undefined, created_at: undefined, updated_at: undefined })));
     }
     
     if (highlights && Array.isArray(highlights)) {
       await AboutHighlight.destroy({ where: { about_id: id } });
-      await AboutHighlight.bulkCreate(highlights.map(item => ({ ...item, about_id: id, id: undefined, created_at: undefined, updated_at: undefined })));
+      const uniqueHighlights = uniqueByTitle(highlights);
+      await AboutHighlight.bulkCreate(uniqueHighlights.map(item => ({ ...item, about_id: id, id: undefined, created_at: undefined, updated_at: undefined })));
     }
 
     return await this.getById(id);

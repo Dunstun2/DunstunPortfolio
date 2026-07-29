@@ -10,6 +10,10 @@ class ExperienceService {
   }
 
   async create(data) {
+    if (data.title && data.company) {
+      const existing = await Experience.findOne({ where: { title: data.title, company: data.company } });
+      if (existing) throw new Error('An experience with this title and company already exists.');
+    }
     return await Experience.create(data);
   }
 
