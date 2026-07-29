@@ -9,8 +9,8 @@ class MediaService {
     }
 
     const media = await Media.create({
-      file_name: file.originalname,
-      file_path: `/uploads/${file.filename}`, // URL accessible path
+      file_name: file.originalname || 'upload',
+      file_path: file.path, // Cloudinary URL
       mime_type: file.mimetype,
       size_bytes: file.size,
       alt_text: altText || null,
@@ -34,14 +34,8 @@ class MediaService {
       throw new Error('Media not found');
     }
 
-    // Delete the physical file
-    try {
-      const physicalPath = path.join(__dirname, '..', '..', 'uploads', path.basename(media.file_path));
-      await fs.unlink(physicalPath);
-    } catch (err) {
-      console.warn('Physical file not found or could not be deleted:', err.message);
-      // We continue to delete from DB even if physical file is missing
-    }
+    // We are using Cloudinary now, so we don't delete physical files from the local disk.
+    // (Optional: Implement cloudinary.uploader.destroy if you want to delete from Cloudinary)
 
     // Delete from database
     await media.destroy();
@@ -78,15 +72,7 @@ class MediaService {
     // Get all files in the folder
     const files = await Media.findAll({ where: { folder } });
     
-    // Delete physical files
-    for (const file of files) {
-      try {
-        const physicalPath = path.join(__dirname, '..', '..', 'uploads', path.basename(file.file_path));
-        await fs.unlink(physicalPath);
-      } catch (err) {
-        console.warn('Physical file not found or could not be deleted:', err.message);
-      }
-    }
+    // Delete from DB (Physical files are on Cloudinary, not deleting them for now)
     
     // Delete from DB
     await Media.destroy({ where: { folder } });
@@ -97,27 +83,12 @@ class MediaService {
     const media = await Media.findByPk(id);
     if (!media) throw new Error('Media not found');
 
-    // Copy physical file
-    const originalPath = path.join(__dirname, '..', '..', 'uploads', path.basename(media.file_path));
-    const ext = path.extname(media.file_path);
-    const newFileName = Date.now() + '-' + Math.round(Math.random() * 1E9) + ext;
-    const newPhysicalPath = path.join(__dirname, '..', '..', 'uploads', newFileName);
-
-    try {
-      await fs.copyFile(originalPath, newPhysicalPath);
-    } catch (err) {
-      throw new Error('Failed to copy physical file: ' + err.message);
-    }
-
-    // Get size of the new file
-    const stat = await fs.stat(newPhysicalPath);
-
-    // Create new DB record
+    // Create new DB record pointing to the same Cloudinary URL
     const copy = await Media.create({
       file_name: media.file_name,
-      file_path: `/uploads/${newFileName}`,
+      file_path: media.file_path,
       mime_type: media.mime_type,
-      size_bytes: stat.size,
+      size_bytes: media.size_bytes,
       alt_text: media.alt_text,
       folder: targetFolder,
     });

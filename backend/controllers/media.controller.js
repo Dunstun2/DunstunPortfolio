@@ -130,33 +130,18 @@ class MediaController {
       const { url } = req.body;
       if (!url) return res.status(400).json({ success: false, message: 'URL is required' });
 
-      // Download the image
-      const response = await axios({ url, responseType: 'stream' });
-      
-      // Determine file extension
-      const contentType = response.headers['content-type'];
-      let ext = '.jpg';
-      if (contentType === 'image/png') ext = '.png';
-      else if (contentType === 'image/webp') ext = '.webp';
-      
-      const fileName = Date.now() + '-' + Math.round(Math.random() * 1E9) + ext;
-      const filePath = path.join(__dirname, '..', '..', 'uploads', fileName);
-
-      // Save file locally
-      const writer = fs.createWriteStream(filePath);
-      response.data.pipe(writer);
-
-      await new Promise((resolve, reject) => {
-        writer.on('finish', resolve);
-        writer.on('error', reject);
+      // Upload the URL directly to Cloudinary
+      const { cloudinary } = require('../middleware/upload.middleware');
+      const result = await cloudinary.uploader.upload(url, {
+        folder: 'portfolio_uploads'
       });
 
       // Construct a fake multer file object to pass to mediaService
       const fileObj = {
-        filename: fileName,
-        originalname: 'downloaded-background' + ext,
-        mimetype: contentType || 'image/jpeg',
-        size: fs.statSync(filePath).size
+        originalname: 'downloaded-background',
+        mimetype: `image/${result.format}`,
+        size: result.bytes,
+        path: result.secure_url
       };
 
       const media = await mediaService.uploadMedia(fileObj, 'Downloaded background');
