@@ -112,7 +112,7 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
                   <h4 className="text-xl font-semibold text-subheading flex items-center gap-2 flex-wrap">
                     <span className="text-primary">{exp.company}</span>
                     {exp.company_website && (() => {
-                      const href = exp.company_website.startsWith('http') ? exp.company_website : `https://${exp.company_website}`;
+                      const href = exp.company_website?.startsWith('http') ? exp.company_website : `https://${exp.company_website}`;
                       return (
                         <a href={href} target="_blank" rel="noreferrer" className="text-xs font-normal text-primary hover:underline bg-primary/10 px-2 py-1 rounded ml-2">
                           Website ↗
@@ -217,8 +217,7 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
                         <div className="flex items-center gap-3">
                           <span className="hidden md:inline-block text-xs font-bold text-muted-light uppercase">External Links</span>
                           <div className="flex flex-wrap gap-2">
-                            {exp.external_links.map((link: string, i: number) => {
-                              if (!link) return null;
+                            {exp.external_links.filter(Boolean).map((link: string, i: number) => {
                               let label = link.replace(/^https?:\/\/(www\.)?/, '');
                               if (label.length > 30) label = label.substring(0, 30) + '...';
                               const href = link.startsWith('http') ? link : `https://${link}`;

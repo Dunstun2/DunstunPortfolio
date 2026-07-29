@@ -363,7 +363,7 @@ export default function EducationPage() {
                       )}
                       {edu.research_link && (
                         <a
-                          href={edu.research_link.startsWith('http') ? edu.research_link : `https://${edu.research_link}`}
+                          href={edu.research_link?.startsWith('http') ? edu.research_link : `https://${edu.research_link}`}
                           target="_blank"
                           rel="noreferrer"
                           className="inline-block mt-3 text-xs text-primary hover:underline bg-primary/10 px-3 py-1 rounded-lg"
@@ -460,8 +460,7 @@ export default function EducationPage() {
                           <div>
                             <span className="text-xs font-bold text-text-light/70 uppercase block mb-2">External Links</span>
                             <div className="flex flex-wrap gap-2">
-                              {edu.external_links.map((link: string, i: number) => {
-                                if (!link) return null;
+                              {edu.external_links.filter(Boolean).map((link: string, i: number) => {
                                 const href = link.startsWith('http') ? link : `https://${link}`;
                                 return (
                                   <a

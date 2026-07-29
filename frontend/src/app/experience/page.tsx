@@ -152,7 +152,7 @@ export default function ExperiencePage() {
                         {exp.company}
                         {exp.company_website && (
                           <a
-                            href={exp.company_website.startsWith('http') ? exp.company_website : `https://${exp.company_website}`}
+                            href={exp.company_website?.startsWith('http') ? exp.company_website : `https://${exp.company_website}`}
                             target="_blank"
                             rel="noreferrer"
                             className="text-xs font-normal text-primary hover:underline bg-primary/10 px-3 py-1 rounded-full"
@@ -289,8 +289,7 @@ export default function ExperiencePage() {
                           <div>
                             <span className="text-xs font-bold text-text-light/70 uppercase block mb-2">External Links</span>
                             <div className="flex flex-wrap gap-2">
-                              {exp.external_links.map((link: string, i: number) => {
-                                if (!link) return null;
+                              {exp.external_links.filter(Boolean).map((link: string, i: number) => {
                                 const href = link.startsWith('http') ? link : `https://${link}`;
                                 return (
                                   <a

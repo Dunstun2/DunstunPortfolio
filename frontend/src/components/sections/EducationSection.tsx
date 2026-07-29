@@ -163,7 +163,7 @@ export default function EducationSection({ variant = 'full' }: { variant?: 'full
                         {edu.research_supervisor && <p className="text-xs text-muted-light mb-2 border-b border-text-light/10 pb-2 inline-block">Supervisor: {edu.research_supervisor}</p>}
                         {edu.research_description && <p className="text-sm text-text-light mt-1">{edu.research_description}</p>}
                         {edu.research_link && (() => {
-                          const href = edu.research_link.startsWith('http') ? edu.research_link : `https://${edu.research_link}`;
+                          const href = edu.research_link?.startsWith('http') ? edu.research_link : `https://${edu.research_link}`;
                           return (
                             <a href={href} target="_blank" rel="noreferrer" className="inline-block mt-3 text-xs text-primary hover:underline bg-primary/10 px-2 py-1 rounded">
                               View Research ↗
@@ -240,8 +240,7 @@ export default function EducationSection({ variant = 'full' }: { variant?: 'full
                           <div className="flex items-center gap-3">
                             <span className="hidden md:inline-block text-xs font-bold text-text-light/60 uppercase">External Links</span>
                             <div className="flex flex-wrap gap-2">
-                              {edu.external_links.map((link: string, i: number) => {
-                                if (!link) return null;
+                              {edu.external_links.filter(Boolean).map((link: string, i: number) => {
                                 let label = link.replace(/^https?:\/\/(www\.)?/, '');
                                 if (label.length > 30) label = label.substring(0, 30) + '...';
                                 const href = link.startsWith('http') ? link : `https://${link}`;

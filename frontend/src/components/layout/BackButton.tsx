@@ -6,7 +6,7 @@ export default function BackButton() {
   const pathname = usePathname();
 
   // Do not show on homepage or admin pages
-  if (pathname === '/' || pathname.startsWith('/admin')) {
+  if (pathname === '/' || pathname?.startsWith('/admin')) {
     return null;
   }
 
