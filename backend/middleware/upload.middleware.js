@@ -18,9 +18,10 @@ const ALLOWED_IMAGE_TYPES = [
   'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'
 ];
 const ALLOWED_DOCUMENT_TYPES = ['application/pdf', 'text/plain'];
-const ALLOWED_MEDIA_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_DOCUMENT_TYPES];
+const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska'];
+const ALLOWED_MEDIA_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_DOCUMENT_TYPES, ...ALLOWED_VIDEO_TYPES];
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB (increased for videos)
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
 function generateSecureFilename(originalname) {
@@ -33,19 +34,28 @@ function generateSecureFilename(originalname) {
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req, file) => {
+    let resource_type = 'auto';
+    if (file.mimetype.startsWith('video/')) {
+      resource_type = 'video';
+    }
     return {
       folder: 'portfolio_uploads',
-      resource_type: 'auto',
+      resource_type: resource_type,
       public_id: crypto.randomBytes(16).toString('hex')
     };
   }
 });
 
+const logger = require('../config/logger');
+
 const mediaFileFilter = (req, file, cb) => {
-  if (!ALLOWED_MEDIA_TYPES.includes(file.mimetype.toLowerCase())) {
+  const mime = file.mimetype.toLowerCase();
+  if (mime.startsWith('video/') || ALLOWED_MEDIA_TYPES.includes(mime)) {
+    cb(null, true);
+  } else {
+    logger.error(`Rejected mime type: ${file.mimetype}`);
     return cb(new AppError('File type not allowed.', 400));
   }
-  cb(null, true);
 };
 
 const imageFileFilter = (req, file, cb) => {
@@ -84,7 +94,17 @@ const uploadCV = multer({
 
 const handleUploadError = (uploadMiddleware) => (req, res, next) => {
   uploadMiddleware(req, res, (err) => {
-    if (err) return next(new AppError(err.message, 400));
+    if (err) {
+      logger.error(`Raw upload error: ${JSON.stringify(err)}`);
+      let errMsg = err.message;
+      if (!errMsg && err.error && err.error.message) {
+        errMsg = err.error.message;
+      }
+      if (!errMsg && typeof err === 'string') {
+        errMsg = err;
+      }
+      return next(new AppError(errMsg || 'Cloudinary rejected the upload (e.g. size/format limit)', 400));
+    }
     next();
   });
 };

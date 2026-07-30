@@ -14,21 +14,17 @@ const createServiceSchema = {
       'string.min': 'Description must be at least 10 characters',
       'any.required': 'Description is required',
     }),
-    short_description: Joi.string().max(200).allow('', null).messages({
-      'string.max': 'Short description must not exceed 200 characters',
-    }),
-    icon: Joi.string().allow('', null),
     image_url: Joi.string().uri().allow('', null).messages({
       'string.uri': 'Image URL must be a valid URL',
+    }),
+    video_url: Joi.string().uri().allow('', null).messages({
+      'string.uri': 'Video URL must be a valid URL',
     }),
     price: Joi.string().max(100).allow('', null).messages({
       'string.max': 'Price must not exceed 100 characters',
     }),
     features: Joi.array().items(Joi.string()).default([]),
-    cta_text: Joi.string().max(50).allow('', null).messages({
-      'string.max': 'CTA text must not exceed 50 characters',
-    }),
-    cta_url: Joi.string().allow('', null),
+    external_link: Joi.string().allow('', null),
     featured: Joi.boolean().default(false),
     status: Joi.string().valid('draft', 'published', 'archived').default('draft'),
     display_order: Joi.number().integer().min(0).default(0),
@@ -50,21 +46,17 @@ const updateServiceSchema = {
     description: Joi.string().min(10).messages({
       'string.min': 'Description must be at least 10 characters',
     }),
-    short_description: Joi.string().max(200).allow('', null).messages({
-      'string.max': 'Short description must not exceed 200 characters',
-    }),
-    icon: Joi.string().allow('', null),
     image_url: Joi.string().uri().allow('', null).messages({
       'string.uri': 'Image URL must be a valid URL',
+    }),
+    video_url: Joi.string().uri().allow('', null).messages({
+      'string.uri': 'Video URL must be a valid URL',
     }),
     price: Joi.string().max(100).allow('', null).messages({
       'string.max': 'Price must not exceed 100 characters',
     }),
     features: Joi.array().items(Joi.string()),
-    cta_text: Joi.string().max(50).allow('', null).messages({
-      'string.max': 'CTA text must not exceed 50 characters',
-    }),
-    cta_url: Joi.string().allow('', null),
+    external_link: Joi.string().allow('', null),
     featured: Joi.boolean(),
     display_order: Joi.number().integer().min(0),
   }).min(1),

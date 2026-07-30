@@ -1,4 +1,5 @@
 'use client';
+import SectionTitle from '@/components/SectionTitle';
 import { useEffect, useState, useRef } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
@@ -91,9 +92,7 @@ export default function TestimonialsSection() {
         <div className="text-center md:text-left mb-12 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
             <h2 className="text-3xl md:text-5xl font-bold text-heading-light mb-2">
-              {(settings?.testimonials_section_title || 'Client & Peer Feedback').split(' ').map((word: string, i: number, arr: string[]) => (
-                i === arr.length - 1 ? <span key={i} className="text-primary">{word}</span> : word + ' '
-              ))}
+              <SectionTitle title={settings?.testimonials_section_title || 'Client & Peer Feedback'} />
             </h2>
             <p className="text-text-light/70 text-sm max-w-xl">
               Endorsements and testimonials from colleagues, partners, and clients I&apos;ve collaborated with.

@@ -3,19 +3,18 @@ import { useEffect, useState } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface Service {
   id: string;
   name: string;
   slug: string;
   description: string;
-  short_description: string;
-  icon: string;
   image_url: string | null;
   price: string;
   features: string[];
-  cta_text: string;
-  cta_url: string;
+  external_link: string;
+  video_url: string | null;
   status: string;
   display_order: number;
 }
@@ -32,7 +31,21 @@ interface Pagination {
 }
 
 export default function ServicesPage() {
+  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
   const refreshKey = useRealtimeRefresh('settings');
+  const router = useRouter();
+
+  const handleCardClick = (e: React.MouseEvent, serviceSlug: string, serviceId: string) => {
+    if (window.innerWidth < 768) {
+      setExpandedCards(prev => ({
+        ...prev,
+        [serviceId]: !prev[serviceId]
+      }));
+    } else {
+      router.push(`/services/${serviceSlug}`);
+    }
+  };
+
   const [services, setServices] = useState<Service[]>([]);
   const [settings, setSettings] = useState<any>(null);
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -70,14 +83,19 @@ export default function ServicesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
         <div className="text-center mb-12 md:mb-16">
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-heading-light mb-3 md:mb-4">
-            {pageTitle.split(' ').map((word: string, i: number, arr: string[]) => (
-              i === arr.length - 1 ? <span key={i} className="text-primary">{word}</span> : word + ' '
-            ))}
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-4">
+            {pageTitle.split(' ').filter(w => w.trim() !== '').map((word: string, i: number) => {
+              let colorClass = 'text-heading-light';
+              if (i === 0) colorClass = 'text-orange-500';
+              else if (i === 2) colorClass = 'text-blue-500';
+              
+              return (
+                <span key={i} className={colorClass}>
+                  {word}{' '}
+                </span>
+              );
+            })}
           </h1>
-          <p className="text-text-light text-base md:text-lg lg:text-xl max-w-3xl mx-auto px-4">
-            {pageSubtitle}
-          </p>
         </div>
 
         {/* Loading State */}
@@ -91,12 +109,12 @@ export default function ServicesPage() {
         {/* Services List */}
         {!loading && services.length > 0 && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-12">
               {services.map((service) => (
-                <Link
+                <div
                   key={service.id}
-                  href={`/services/${service.slug}`}
-                  className="glass rounded-2xl overflow-hidden group hover:-translate-y-2 transition-all duration-300 hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.3)] flex flex-col"
+                  onClick={(e) => handleCardClick(e, service.slug, service.id)}
+                  className="glass rounded-2xl overflow-hidden group hover:-translate-y-2 transition-all duration-300 hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.3)] flex flex-col cursor-pointer"
                 >
                   {/* Service Image or Icon */}
                   {service.image_url ? (
@@ -111,10 +129,8 @@ export default function ServicesPage() {
                       />
                     </div>
                   ) : (
-                    <div className="h-48 md:h-56 bg-black/10 flex items-center justify-center border-b border-text-light/10">
-                      <span className="text-5xl md:text-6xl">
-                        {service.icon}
-                      </span>
+                    <div className="h-48 md:h-56 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border-b border-text-light/10">
+                      <span className="text-5xl md:text-6xl font-bold text-primary/30">{service.name[0]}</span>
                     </div>
                   )}
 
@@ -124,8 +140,8 @@ export default function ServicesPage() {
                       {service.name}
                     </h2>
 
-                    <p className="text-text-light text-sm md:text-base mb-3 md:mb-4 flex-grow line-clamp-2 md:line-clamp-3">
-                      {service.short_description || service.description}
+                    <p className={`text-text-light text-sm md:text-base mb-3 md:mb-4 flex-grow ${expandedCards[service.id] ? '' : 'line-clamp-2 md:line-clamp-3'}`}>
+                      {service.description}
                     </p>
 
                     {/* Price */}
@@ -136,15 +152,26 @@ export default function ServicesPage() {
                     )}
 
                     {/* Features Preview */}
+                    {expandedCards[service.id] && service.video_url && (
+                      <div className="mb-4 md:mb-6 rounded-xl overflow-hidden bg-black/20 aspect-video relative md:hidden">
+                        <video 
+                          src={service.video_url} 
+                          controls 
+                          className="absolute inset-0 w-full h-full object-contain"
+                          preload="metadata"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                    )}
                     {service.features && service.features.length > 0 && (
                       <ul className="space-y-1.5 md:space-y-2 mb-4 md:mb-6">
-                        {service.features.slice(0, 3).map((feature, idx) => (
+                        {service.features.slice(0, expandedCards[service.id] ? undefined : 3).map((feature, idx) => (
                           <li key={idx} className="flex items-start gap-2 text-text-light text-xs md:text-sm">
                             <span className="text-primary mt-0.5 md:mt-1">✓</span>
-                            <span className="line-clamp-1">{feature}</span>
+                            <span className={expandedCards[service.id] ? '' : 'line-clamp-1'}>{feature}</span>
                           </li>
                         ))}
-                        {service.features.length > 3 && (
+                        {!expandedCards[service.id] && service.features.length > 3 && (
                           <li className="text-text-light/70 text-xs md:text-sm">
                             + {service.features.length - 3} more features
                           </li>
@@ -152,12 +179,31 @@ export default function ServicesPage() {
                       </ul>
                     )}
 
-                    {/* Learn More Link */}
-                    <div className="inline-flex items-center gap-2 text-xs md:text-sm font-bold text-primary group-hover:text-primary/80 transition-colors mt-auto">
-                      Learn More &rarr;
+                    {/* Learn More Link & External Link */}
+                    <div className="flex items-center justify-between gap-3 mt-auto">
+                      <span className="inline-flex items-center gap-2 text-xs md:text-sm font-bold text-primary group-hover:text-primary/80 transition-colors">
+                        <span className="md:hidden">
+                          {expandedCards[service.id] ? 'Show Less ↑' : 'Learn More ↓'}
+                        </span>
+                        <span className="hidden md:inline">
+                          Learn More &rarr;
+                        </span>
+                      </span>
+                      {service.external_link && (
+                        <a
+                          href={service.external_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={e => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 text-xs md:text-sm text-text-light hover:text-primary transition-colors truncate max-w-[180px]"
+                          title={service.external_link}
+                        >
+                          🔗 <span className="truncate underline">{service.external_link.replace(/^https?:\/\//, '')}</span>
+                        </a>
+                      )}
                     </div>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
 
@@ -198,21 +244,7 @@ export default function ServicesPage() {
           </div>
         )}
 
-        {/* CTA Section */}
-        <div className="mt-20 text-center glass rounded-2xl p-12">
-          <h3 className="text-2xl md:text-3xl font-bold text-heading-light mb-4">
-            {ctaTitle}
-          </h3>
-          <p className="text-text-light mb-8 max-w-2xl mx-auto">
-            {ctaDescription}
-          </p>
-          <Link
-            href="/contact"
-            className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-primary rounded-full hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.5)] transition-all hover:-translate-y-1"
-          >
-            {ctaButtonText} &rarr;
-          </Link>
-        </div>
+
       </div>
     </div>
   );

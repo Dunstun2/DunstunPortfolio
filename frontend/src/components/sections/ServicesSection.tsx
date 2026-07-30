@@ -1,4 +1,5 @@
 'use client';
+import SectionTitle from '@/components/SectionTitle';
 import { useEffect, useState } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
@@ -59,58 +60,73 @@ export default function ServicesSection() {
   return (
     <section id="services" className="py-12 md:py-16 bg-bg-dark/30 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
         <div className="text-center mb-12 md:mb-16">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-heading-light mb-3 md:mb-4">
-            {sectionTitle.split(' ').map((word: string, i: number, arr: string[]) => (
-              i === arr.length - 1 ? <span key={i} className="text-primary">{word}</span> : word + ' '
-            ))}
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4 text-center">
+            <SectionTitle title={sectionTitle} />
           </h2>
-          <p className="text-text-light text-base md:text-lg max-w-2xl mx-auto px-4">
-            {sectionSubtitle}
-          </p>
         </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-12">
           {services.map((service) => (
             <div
               key={service.id}
-              className="glass rounded-2xl p-6 md:p-8 group hover:-translate-y-2 transition-all duration-300 hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.2)] flex flex-col"
+              className="glass rounded-2xl overflow-hidden group hover:-translate-y-2 transition-transform duration-300 flex flex-col justify-between"
             >
-              {/* Cover Image */}
-              {service.image_url && (
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden mb-4 md:mb-6 group-hover:scale-105 transition-transform">
-                  <img src={service.image_url} alt={service.name} className="w-full h-full object-cover" />
+              <div>
+                {/* Cover Image */}
+                {service.image_url ? (
+                  <div className="h-48 overflow-hidden relative">
+                    <div className="absolute inset-0 bg-primary/20 group-hover:bg-transparent transition-colors z-10" />
+                    <img src={service.image_url} alt={service.name} className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="h-48 bg-black/10 flex items-center justify-center border-b border-text-light/10 relative">
+                    <span className="text-text-light/50 font-bold">No Cover Image</span>
+                  </div>
+                )}
+
+                {/* Content Container */}
+                <div className="p-6 pb-2">
+                  <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-heading-light mb-2">
+                    {service.name}
+                  </h3>
+
+                  {service.short_description && (
+                    <p className="text-text-light text-sm mb-2 line-clamp-3">
+                      {service.short_description}
+                    </p>
+                  )}
+
+                  {service.price && (
+                    <div className="text-primary font-bold text-base md:text-lg mt-2">
+                      {service.price}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
 
-              {/* Service Name */}
-              <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-heading-light mb-2 md:mb-3">
-                {service.name}
-              </h3>
-
-              {/* Short Description */}
-              {service.short_description && (
-                <p className="text-text-light text-sm mb-3 md:mb-4 flex-grow line-clamp-2 md:line-clamp-3">
-                  {service.short_description}
-                </p>
-              )}
-
-              {/* Price */}
-              {service.price && (
-                <div className="text-primary font-bold text-base md:text-lg mb-4 md:mb-6">
-                  {service.price}
-                </div>
-              )}
-
-              {/* CTA Button */}
-              <Link
-                href={service.cta_url?.startsWith('http') ? service.cta_url : `/services/${service.slug}`}
-                className="inline-flex items-center justify-center px-5 py-2.5 md:px-6 md:py-3 text-xs md:text-sm font-bold text-white bg-primary/80 rounded-full hover:bg-primary transition-all hover:shadow-[0_0_20px_rgba(var(--color-primary-rgb),0.4)] group-hover:translate-x-1"
-              >
-                {service.cta_text || 'Learn More'} &rarr;
-              </Link>
+              {/* CTA Link */}
+              <div className="px-6 pb-6 pt-1 flex items-center justify-between gap-3">
+                <Link
+                  href={service.cta_url?.startsWith('http') ? service.cta_url : `/services/${service.slug}`}
+                  className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-primary/80 transition-colors"
+                >
+                  {service.cta_text || 'Learn More'} &rarr;
+                </Link>
+                {service.external_link && (
+                  <a
+                    href={service.external_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={e => e.stopPropagation()}
+                    className="inline-flex items-center gap-1 text-xs md:text-sm text-text-light hover:text-primary transition-colors truncate max-w-[150px]"
+                    title={service.external_link}
+                  >
+                    🔗 <span className="truncate underline">{service.external_link.replace(/^https?:\/\//, '')}</span>
+                  </a>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -121,7 +137,7 @@ export default function ServicesSection() {
             href="/services"
             className="inline-flex items-center justify-center px-6 py-3 md:px-8 md:py-4 text-sm md:text-base font-bold text-white bg-transparent border-2 border-primary rounded-full hover:bg-primary hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.5)] transition-all hover:-translate-y-1"
           >
-            View All Services &rarr;
+            View All Services
           </Link>
         </div>
       </div>

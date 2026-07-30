@@ -1,4 +1,5 @@
 'use client';
+import SectionTitle from '@/components/SectionTitle';
 import { useEffect, useState } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
@@ -36,9 +37,7 @@ export default function AboutSection() {
     <section id="about" className="py-12 md:py-16 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <h2 className="text-3xl md:text-5xl font-bold text-heading-light mb-12 text-center">
-          {sectionTitle.split(' ').map((word: string, i: number, arr: string[]) => (
-            i === arr.length - 1 ? <span key={i} className="text-primary">{word}</span> : word + ' '
-          ))}
+          <SectionTitle title={sectionTitle} />
         </h2>
         <div className="glass p-8 md:p-12 rounded-3xl">
           <div className="flex flex-col md:flex-row gap-12 items-center">

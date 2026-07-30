@@ -1,4 +1,5 @@
 'use client';
+import SectionTitle from '@/components/SectionTitle';
 import { useEffect, useState } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
@@ -28,7 +29,7 @@ export default function EventsSection() {
     <section id="events" className="py-12 md:py-16 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-3xl md:text-5xl font-bold text-heading-light mb-4 text-center">
-          Events & <span className="text-primary">Networking</span>
+          <SectionTitle title="Events & Networking" />
         </h2>
         <p className="text-text-light text-center mb-16 max-w-2xl mx-auto">
           Conferences, workshops, and professional events I&apos;ve attended — sharing lessons learned and connections made.

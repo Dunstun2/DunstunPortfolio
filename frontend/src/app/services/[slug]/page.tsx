@@ -10,13 +10,11 @@ interface Service {
   name: string;
   slug: string;
   description: string;
-  short_description: string;
-  icon: string;
   image_url: string | null;
   price: string;
   features: string[];
-  cta_text: string;
-  cta_url: string;
+  external_link: string;
+  video_url: string | null;
   status: string;
 }
 
@@ -95,17 +93,15 @@ export default function ServiceDetailPage() {
 
         {/* Service Header */}
         <div className="glass rounded-2xl overflow-hidden mb-8">
-          {/* Hero Image or Icon */}
+          {/* Hero: Image or Placeholder */}
           {service.image_url ? (
-            <div className="h-96 overflow-hidden relative">
+            <div className="overflow-hidden relative">
               <img
                 src={service.image_url}
                 alt={service.name}
-                className="w-full h-full object-cover"
+                className="w-full h-auto"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-
-              {/* Title Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-8">
                 <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
                   {service.name}
@@ -118,10 +114,8 @@ export default function ServiceDetailPage() {
               </div>
             </div>
           ) : (
-            <div className="p-12 text-center border-b border-text-light/10">
-              <div className="text-8xl mb-6">
-                {service.icon}
-              </div>
+            <div className="p-12 text-center border-b border-text-light/10 bg-gradient-to-br from-primary/10 to-transparent">
+              <div className="text-8xl mb-6 font-bold text-primary/20">{service.name[0]}</div>
               <h1 className="text-4xl md:text-6xl font-bold text-heading-light mb-4">
                 {service.name}
               </h1>
@@ -135,13 +129,6 @@ export default function ServiceDetailPage() {
 
           {/* Service Content */}
           <div className="p-8 md:p-12">
-            {/* Short Description */}
-            {service.short_description && (
-              <p className="text-xl text-text-light mb-8 font-medium">
-                {service.short_description}
-              </p>
-            )}
-
             {/* Full Description */}
             <div className="prose prose-invert max-w-none mb-12">
               <p className="text-text-light leading-relaxed whitespace-pre-line">
@@ -169,21 +156,37 @@ export default function ServiceDetailPage() {
               </div>
             )}
 
-            {/* CTA Section */}
-            <div className="text-center py-8 px-6 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
-              <h3 className="text-2xl font-bold text-heading-light mb-4">
-                {ctaTitle}
-              </h3>
-              <p className="text-text-light mb-6 max-w-2xl mx-auto">
-                {ctaDescription}
-              </p>
-              <Link
-                href={service.cta_url || '/contact'}
-                className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-primary rounded-full hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.5)] transition-all hover:-translate-y-1"
-              >
-                {service.cta_text || 'Get Started'} &rarr;
-              </Link>
-            </div>
+            {/* Video Section */}
+            {service.video_url && (
+              <div className="mb-12">
+                <h2 className="text-2xl md:text-3xl font-bold text-heading-light mb-6">
+                  See It In <span className="text-primary">Action</span>
+                </h2>
+                <div className="rounded-xl overflow-hidden border border-primary/20 bg-black">
+                  <video
+                    src={service.video_url}
+                    controls
+                    playsInline
+                    className="w-full max-h-[500px] object-contain"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* External Link */}
+            {service.external_link && (
+              <div className="mb-4 flex items-center gap-2">
+                <span className="text-text-light text-sm">🔗</span>
+                <a
+                  href={service.external_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline break-all"
+                >
+                  {service.external_link}
+                </a>
+              </div>
+            )}
           </div>
         </div>
 

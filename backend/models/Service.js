@@ -20,16 +20,6 @@ const Service = sequelize.define('Service', {
     type: DataTypes.TEXT,
     allowNull: false,
   },
-  short_description: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'Brief description for cards/listings',
-  },
-  icon: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'Icon name or class (e.g., lucide icon name)',
-  },
   image_url: {
     type: DataTypes.STRING,
     allowNull: true,
@@ -46,16 +36,15 @@ const Service = sequelize.define('Service', {
     defaultValue: [],
     comment: 'Array of features/what\'s included',
   },
-  cta_text: {
+  external_link: {
     type: DataTypes.STRING,
     allowNull: true,
-    defaultValue: 'Get Started',
-    comment: 'Call-to-action button text',
+    comment: 'External URL for more info or CTA',
   },
-  cta_url: {
+  video_url: {
     type: DataTypes.STRING,
     allowNull: true,
-    comment: 'CTA button link (e.g., /contact, external URL)',
+    comment: 'Video URL (e.g. Cloudinary, YouTube, etc.)',
   },
   featured: {
     type: DataTypes.BOOLEAN,

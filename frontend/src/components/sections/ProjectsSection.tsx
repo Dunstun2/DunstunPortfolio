@@ -1,4 +1,5 @@
 'use client';
+import SectionTitle from '@/components/SectionTitle';
 import { useEffect, useState } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
@@ -32,9 +33,7 @@ export default function ProjectsSection() {
     <section id="projects" className="py-12 md:py-16 bg-bg-dark/50 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-3xl md:text-5xl font-bold text-heading-light mb-16 text-center">
-          {sectionTitle.split(' ').map((word: string, i: number, arr: string[]) => (
-            i === arr.length - 1 ? <span key={i} className="text-primary">{word}</span> : word + ' '
-          ))}
+          <SectionTitle title={sectionTitle} />
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">

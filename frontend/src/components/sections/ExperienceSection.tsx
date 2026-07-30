@@ -1,4 +1,5 @@
 'use client';
+import SectionTitle from '@/components/SectionTitle';
 import { useState, useEffect } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
@@ -65,9 +66,7 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
       <div className={variant === 'highlights' ? 'w-full max-w-full mx-auto md:px-4' : 'max-w-4xl mx-auto'}>
         {variant === 'highlights' ? (
           <h2 className="text-3xl md:text-5xl font-bold text-heading-light mb-16 text-center">
-            {sectionTitle.split(' ').map((word: string, i: number, arr: string[]) => (
-              i === arr.length - 1 ? <span key={i} className="text-primary">{word}</span> : word + ' '
-            ))}
+            <SectionTitle title={sectionTitle} />
           </h2>
         ) : (
           <div className="text-center mb-16">

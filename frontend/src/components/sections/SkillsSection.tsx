@@ -1,4 +1,5 @@
 'use client';
+import SectionTitle from '@/components/SectionTitle';
 import { useEffect, useState } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
@@ -47,9 +48,7 @@ export default function SkillsSection({ variant = 'full' }: { variant?: 'highlig
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {isHighlights ? (
           <h2 className="text-3xl md:text-5xl font-bold text-heading-light mb-16 text-center">
-            {sectionTitle.split(' ').map((word: string, i: number, arr: string[]) => (
-              i === arr.length - 1 ? <span key={i} className="text-secondary">{word}</span> : word + ' '
-            ))}
+            <SectionTitle title={sectionTitle} />
           </h2>
         ) : (
           <div className="text-center mb-16">
