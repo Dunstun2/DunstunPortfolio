@@ -112,7 +112,7 @@ export default function AdminHero() {
   useEffect(() => {
     loadData();
     refreshBackgrounds();
-  }, [refreshKey]);
+  }, []);
 
   const autoSave = useCallback(async (data: any) => {
     setSaveStatus('saving');

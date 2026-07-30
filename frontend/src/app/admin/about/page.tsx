@@ -76,7 +76,7 @@ export default function AdminAbout() {
 
   useEffect(() => {
     loadData();
-  }, [refreshKey]);
+  }, []);
 
   const saveData = async (publish: boolean, dataToSave: any) => {
     const cleanedFormData = { ...dataToSave };

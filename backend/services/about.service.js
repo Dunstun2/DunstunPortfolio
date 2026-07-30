@@ -96,7 +96,11 @@ class AboutService {
     if (!about) throw new Error('About section not found');
 
     if (newStatus === 'published') {
-      await About.update({ status: 'archived' }, { where: { status: 'published' } });
+      const { Op } = require('sequelize');
+      await About.update(
+        { status: 'archived' }, 
+        { where: { status: 'published', id: { [Op.ne]: id } } }
+      );
       about.published_at = new Date();
     }
 

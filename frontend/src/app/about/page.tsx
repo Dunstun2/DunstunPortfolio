@@ -27,6 +27,7 @@ export default function AboutPage() {
   const [about, setAbout] = useState<any>(null);
   const [skills, setSkills] = useState<any[]>([]);
   const [achievements, setAchievements] = useState<any[]>([]);
+  const [availableSections, setAvailableSections] = useState<Record<string, boolean> | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandIntro, setExpandIntro] = useState(false);
   const [expandSummary, setExpandSummary] = useState(false);
@@ -48,8 +49,17 @@ export default function AboutPage() {
         .then(res => setAchievements(res.data || []))
         .catch(err => {
           console.warn('Could not fetch achievements:', err);
+        }),
+      fetchApi('/sections/available')
+        .then(res => setAvailableSections(res.data))
+        .catch(() => {
+          // fallback
+          setAvailableSections({
+            experience: true, education: true, projects: true,
+            services: true, events: true, testimonials: true
+          });
         })
-    ]).finally(() => {
+    ]).then(() => {
       setLoading(false);
     });
   }, []);
@@ -412,13 +422,13 @@ export default function AboutPage() {
         <h2 className="text-3xl font-bold mb-6 md:mb-8 text-center"><ColoredTitle title="Explore More" /></h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
           {[
-            { title: 'Experience', path: '/experience?from=about', icon: '💼' },
-            { title: 'Education', path: '/education?from=about', icon: '🎓' },
-            { title: 'Projects', path: '/projects?from=about', icon: '🚀' },
-            { title: 'Services', path: '/services?from=about', icon: '⚡' },
-            { title: 'Events', path: '/events?from=about', icon: '📅' },
-            { title: 'Testimonials', path: '/testimonials?from=about', icon: '💬' },
-          ].map((link, i) => (
+            { title: 'Experience', path: '/experience?from=about', icon: '💼', key: 'experience' },
+            { title: 'Education', path: '/education?from=about', icon: '🎓', key: 'education' },
+            { title: 'Projects', path: '/projects?from=about', icon: '🚀', key: 'projects' },
+            { title: 'Services', path: '/services?from=about', icon: '⚡', key: 'services' },
+            { title: 'Events', path: '/events?from=about', icon: '📅', key: 'events' },
+            { title: 'Testimonials', path: '/testimonials?from=about', icon: '💬', key: 'testimonials' },
+          ].filter(link => !availableSections || availableSections[link.key]).map((link, i) => (
             <Link
               key={i}
               href={link.path}
