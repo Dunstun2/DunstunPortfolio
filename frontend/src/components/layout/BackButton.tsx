@@ -1,12 +1,21 @@
 'use client';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 export default function BackButton() {
   const pathname = usePathname();
+  const [fromAbout, setFromAbout] = useState(false);
 
-  // Do not show on homepage or admin pages
-  if (pathname === '/' || pathname?.startsWith('/admin')) {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      setFromAbout(params.get('from') === 'about');
+    }
+  }, [pathname]);
+
+  // Do not show on homepage or admin pages, or if we are showing the specific BackToAbout button
+  if (pathname === '/' || pathname?.startsWith('/admin') || fromAbout) {
     return null;
   }
 

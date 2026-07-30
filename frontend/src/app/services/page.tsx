@@ -29,6 +29,7 @@ interface Pagination {
   nextPage: number | null;
   prevPage: number | null;
 }
+import BackToAbout from '@/components/BackToAbout';
 
 export default function ServicesPage() {
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
@@ -80,6 +81,7 @@ export default function ServicesPage() {
 
   return (
     <div className="min-h-screen py-12 md:py-20">
+      <BackToAbout />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
         <div className="text-center mb-12 md:mb-16">
@@ -113,6 +115,7 @@ export default function ServicesPage() {
               {services.map((service) => (
                 <div
                   key={service.id}
+                  id={service.slug}
                   onClick={(e) => handleCardClick(e, service.slug, service.id)}
                   className="glass rounded-2xl overflow-hidden group hover:-translate-y-2 transition-all duration-300 hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.3)] flex flex-col cursor-pointer"
                 >

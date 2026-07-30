@@ -3,7 +3,11 @@ import { io, Socket } from 'socket.io-client';
 import { WS_URL } from './urls';
 
 // Global socket instance - reuse across all components to prevent connection leaks
+// Attach to window in development to survive Fast Refresh (HMR) module reloads
 let globalSocket: Socket | null = null;
+if (typeof window !== 'undefined') {
+  globalSocket = (window as any).__globalSocket || null;
+}
 const socketListeners = new Map<string, Set<() => void>>();
 
 function getOrCreateSocket(): Socket {
@@ -21,6 +25,10 @@ function getOrCreateSocket(): Socket {
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
   });
+
+  if (typeof window !== 'undefined') {
+    (window as any).__globalSocket = globalSocket;
+  }
 
   globalSocket.on('connect', () => {
     console.log('[useRealtimeRefresh] Socket connected:', globalSocket?.id);

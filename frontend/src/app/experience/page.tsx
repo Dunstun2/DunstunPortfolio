@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import BackToAbout from '@/components/BackToAbout';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
 import { getFileUrl } from '@/utils/urls';
@@ -69,8 +70,9 @@ export default function ExperiencePage() {
   const emptyMessage = settings?.experience_empty_message || 'Experience information coming soon';
 
   return (
-    <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 pb-24">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen py-12 md:py-20 relative">
+      <BackToAbout />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-6xl font-extrabold text-heading-light mb-4">

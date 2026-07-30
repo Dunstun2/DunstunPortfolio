@@ -42,7 +42,7 @@ export default function HeroSection() {
     bg_video_url,
     bg_overlay_color,
     bg_overlay_opacity,
-    layout_template,
+    layout_template = 'split',
     full_height,
     content_alignment,
     text_alignment,
@@ -108,16 +108,17 @@ export default function HeroSection() {
   };
 
   // Render CTAs and Socials
-  const renderActions = () => {
+  const renderActions = (isExternal: boolean = false) => {
     const hasCTAs = cta_buttons && cta_buttons.length > 0;
     const hasSocials = show_social_links && social_links && social_links.length > 0;
     
     if (!hasCTAs && !hasSocials) return null;
     
-    const justifyClass = text_alignment === 'center' ? 'justify-center' : text_alignment === 'right' ? 'justify-end' : 'justify-start';
+    const justifyClass = isExternal ? 'justify-center' : (text_alignment === 'center' ? 'justify-center' : text_alignment === 'right' ? 'justify-end' : 'justify-start');
+    const marginClass = isExternal ? 'mt-0' : 'mt-8';
     
     return (
-      <div className={`flex flex-nowrap items-center gap-4 md:gap-6 mt-8 ${justifyClass}`}>
+      <div className={`flex flex-nowrap items-center justify-center w-full gap-2 sm:gap-4 md:gap-6 ${marginClass} ${justifyClass}`}>
         {hasCTAs && cta_buttons.filter((btn: any) => !btn.is_hidden).map((btn: any, idx: number) => {
           let styles = '';
           if (btn.style === 'primary') styles = 'btn-primary';
@@ -131,7 +132,7 @@ export default function HeroSection() {
               href={btn.target || '#'} 
               target={btn.link_type === 'external' || btn.link_type === 'view' ? '_blank' : '_self'}
               download={btn.link_type === 'file' ? true : undefined}
-              className={`btn btn-md ${styles}`}
+              className={`btn flex-shrink min-w-[80px] text-center whitespace-nowrap text-xs sm:text-sm md:text-base px-2 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-3 ${styles}`}
             >
               {btn.label}
             </Link>
@@ -165,7 +166,7 @@ export default function HeroSection() {
   };
 
   // Render Photo
-  const renderPhoto = () => {
+  const renderPhoto = (isSplit: boolean = false) => {
     if (!image_url) return null;
     
     let shapeClass = 'rounded-full';
@@ -173,20 +174,23 @@ export default function HeroSection() {
     else if (photo_shape === 'squircle') shapeClass = 'rounded-[22%]';
     
     const isCircle = photo_shape === 'circle';
+
+    // In split layout, image fills the column width; otherwise use small fixed sizes
+    const wClass = isSplit ? 'w-full' : 'w-48 md:w-64 lg:w-80';
+    const circleClass = isSplit ? 'w-full aspect-square max-w-[28rem]' : 'w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80';
     
     // --- Normal ---
     if (photo_display_style === 'normal') {
       if (isCircle) {
         return (
-          <div className="relative w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 flex-shrink-0">
+          <div className={`relative flex-shrink-0 ${circleClass}`}>
             <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`w-full h-full object-cover shadow-xl ${shapeClass}`} />
           </div>
         );
       }
-      // For non-circle shapes, show the full image without cropping
       return (
-        <div className="relative w-48 md:w-64 lg:w-80 flex-shrink-0">
-          <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`w-full h-auto max-h-[24rem] md:max-h-[36rem] object-contain shadow-xl ${shapeClass}`} />
+        <div className={`relative flex-shrink-0 ${wClass}`}>
+          <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`w-full h-auto object-cover shadow-xl ${shapeClass}`} />
         </div>
       );
     }
@@ -195,24 +199,25 @@ export default function HeroSection() {
     if (photo_display_style === 'circular-frame') {
       if (isCircle) {
         return (
-          <div className="relative w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 flex items-center justify-center flex-shrink-0">
+          <div className={`relative flex items-center justify-center flex-shrink-0 ${circleClass}`}>
             <div className="absolute -inset-3 bg-gradient-to-br from-primary to-secondary rounded-full blur-xl opacity-40 animate-pulse z-0" />
             <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`w-full h-full object-cover border-4 border-gray-900 shadow-2xl relative z-10 ${shapeClass}`} />
           </div>
         );
       }
       return (
-        <div className="relative w-48 md:w-64 lg:w-80 flex items-center justify-center flex-shrink-0">
+        <div className={`relative flex items-center justify-center flex-shrink-0 ${wClass}`}>
           <div className="absolute -inset-3 bg-gradient-to-br from-primary to-secondary blur-xl opacity-40 animate-pulse z-0 rounded-2xl" />
-          <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`w-full h-auto max-h-[24rem] md:max-h-[36rem] object-contain border-4 border-gray-900 shadow-2xl relative z-10 ${shapeClass}`} />
+          <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`w-full h-auto object-cover border-4 border-gray-900 shadow-2xl relative z-10 ${shapeClass}`} />
         </div>
       );
     }
 
     // --- Polaroid ---
     if (photo_display_style === 'polaroid') {
+      const sizeClass = isSplit ? 'w-full' : 'w-48 h-56 md:w-64 md:h-72 lg:w-80 lg:h-96';
       return (
-        <div className="p-3 pb-12 bg-white shadow-2xl transform rotate-3 hover:rotate-0 transition-all duration-500 w-48 h-56 md:w-64 md:h-72 lg:w-80 lg:h-96 flex-shrink-0">
+        <div className={`p-3 pb-12 bg-white shadow-2xl transform rotate-3 hover:rotate-0 transition-all duration-500 flex-shrink-0 ${sizeClass}`}>
           <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className="w-full h-full object-cover" />
         </div>
       );
@@ -222,24 +227,25 @@ export default function HeroSection() {
     if (photo_display_style === 'floating-card') {
       if (isCircle) {
         return (
-          <div className="relative w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 flex-shrink-0" style={{ animation: 'floatY 4s ease-in-out infinite' }}>
+          <div className={`relative flex-shrink-0 ${circleClass}`} style={{ animation: 'floatY 4s ease-in-out infinite' }}>
             <style>{`@keyframes floatY { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-16px)} }`}</style>
             <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`w-full h-full object-cover shadow-[0_30px_60px_rgba(0,0,0,0.6)] ${shapeClass}`} />
           </div>
         );
       }
       return (
-        <div className="relative w-48 md:w-64 lg:w-80 flex-shrink-0" style={{ animation: 'floatY 4s ease-in-out infinite' }}>
+        <div className={`relative flex-shrink-0 ${wClass}`} style={{ animation: 'floatY 4s ease-in-out infinite' }}>
           <style>{`@keyframes floatY { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-16px)} }`}</style>
-          <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`w-full h-auto max-h-[24rem] md:max-h-[36rem] object-contain shadow-[0_30px_60px_rgba(0,0,0,0.6)] ${shapeClass}`} />
+          <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`w-full h-auto object-cover shadow-[0_30px_60px_rgba(0,0,0,0.6)] ${shapeClass}`} />
         </div>
       );
     }
 
     // --- Cutout: transparent / no crop ---
     if (photo_display_style === 'cutout') {
+      const sizeClass = isSplit ? 'w-full' : 'w-48 h-64 md:w-56 md:h-80 lg:w-72 lg:h-[36rem]';
       return (
-        <div className="relative w-48 h-64 md:w-56 md:h-80 lg:w-72 lg:h-[36rem] flex-shrink-0">
+        <div className={`relative ${sizeClass} flex-shrink-0`}>
           <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className="w-full h-full object-contain drop-shadow-2xl" />
         </div>
       );
@@ -247,8 +253,9 @@ export default function HeroSection() {
 
     // --- Portrait: tall image, full body display ---
     if (photo_display_style === 'portrait') {
+      const sizeClass = isSplit ? 'w-full' : 'w-48 h-64 md:w-56 md:h-80 lg:w-[22rem] lg:h-[36rem]';
       return (
-        <div className={`relative w-48 h-64 md:w-56 md:h-80 lg:w-[22rem] lg:h-[36rem] flex-shrink-0 overflow-hidden ${shapeClass}`}>
+        <div className={`relative flex-shrink-0 overflow-hidden ${sizeClass} ${shapeClass}`}>
           <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className="w-full h-full object-cover object-top shadow-2xl" />
         </div>
       );
@@ -257,14 +264,9 @@ export default function HeroSection() {
     // --- Hexagon: geometric clip ---
     if (photo_display_style === 'hexagon') {
       return (
-        <div className="relative w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 flex-shrink-0 flex items-center justify-center">
+        <div className={`relative flex-shrink-0 flex items-center justify-center ${circleClass}`}>
           <div className="absolute -inset-2 bg-gradient-to-br from-primary to-secondary opacity-30 blur-xl" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }} />
-          <img
-            src={image_url}
-            alt={photo_alt_text || ''}
-            className="w-full h-full object-cover shadow-2xl"
-            style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}
-          />
+          <img src={image_url} alt={photo_alt_text || ''} className="w-full h-full object-cover shadow-2xl" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }} />
         </div>
       );
     }
@@ -273,14 +275,14 @@ export default function HeroSection() {
     if (photo_display_style === 'glass-card') {
       if (isCircle) {
         return (
-          <div className="relative flex-shrink-0 p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)', boxShadow: '0 20px 50px rgba(0,0,0,0.4)' }}>
-            <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`w-40 h-40 md:w-56 md:h-56 lg:w-72 lg:h-72 object-cover ${shapeClass}`} />
+          <div className={`relative flex-shrink-0 p-4 rounded-2xl ${isSplit ? 'w-full' : ''}`} style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)', boxShadow: '0 20px 50px rgba(0,0,0,0.4)' }}>
+            <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`${circleClass} object-cover ${shapeClass}`} />
           </div>
         );
       }
       return (
-        <div className="relative flex-shrink-0 p-4 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)', boxShadow: '0 20px 50px rgba(0,0,0,0.4)' }}>
-          <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`w-40 md:w-56 lg:w-72 h-auto max-h-[24rem] md:max-h-[36rem] object-contain ${shapeClass}`} />
+        <div className={`relative flex-shrink-0 p-4 rounded-2xl ${isSplit ? 'w-full' : ''}`} style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)', boxShadow: '0 20px 50px rgba(0,0,0,0.4)' }}>
+          <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`${isSplit ? 'w-full' : 'w-40 md:w-56 lg:w-72'} h-auto object-cover ${shapeClass}`} />
         </div>
       );
     }
@@ -289,16 +291,16 @@ export default function HeroSection() {
     if (photo_display_style === 'bordered-frame') {
       if (isCircle) {
         return (
-          <div className="relative w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 flex-shrink-0">
+          <div className={`relative flex-shrink-0 ${circleClass}`}>
             <div className="absolute inset-0 border-4 border-primary rounded-full translate-x-3 translate-y-3" />
             <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`w-full h-full object-cover ${shapeClass} shadow-xl relative z-10`} />
           </div>
         );
       }
       return (
-        <div className="relative w-48 md:w-64 lg:w-80 flex-shrink-0">
+        <div className={`relative flex-shrink-0 ${wClass}`}>
           <div className="absolute inset-0 border-4 border-primary rounded-2xl translate-x-3 translate-y-3" />
-          <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`w-full h-auto max-h-[24rem] md:max-h-[36rem] object-contain ${shapeClass} shadow-xl relative z-10`} />
+          <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`w-full h-auto object-cover ${shapeClass} shadow-xl relative z-10`} />
         </div>
       );
     }
@@ -306,14 +308,14 @@ export default function HeroSection() {
     // Default fallback
     if (isCircle) {
       return (
-        <div className="relative w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 flex-shrink-0">
+        <div className={`relative flex-shrink-0 ${circleClass}`}>
           <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`w-full h-full object-cover shadow-xl ${shapeClass}`} />
         </div>
       );
     }
     return (
-      <div className="relative w-48 md:w-64 lg:w-80 flex-shrink-0">
-        <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`w-full h-auto max-h-[24rem] md:max-h-[36rem] object-contain shadow-xl ${shapeClass}`} />
+      <div className={`relative flex-shrink-0 ${wClass}`}>
+        <img src={image_url} alt={photo_alt_text || ''} loading="lazy" decoding="async" className={`w-full h-auto object-cover shadow-xl ${shapeClass}`} />
       </div>
     );
   };
@@ -369,7 +371,7 @@ export default function HeroSection() {
     const isDarkBg = bg_type === 'image' || bg_type === 'video' || bg_type === 'animated' || bg_type === 'gradient' || layout_template === 'photo-background' || content_bg_type === 'dark' || content_bg_type === 'gradient-left';
 
     return (
-      <div className={`flex flex-col ${alignClass} z-10 relative w-full ${isDarkBg && (!content_bg_type || content_bg_type === 'none') ? 'bg-black/60 p-6 rounded-2xl backdrop-blur-sm md:bg-transparent md:backdrop-blur-none md:p-0' : ''}`} style={getContentBgStyle()}>
+      <div className={`flex flex-col ${alignClass} z-10 relative w-full h-full ${isDarkBg && (!content_bg_type || content_bg_type === 'none') ? 'bg-black/60 p-6 rounded-2xl backdrop-blur-sm md:bg-transparent md:backdrop-blur-none md:p-0' : ''}`} style={getContentBgStyle()}>
         
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-4">
           {greeting && (
@@ -401,7 +403,6 @@ export default function HeroSection() {
         )}
 
         {renderAvailability()}
-        {renderActions()}
       </div>
     );
   };
@@ -422,38 +423,56 @@ export default function HeroSection() {
   const forceDarkClass = isDarkBg ? 'force-dark text-text-light' : '';
 
   return (
-    <section id="hero" aria-label={accessibility_label || 'Hero Section'} className={`relative flex items-center justify-center overflow-hidden px-0 md:px-8 lg:px-16 ${heightClass} ${forceDarkClass}`}>
-      {renderBackground()}
+    <>
+      <section id="hero" aria-label={accessibility_label || 'Hero Section'} className={`relative flex items-center justify-center overflow-hidden px-0 md:px-8 lg:px-16 ${heightClass} ${forceDarkClass}`}>
+        {renderBackground()}
 
-      {/* Split Layout */}
-      {layout_template === 'split' && (
-        <div className={`w-full max-w-7xl mx-auto flex flex-col items-center gap-8 lg:gap-16 z-10 ${animClass} ${photo_position === 'left' ? 'md:flex-row-reverse' : 'md:flex-row'}`}>
-          <div className="flex-1 w-full">{renderTextContent()}</div>
-          <div className="flex-shrink-0 flex flex-col items-center gap-6">
-            {renderPhoto()}
+        {/* Split Layout */}
+        {(layout_template === 'split' || layout_template === 'split-reverse') && (
+          <div className={`w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-y-4 md:gap-y-6 gap-x-8 lg:gap-x-16 z-10 ${animClass}`}>
+            
+            {/* Text Content */}
+            <div className={`w-full flex items-stretch md:col-span-2 ${(layout_template === 'split-reverse' || photo_position === 'left') ? 'md:col-start-2 md:row-start-1' : 'md:col-start-1 md:row-start-1'}`}>
+              {renderTextContent()}
+            </div>
+
+            {/* Photo */}
+            <div className={`w-full flex items-center justify-center overflow-hidden ${(layout_template === 'split-reverse' || photo_position === 'left') ? 'md:col-start-1 md:row-start-1' : 'md:col-start-3 md:row-start-1'}`}>
+              {renderPhoto(true)}
+            </div>
+
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Centered Layout */}
-      {layout_template === 'centered' && (
-        <div className={`w-full max-w-4xl mx-auto flex flex-col items-center gap-8 md:gap-12 z-10 ${animClass}`}>
-          <div className="w-full flex justify-center order-1 md:order-2">
+        {/* Centered Layout */}
+        {layout_template === 'centered' && (
+          <div className={`w-full max-w-4xl mx-auto flex flex-col items-center gap-8 md:gap-12 z-10 ${animClass}`}>
+            <div className="w-full flex flex-col justify-center order-1 md:order-2">
+              {renderTextContent()}
+            </div>
+            <div className="flex flex-col items-center gap-6 order-2 md:order-1">
+              {renderPhoto()}
+            </div>
+          </div>
+        )}
+
+        {/* Photo Background Layout */}
+        {layout_template === 'photo-background' && (
+          <div className={`w-full max-w-4xl mx-auto z-10 flex flex-col items-center ${animClass}`}>
             {renderTextContent()}
           </div>
-          <div className="flex flex-col items-center gap-6 order-2 md:order-1">
-            {renderPhoto()}
+        )}
+
+      </section>
+
+      {/* Actions Bar (below banner) */}
+      {(cta_buttons?.length > 0 || social_links?.length > 0) && (
+        <div className="w-full bg-[#0a0f1c] py-6 px-4 md:px-8 border-t border-white/5 shadow-inner relative z-20">
+          <div className="max-w-7xl mx-auto flex justify-center">
+            {renderActions(true)}
           </div>
         </div>
       )}
-
-      {/* Photo Background Layout */}
-      {layout_template === 'photo-background' && (
-        <div className={`w-full max-w-4xl mx-auto z-10 flex flex-col items-center ${animClass}`}>
-          {renderTextContent()}
-        </div>
-      )}
-
-    </section>
+    </>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import BackToAbout from '@/components/BackToAbout';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
 
@@ -70,6 +71,7 @@ export default function AllProjectsPage() {
 
   return (
     <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto pb-24">
+      <BackToAbout />
       {/* Header */}
       <div className="text-center mb-16">
         <h1 className="text-4xl md:text-6xl font-extrabold text-heading-light mb-4">

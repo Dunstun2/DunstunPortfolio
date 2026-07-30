@@ -109,7 +109,7 @@ export default function ServicesSection() {
               {/* CTA Link */}
               <div className="px-6 pb-6 pt-1 flex items-center justify-between gap-3">
                 <Link
-                  href={service.cta_url?.startsWith('http') ? service.cta_url : `/services/${service.slug}`}
+                  href={service.cta_url?.startsWith('http') ? service.cta_url : `/services#${service.slug}`}
                   className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-primary/80 transition-colors"
                 >
                   {service.cta_text || 'Learn More'} &rarr;

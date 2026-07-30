@@ -16,12 +16,14 @@ export default function AdminAbout() {
 
   const initialFormState = {
     title: '', content: '', image_url: '',
-    hero_title: '', hero_image_url: '',
-    story_title: '', story_content: '',
-    philosophy_title: '', philosophy_statement: '', philosophy_description: '',
-    vision_title: '', vision_statement: '', vision_description: '',
-    drive_title: '', drive_statement: '', drive_description: '', drive_image_url: '',
-    identity_cards: [], values: [], explorations: [], highlights: []
+    professional_title: '',
+    personal_introduction: '',
+    professional_summary: '',
+    mission_statement: '',
+    vision_statement: '',
+    interests: [] as string[],
+    statistics: [] as { label: string; value: string }[],
+    values: [], explorations: [], highlights: []
   };
 
   const [formData, setFormData] = useState<any>(initialFormState);
@@ -60,24 +62,14 @@ export default function AdminAbout() {
   };
 
   const loadData = () => {
-    Promise.all([
-      fetchApi('/about').then(res => {
-        return { data: res.data && res.data.length > 0 ? res.data[0] : null };
-      }).catch(err => {
-        console.error('Failed to fetch about data:', err);
-        return { data: null };
-      }),
-      fetchApi('/hero/published').catch(err => {
-        console.warn('Could not fetch hero data:', err);
-        return { data: null };
-      })
-    ]).then(([aboutRes, heroRes]) => {
-      if (aboutRes.data) {
-        startEdit(aboutRes.data, heroRes.data);
+    fetchApi('/about').then(res => {
+      const data = res.data && res.data.length > 0 ? res.data[0] : null;
+      if (data) {
+        startEdit(data);
       }
       setIsLoaded(true);
     }).catch(err => {
-      console.error(err);
+      console.error('Failed to fetch about data:', err);
       setIsLoaded(true);
     });
   };
@@ -87,9 +79,7 @@ export default function AdminAbout() {
   }, [refreshKey]);
 
   const saveData = async (publish: boolean, dataToSave: any) => {
-    // Clean temporary isHeroTitle flags before sending to database
-    const cleanedCards = (dataToSave.identity_cards || []).map(({ isHeroTitle, ...card }: any) => card);
-    const cleanedFormData = { ...dataToSave, identity_cards: cleanedCards };
+    const cleanedFormData = { ...dataToSave };
     let currentId = editId;
 
     if (currentId) {
@@ -121,6 +111,10 @@ export default function AdminAbout() {
           console.error(err);
         });
     }, 60000);
+    
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
   }, [formData]);
 
   const handlePublish = async (e: React.MouseEvent) => {
@@ -144,7 +138,7 @@ export default function AdminAbout() {
     } catch (err) { console.error(err); }
   };
 
-  const startEdit = (item: any, heroData?: any) => {
+  const startEdit = (item: any) => {
     const sanitizedItem = { ...item };
 
     // Replace nulls with empty strings to prevent React uncontrolled input warnings
@@ -154,35 +148,35 @@ export default function AdminAbout() {
       }
     }
 
+    // Strip HTML tags from text content fields
+    const stripHtml = (html: string) => {
+      if (!html) return '';
+      return html
+        .replace(/<\/p>\s*<p>/gi, '\n\n')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<[^>]+>/g, '')
+        .trim();
+    };
+    if (sanitizedItem.content) sanitizedItem.content = stripHtml(sanitizedItem.content);
+    if (sanitizedItem.personal_introduction) sanitizedItem.personal_introduction = stripHtml(sanitizedItem.personal_introduction);
+    if (sanitizedItem.professional_summary) sanitizedItem.professional_summary = stripHtml(sanitizedItem.professional_summary);
+
     // Ensure arrays default to empty arrays
-    const arrayFields = ['identity_cards', 'values', 'explorations', 'highlights'];
+    const arrayFields = ['values', 'explorations', 'highlights'];
     arrayFields.forEach(field => {
       if (!sanitizedItem[field]) sanitizedItem[field] = [];
     });
 
-    // Merge hero professional titles
-    const heroTitles = heroData?.professional_title
-      ? heroData.professional_title.split('|').map((t: string) => t.trim()).filter(Boolean)
-      : [];
+    // Ensure JSON fields parse correctly
+    if (typeof sanitizedItem.interests === 'string') {
+      try { sanitizedItem.interests = JSON.parse(sanitizedItem.interests); } catch { sanitizedItem.interests = []; }
+    }
+    if (!Array.isArray(sanitizedItem.interests)) sanitizedItem.interests = [];
 
-    const existingCards = [...sanitizedItem.identity_cards];
-    const mergedCards: any[] = [];
-
-    heroTitles.forEach((title: string) => {
-      const matchIndex = existingCards.findIndex((c: any) => c.title.toLowerCase() === title.toLowerCase());
-      if (matchIndex > -1) {
-        mergedCards.push({ ...existingCards[matchIndex], isHeroTitle: true, title: title }); // Force casing
-        existingCards.splice(matchIndex, 1);
-      } else {
-        mergedCards.push({ title, description: '', icon_name: '', isHeroTitle: true });
-      }
-    });
-
-    existingCards.forEach((c: any) => {
-      mergedCards.push({ ...c, isHeroTitle: false });
-    });
-
-    sanitizedItem.identity_cards = mergedCards;
+    if (typeof sanitizedItem.statistics === 'string') {
+      try { sanitizedItem.statistics = JSON.parse(sanitizedItem.statistics); } catch { sanitizedItem.statistics = []; }
+    }
+    if (!Array.isArray(sanitizedItem.statistics)) sanitizedItem.statistics = [];
 
     skipNextAutoSave.current = true;
     setFormData({ ...initialFormState, ...sanitizedItem });
@@ -205,12 +199,66 @@ export default function AdminAbout() {
     setFormData({ ...formData, [key]: newArray });
   };
 
+  // Simple array helpers for interests (string[])
+  const addInterest = () => {
+    setFormData({ ...formData, interests: [...(formData.interests || []), ''] });
+  };
+  const updateInterest = (index: number, value: string) => {
+    const newInterests = [...(formData.interests || [])];
+    newInterests[index] = value;
+    setFormData({ ...formData, interests: newInterests });
+  };
+  const removeInterest = (index: number) => {
+    const newInterests = (formData.interests || []).filter((_: any, i: number) => i !== index);
+    setFormData({ ...formData, interests: newInterests });
+  };
+
+  // Simple array helpers for statistics ({ label, value }[])
+  const addStatistic = () => {
+    setFormData({ ...formData, statistics: [...(formData.statistics || []), { label: '', value: '' }] });
+  };
+  const updateStatistic = (index: number, field: string, value: string) => {
+    const newStats = [...(formData.statistics || [])];
+    newStats[index] = { ...newStats[index], [field]: value };
+    setFormData({ ...formData, statistics: newStats });
+  };
+  const removeStatistic = (index: number) => {
+    const newStats = (formData.statistics || []).filter((_: any, i: number) => i !== index);
+    setFormData({ ...formData, statistics: newStats });
+  };
+
+  const handleInterestKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (index === (formData.interests?.length || 0) - 1) {
+        addInterest();
+        setTimeout(() => {
+          const inputs = document.querySelectorAll('input[data-interest-input="true"]');
+          const lastInput = inputs[inputs.length - 1] as HTMLInputElement;
+          if (lastInput) lastInput.focus();
+        }, 50);
+      }
+    }
+  };
+
+  const handleStatisticKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (index === (formData.statistics?.length || 0) - 1) {
+        addStatistic();
+        setTimeout(() => {
+          const inputs = document.querySelectorAll('input[data-statistic-input="true"]');
+          const lastInput = inputs[inputs.length - 1] as HTMLInputElement;
+          if (lastInput) lastInput.focus();
+        }, 50);
+      }
+    }
+  };
+
   const tabs = [
-    { id: 'general', label: 'General & Hero' },
-    { id: 'story', label: 'Story & Narrative' },
-    { id: 'philosophy', label: 'Philosophy & Drive' },
-    { id: 'vision', label: 'Vision' },
-    { id: 'lists', label: 'Cards & Lists' }
+    { id: 'general', label: 'General & Profile' },
+    { id: 'narrative', label: 'Narrative' },
+    { id: 'lists', label: 'Values, Milestones & Lists' }
   ];
 
   return (
@@ -236,127 +284,51 @@ export default function AdminAbout() {
 
         <form onSubmit={(e) => e.preventDefault()} className="p-6 space-y-6">
 
-          {/* GENERAL TAB */}
+          {/* GENERAL & PROFILE TAB */}
           <div className={activeTab === 'general' ? 'block' : 'hidden'}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
-                <label className="block text-sm mb-1 text-gray-400">Profile Image URL (Home section)</label>
-                <div className="flex gap-2 items-center">
-                  {formData.image_url && (
-                    <img src={formData.image_url} alt="Preview" className="w-10 h-10 rounded object-cover border border-gray-700 bg-gray-800 shrink-0" />
-                  )}
-                  <input type="text" value={formData.image_url} onChange={e => setFormData({ ...formData, image_url: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
-                  <label className="cursor-pointer bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors whitespace-nowrap flex items-center justify-center shrink-0">
-                    {uploadingImage === 'image_url' ? 'Uploading...' : 'Upload'}
-                    <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'image_url')} />
-                  </label>
-                </div>
-              </div>
-            </div>
-            <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">Full Page Hero</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm mb-1 text-gray-400">Hero Title</label>
-                <input type="text" value={formData.hero_title} onChange={e => setFormData({ ...formData, hero_title: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
+                <label className="block text-sm mb-1 text-gray-400">Your Name</label>
+                <input type="text" required value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-400">Hero Media URL (Image or Video Background)</label>
-                <div className="flex gap-2 items-center">
-                  {formData.hero_image_url && formData.hero_image_url.match(/\.(jpeg|jpg|gif|png|webp)$/i) && (
-                    <img src={formData.hero_image_url} alt="Preview" className="w-10 h-10 rounded object-cover border border-gray-700 bg-gray-800 shrink-0" />
-                  )}
-                  <input type="text" value={formData.hero_image_url} onChange={e => setFormData({ ...formData, hero_image_url: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
-                  <label className="cursor-pointer bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors whitespace-nowrap flex items-center justify-center shrink-0">
-                    {uploadingImage === 'hero_image_url' ? 'Uploading...' : 'Upload'}
-                    <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => handleImageUpload(e, 'hero_image_url')} />
-                  </label>
-                </div>
+                <label className="block text-sm mb-1 text-gray-400">Professional Title</label>
+                <input type="text" value={formData.professional_title} onChange={e => setFormData({ ...formData, professional_title: e.target.value })} placeholder="e.g. Biomedical Engineer | Software Developer | UX/UI Designer" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
               </div>
             </div>
-          </div>
-
-          {/* STORY TAB */}
-          <div className={activeTab === 'story' ? 'block' : 'hidden'}>
             <div className="mb-6">
-              <label className="block text-sm mb-1 text-gray-400">Intro Content</label>
-              <textarea required rows={5} value={formData.content} onChange={e => setFormData({ ...formData, content: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
-            </div>
-            <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">My Story / Journey</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm mb-1 text-gray-400">Story Title</label>
-                <input type="text" value={formData.story_title} onChange={e => setFormData({ ...formData, story_title: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
-              </div>
-              <div>
-                <label className="block text-sm mb-1 text-gray-400">Story Content</label>
-                <textarea rows={8} value={formData.story_content} onChange={e => setFormData({ ...formData, story_content: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
+              <label className="block text-sm mb-1 text-gray-400">Profile Photograph</label>
+              <div className="flex gap-2 items-center">
+                {formData.image_url && (
+                  <img src={formData.image_url} alt="Preview" className="w-10 h-10 rounded object-cover border border-gray-700 bg-gray-800 shrink-0" />
+                )}
+                <input type="text" value={formData.image_url} onChange={e => setFormData({ ...formData, image_url: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
+                <label className="cursor-pointer bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors whitespace-nowrap flex items-center justify-center shrink-0">
+                  {uploadingImage === 'image_url' ? 'Uploading...' : 'Upload'}
+                  <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'image_url')} />
+                </label>
               </div>
             </div>
           </div>
 
-          {/* PHILOSOPHY TAB */}
-          <div className={activeTab === 'philosophy' ? 'block' : 'hidden'}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">My Philosophy</h3>
-                <div>
-                  <label className="block text-sm mb-1 text-gray-400">Title</label>
-                  <input type="text" value={formData.philosophy_title} onChange={e => setFormData({ ...formData, philosophy_title: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
-                </div>
-                <div>
-                  <label className="block text-sm mb-1 text-gray-400">Statement</label>
-                  <textarea rows={3} value={formData.philosophy_statement} onChange={e => setFormData({ ...formData, philosophy_statement: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
-                </div>
-                <div>
-                  <label className="block text-sm mb-1 text-gray-400">Description</label>
-                  <textarea rows={5} value={formData.philosophy_description} onChange={e => setFormData({ ...formData, philosophy_description: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
-                </div>
-              </div>
-              <div className="space-y-4">
-                <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">What Drives Me</h3>
-                <div>
-                  <label className="block text-sm mb-1 text-gray-400">Title</label>
-                  <input type="text" value={formData.drive_title} onChange={e => setFormData({ ...formData, drive_title: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
-                </div>
-                <div>
-                  <label className="block text-sm mb-1 text-gray-400">Statement</label>
-                  <textarea rows={3} value={formData.drive_statement} onChange={e => setFormData({ ...formData, drive_statement: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
-                </div>
-                <div>
-                  <label className="block text-sm mb-1 text-gray-400">Description</label>
-                  <textarea rows={5} value={formData.drive_description} onChange={e => setFormData({ ...formData, drive_description: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
-                </div>
-                <div>
-                  <label className="block text-sm mb-1 text-gray-400">Drive Image URL</label>
-                  <div className="flex gap-2 items-center">
-                    {formData.drive_image_url && (
-                      <img src={formData.drive_image_url} alt="Preview" className="w-10 h-10 rounded object-cover border border-gray-700 bg-gray-800 shrink-0" />
-                    )}
-                    <input type="text" value={formData.drive_image_url} onChange={e => setFormData({ ...formData, drive_image_url: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
-                    <label className="cursor-pointer bg-gray-800 border border-gray-700 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors whitespace-nowrap flex items-center justify-center shrink-0">
-                      {uploadingImage === 'drive_image_url' ? 'Uploading...' : 'Upload'}
-                      <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'drive_image_url')} />
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* VISION TAB */}
-          <div className={activeTab === 'vision' ? 'block' : 'hidden'}>
-            <div className="space-y-4">
+          {/* NARRATIVE TAB */}
+          <div className={activeTab === 'narrative' ? 'block' : 'hidden'}>
+            <div className="space-y-8">
               <div>
-                <label className="block text-sm mb-1 text-gray-400">Vision Title</label>
-                <input type="text" value={formData.vision_title} onChange={e => setFormData({ ...formData, vision_title: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
+                <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">Personal Introduction</h3>
+                <textarea rows={6} value={formData.personal_introduction} onChange={e => setFormData({ ...formData, personal_introduction: e.target.value })} placeholder="Tell your story — who you are, your background, interests, and goals..." className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-400">Vision Statement</label>
-                <textarea rows={3} value={formData.vision_statement} onChange={e => setFormData({ ...formData, vision_statement: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
+                <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">Professional Summary</h3>
+                <textarea rows={6} value={formData.professional_summary} onChange={e => setFormData({ ...formData, professional_summary: e.target.value })} placeholder="Your professional identity — years of experience, industries, specializations, achievements..." className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-400">Vision Description</label>
-                <textarea rows={5} value={formData.vision_description} onChange={e => setFormData({ ...formData, vision_description: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
+                <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">Mission Statement</h3>
+                <textarea rows={3} value={formData.mission_statement} onChange={e => setFormData({ ...formData, mission_statement: e.target.value })} placeholder="e.g. To develop innovative, accessible, and impactful solutions that empower individuals..." className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">Vision Statement</h3>
+                <textarea rows={3} value={formData.vision_statement} onChange={e => setFormData({ ...formData, vision_statement: e.target.value })} placeholder="e.g. To become a leading innovator who bridges healthcare, technology, and entrepreneurship..." className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
               </div>
             </div>
           </div>
@@ -365,46 +337,10 @@ export default function AdminAbout() {
           <div className={activeTab === 'lists' ? 'block' : 'hidden'}>
             <div className="space-y-12">
 
-              {/* Identity Cards */}
-              <div>
-                <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-                  <h3 className="text-lg font-bold text-white">Who I Am (Cards)</h3>
-                  <button type="button" onClick={() => addArrayItem('identity_cards', { title: '', description: '', icon_name: '' })} className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded">Add Card</button>
-                </div>
-                <div className="grid grid-cols-1 gap-4">
-                  {formData.identity_cards?.map((item: any, i: number) => (
-                    <div key={i} className="flex gap-4 items-start bg-gray-900 p-4 rounded border border-gray-700">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <input
-                            placeholder="Title"
-                            value={item.title}
-                            onChange={e => handleArrayChange('identity_cards', i, 'title', e.target.value)}
-                            disabled={item.isHeroTitle}
-                            className={`w-full bg-gray-800 border border-gray-700 rounded p-2 text-sm focus:border-primary focus:outline-none ${item.isHeroTitle ? 'bg-gray-950/50 text-gray-500 cursor-not-allowed border-dashed' : ''}`}
-                          />
-                          {item.isHeroTitle && (
-                            <span className="text-xs bg-primary/20 text-primary border border-primary/30 px-2 py-1 rounded whitespace-nowrap">
-                              Synced from Hero
-                            </span>
-                          )}
-                        </div>
-                        <textarea placeholder="Description" rows={2} value={item.description} onChange={e => handleArrayChange('identity_cards', i, 'description', e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-sm focus:border-primary focus:outline-none"></textarea>
-                      </div>
-                      {!item.isHeroTitle ? (
-                        <button type="button" onClick={() => removeArrayItem('identity_cards', i)} className="text-red-400 hover:text-red-300 self-center">X</button>
-                      ) : (
-                        <div className="w-6 h-6 flex items-center justify-center text-gray-650 cursor-not-allowed self-center" title="Synced Hero titles cannot be deleted from here">🔒</div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               {/* Values */}
               <div>
                 <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-                  <h3 className="text-lg font-bold text-white">My Values</h3>
+                  <h3 className="text-lg font-bold text-white">Core Values</h3>
                   <button type="button" onClick={() => addArrayItem('values', { title: '', description: '', icon_name: '' })} className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded">Add Value</button>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
@@ -420,7 +356,29 @@ export default function AdminAbout() {
                 </div>
               </div>
 
-              {/* Explorations */}
+              {/* Key Milestones */}
+              <div>
+                <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                  <h3 className="text-lg font-bold text-white">Key Milestones</h3>
+                  <button type="button" onClick={() => addArrayItem('highlights', { title: '', date: '', description: '' })} className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded">Add Milestone</button>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                  {formData.highlights?.map((item: any, i: number) => (
+                    <div key={i} className="flex gap-4 items-start bg-gray-900 p-4 rounded border border-gray-700">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex gap-2">
+                          <input placeholder="Date / Year" value={item.date} onChange={e => handleArrayChange('highlights', i, 'date', e.target.value)} className="w-1/3 bg-gray-800 border border-gray-700 rounded p-2 text-sm focus:border-primary focus:outline-none" />
+                          <input placeholder="Title" value={item.title} onChange={e => handleArrayChange('highlights', i, 'title', e.target.value)} className="w-2/3 bg-gray-800 border border-gray-700 rounded p-2 text-sm focus:border-primary focus:outline-none" />
+                        </div>
+                        <textarea placeholder="Description" rows={2} value={item.description} onChange={e => handleArrayChange('highlights', i, 'description', e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-sm focus:border-primary focus:outline-none"></textarea>
+                      </div>
+                      <button type="button" onClick={() => removeArrayItem('highlights', i)} className="text-red-400 hover:text-red-300">X</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Currently Exploring */}
               <div>
                 <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
                   <h3 className="text-lg font-bold text-white">Currently Exploring</h3>
@@ -438,23 +396,34 @@ export default function AdminAbout() {
                 </div>
               </div>
 
-              {/* Highlights Timeline */}
+              {/* Personal Interests */}
               <div>
                 <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-                  <h3 className="text-lg font-bold text-white">Story Timeline (Highlights)</h3>
-                  <button type="button" onClick={() => addArrayItem('highlights', { title: '', date: '', description: '' })} className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded">Add Highlight</button>
+                  <h3 className="text-lg font-bold text-white">Personal Interests</h3>
+                  <button type="button" onClick={addInterest} className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded">Add Interest</button>
                 </div>
-                <div className="grid grid-cols-1 gap-4">
-                  {formData.highlights?.map((item: any, i: number) => (
-                    <div key={i} className="flex gap-4 items-start bg-gray-900 p-4 rounded border border-gray-700">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex gap-2">
-                          <input placeholder="Date / Year" value={item.date} onChange={e => handleArrayChange('highlights', i, 'date', e.target.value)} className="w-1/3 bg-gray-800 border border-gray-700 rounded p-2 text-sm focus:border-primary focus:outline-none" />
-                          <input placeholder="Title" value={item.title} onChange={e => handleArrayChange('highlights', i, 'title', e.target.value)} className="w-2/3 bg-gray-800 border border-gray-700 rounded p-2 text-sm focus:border-primary focus:outline-none" />
-                        </div>
-                        <textarea placeholder="Description" rows={2} value={item.description} onChange={e => handleArrayChange('highlights', i, 'description', e.target.value)} className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-sm focus:border-primary focus:outline-none"></textarea>
-                      </div>
-                      <button type="button" onClick={() => removeArrayItem('highlights', i)} className="text-red-400 hover:text-red-300">X</button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {(formData.interests || []).map((interest: string, i: number) => (
+                    <div key={i} className="flex gap-2 items-center bg-gray-900 p-3 rounded border border-gray-700">
+                      <input value={interest} onChange={e => updateInterest(i, e.target.value)} onKeyDown={e => handleInterestKeyDown(e, i)} data-interest-input="true" placeholder="e.g. Reading, Research, Volunteering" className="flex-1 bg-gray-800 border border-gray-700 rounded p-2 text-sm focus:border-primary focus:outline-none" />
+                      <button type="button" onClick={() => removeInterest(i)} className="text-red-400 hover:text-red-300 text-sm">X</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Statistics */}
+              <div>
+                <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                  <h3 className="text-lg font-bold text-white">Statistics / Impact Numbers</h3>
+                  <button type="button" onClick={addStatistic} className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded">Add Statistic</button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {(formData.statistics || []).map((stat: any, i: number) => (
+                    <div key={i} className="flex gap-3 items-center bg-gray-900 p-4 rounded border border-gray-700">
+                      <input value={stat.value} onChange={e => updateStatistic(i, 'value', e.target.value)} onKeyDown={e => handleStatisticKeyDown(e, i)} data-statistic-input="true" placeholder="e.g. 25+" className="w-24 bg-gray-800 border border-gray-700 rounded p-2 text-sm focus:border-primary focus:outline-none text-center font-bold" />
+                      <input value={stat.label} onChange={e => updateStatistic(i, 'label', e.target.value)} onKeyDown={e => handleStatisticKeyDown(e, i)} data-statistic-input="true" placeholder="e.g. Projects Completed" className="flex-1 bg-gray-800 border border-gray-700 rounded p-2 text-sm focus:border-primary focus:outline-none" />
+                      <button type="button" onClick={() => removeStatistic(i)} className="text-red-400 hover:text-red-300 text-sm">X</button>
                     </div>
                   ))}
                 </div>

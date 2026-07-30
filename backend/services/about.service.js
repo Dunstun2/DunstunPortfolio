@@ -1,4 +1,4 @@
-const { About, AboutIdentityCard, AboutValue, AboutExploration, AboutHighlight } = require('../models');
+const { About, AboutValue, AboutExploration, AboutHighlight } = require('../models');
 
 // Deduplication helper for array updates
 function uniqueByTitle(arr) {
@@ -21,14 +21,12 @@ async function fetchAboutWithChildren(about) {
   const id = about.id || about.get('id');
   const plain = about.toJSON ? about.toJSON() : { ...about };
 
-  const [cards, values, explorations, highlights] = await Promise.all([
-    AboutIdentityCard.findAll({ where: { about_id: id }, raw: true }),
+  const [values, explorations, highlights] = await Promise.all([
     AboutValue.findAll({ where: { about_id: id }, raw: true }),
     AboutExploration.findAll({ where: { about_id: id }, raw: true }),
     AboutHighlight.findAll({ where: { about_id: id }, raw: true }),
   ]);
 
-  plain.identity_cards = cards;
   plain.values = values;
   plain.explorations = explorations;
   plain.highlights = highlights;
@@ -63,15 +61,11 @@ class AboutService {
   async update(id, data) {
     const about = await About.findByPk(id);
     if (!about) throw new Error('About section not found');
-    const { status, published_at, identity_cards, values, explorations, highlights, ...updateData } = data;
+    const { status, published_at, values, explorations, highlights, identity_cards, ...updateData } = data;
     
     await about.update(updateData);
 
-    if (identity_cards && Array.isArray(identity_cards)) {
-      await AboutIdentityCard.destroy({ where: { about_id: id } });
-      const uniqueCards = uniqueByTitle(identity_cards);
-      await AboutIdentityCard.bulkCreate(uniqueCards.map(item => ({ ...item, about_id: id, id: undefined, created_at: undefined, updated_at: undefined })));
-    }
+
     
     if (values && Array.isArray(values)) {
       await AboutValue.destroy({ where: { about_id: id } });
@@ -118,12 +112,6 @@ class AboutService {
     return true;
   }
 
-  // --- Sub-items CRUD ---
-  
-  // Identity Cards
-  async addIdentityCard(aboutId, data) { return await AboutIdentityCard.create({ about_id: aboutId, ...data }); }
-  async updateIdentityCard(id, data) { await AboutIdentityCard.update(data, { where: { id } }); return await AboutIdentityCard.findByPk(id); }
-  async deleteIdentityCard(id) { return await AboutIdentityCard.destroy({ where: { id } }); }
 
   // Values
   async addValue(aboutId, data) { return await AboutValue.create({ about_id: aboutId, ...data }); }

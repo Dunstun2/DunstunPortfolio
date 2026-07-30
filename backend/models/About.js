@@ -28,62 +28,35 @@ const About = sequelize.define('About', {
     defaultValue: 'draft',
     allowNull: false,
   },
-  // Narrative fields
-  hero_title: {
+  professional_title: {
     type: DataTypes.STRING,
     allowNull: true,
   },
-  hero_image_url: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  story_title: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  story_content: {
+  personal_introduction: {
     type: DataTypes.TEXT,
     allowNull: true,
   },
-  philosophy_title: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  philosophy_statement: {
+  professional_summary: {
     type: DataTypes.TEXT,
     allowNull: true,
   },
-  philosophy_description: {
+  mission_statement: {
     type: DataTypes.TEXT,
-    allowNull: true,
-  },
-  vision_title: {
-    type: DataTypes.STRING,
     allowNull: true,
   },
   vision_statement: {
     type: DataTypes.TEXT,
     allowNull: true,
   },
-  vision_description: {
-    type: DataTypes.TEXT,
+  interests: {
+    type: DataTypes.JSON,
     allowNull: true,
+    defaultValue: []
   },
-  drive_title: {
-    type: DataTypes.STRING,
+  statistics: {
+    type: DataTypes.JSON,
     allowNull: true,
-  },
-  drive_statement: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-  },
-  drive_description: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-  },
-  drive_image_url: {
-    type: DataTypes.STRING,
-    allowNull: true,
+    defaultValue: []
   },
   published_at: {
     type: DataTypes.DATE,

@@ -20,7 +20,7 @@ const Achievement = require('./Achievement');
 const Certification = require('./Certification');
 const CVImport = require('./CVImport');
 
-const AboutIdentityCard = require('./AboutIdentityCard');
+
 const AboutValue = require('./AboutValue');
 const AboutExploration = require('./AboutExploration');
 const AboutHighlight = require('./AboutHighlight');
@@ -43,7 +43,7 @@ const models = {
   Hero,
   NavigationItem,
   About,
-  AboutIdentityCard,
+
   AboutValue,
   AboutExploration,
   AboutHighlight,
@@ -67,8 +67,6 @@ const models = {
 };
 
 // Define relationships here if any (e.g. User.hasMany(Session))
-About.hasMany(AboutIdentityCard, { foreignKey: 'about_id', as: 'identity_cards', onDelete: 'CASCADE' });
-AboutIdentityCard.belongsTo(About, { foreignKey: 'about_id' });
 
 About.hasMany(AboutValue, { foreignKey: 'about_id', as: 'values', onDelete: 'CASCADE' });
 AboutValue.belongsTo(About, { foreignKey: 'about_id' });

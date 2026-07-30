@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import BackToAbout from '@/components/BackToAbout';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
 import { getFileUrl } from '@/utils/urls';
@@ -106,7 +107,8 @@ export default function EducationPage() {
     : certifications.filter(c => c.category === filterCertCategory);
 
   return (
-    <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 pb-24">
+    <div className="min-h-screen py-12 md:py-20 bg-bg-dark text-text-light selection:bg-primary/30 relative">
+      <BackToAbout />
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">

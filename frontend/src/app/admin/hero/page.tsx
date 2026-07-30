@@ -64,20 +64,21 @@ export default function AdminHero() {
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState('');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
-  const [activeTab, setActiveTab] = useState('general');
+  const [activeTab, setActiveTab] = useState('content');
   const [mediaFiles, setMediaFiles] = useState<any[]>([]);
   const [discoveredBackgrounds, setDiscoveredBackgrounds] = useState<any[]>([]);
   const [isDiscovering, setIsDiscovering] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [showFilePicker, setShowFilePicker] = useState(false);
   const [filePickerTargetIndex, setFilePickerTargetIndex] = useState<number | null>(null);
+  const [showMaxButtonsDialog, setShowMaxButtonsDialog] = useState(false);
   const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
 
   const loadData = () => {
     fetchApi('/hero').then(res => {
       const hero = res.data.length > 0 ? res.data[0] : null;
       if (hero) {
-        setFormData({ ...emptyForm, ...hero });
+        setFormData({ ...emptyForm, ...hero, layout_template: hero.layout_template || 'split' });
         setIsEditing(true);
         setEditId(hero.id);
       } else {
@@ -140,7 +141,6 @@ export default function AdminHero() {
   };
 
   const tabs = [
-    { id: 'general', label: 'General' },
     { id: 'content', label: 'Content' },
     { id: 'image', label: 'Image' },
     { id: 'cta', label: 'CTA Buttons' },
@@ -183,17 +183,6 @@ export default function AdminHero() {
 
           {/* Tab Content Area */}
           <div className="flex-1 p-6 overflow-y-auto">
-            {activeTab === 'general' && (
-              <div className="space-y-5 animate-fade-in">
-                <h3 className="text-lg font-semibold mb-4 text-white">General Information</h3>
-                <div>
-                  <label className="block text-sm mb-1 text-gray-400">Internal Name</label>
-                  <input type="text" value={formData.internal_name} onChange={e => handleFieldChange('internal_name', e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-primary" placeholder="e.g. Main Homepage Hero" />
-                  <p className="text-xs text-gray-500 mt-1">For your eyes only, to help identify this hero.</p>
-                </div>
-              </div>
-            )}
-
             {activeTab === 'content' && (
               <div className="space-y-5 animate-fade-in">
                 <h3 className="text-lg font-semibold mb-4 text-white">Hero Content</h3>
@@ -274,29 +263,41 @@ export default function AdminHero() {
                   <input type="text" maxLength={40} value={formData.headline || ''} onChange={e => handleFieldChange('headline', e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-primary" placeholder="e.g. Dunstun Wambutsi" />
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-400 mb-2">Professional Titles (max 3, separated by |)</label>
-                  <div className="flex items-center gap-2">
-                    {[0, 1, 2].map(i => {
-                      const titles = (formData.professional_title || '').split('|').map((t: string) => t.trim());
-                      return (
-                        <div key={i} className="flex items-center gap-2 flex-1">
-                          <input
-                            type="text"
-                            maxLength={25}
-                            value={titles[i] || ''}
-                            onChange={e => {
-                              const newTitles = [...titles];
-                              newTitles[i] = e.target.value;
-                              const joined = newTitles.filter(t => t).join(' | ');
-                              handleFieldChange('professional_title', joined);
-                            }}
-                            className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white text-sm focus:outline-none focus:border-primary"
-                            placeholder={i === 0 ? 'e.g. Engineer' : i === 1 ? 'e.g. Developer' : 'e.g. Designer'}
+
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Roles / Specialties <span className="text-red-400">*</span>
+                  </label>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      {[0, 1, 2].map(i => {
+                        // Split strictly on ' | ' to avoid eating spaces the user is currently typing
+                        const titles = (formData.professional_title || '').split(' | ');
+                        const isRequiredAndEmpty = i === 0 && (!titles[0] || titles[0].trim() === '');
+                        
+                        return (
+                          <div key={i} className="flex items-center gap-2 flex-1">
+                            <input
+                              type="text"
+                              maxLength={25}
+                              value={titles[i] || ''}
+                              onChange={e => {
+                                const newTitles = [...titles];
+                                newTitles[i] = e.target.value;
+                                // Join strictly with ' | '
+                                const joined = newTitles.filter(t => t.trim() !== '').join(' | ');
+                                handleFieldChange('professional_title', joined);
+                              }}
+                              className={`w-full bg-gray-900 border ${isRequiredAndEmpty ? 'border-red-500' : 'border-gray-700'} rounded p-2 text-white text-sm focus:outline-none focus:border-primary`}
+                              placeholder={i === 0 ? 'e.g. Engineer (Required)' : i === 1 ? 'e.g. Developer' : 'e.g. Designer'}
                           />
                           {i < 2 && <span className="text-gray-500 font-bold">|</span>}
                         </div>
                       );
                     })}
+                  </div>
+                  {(!formData.professional_title || formData.professional_title.split(' | ')[0].trim() === '') && (
+                    <span className="text-xs text-red-500 mt-1 block">At least one role is required for the layout to look good.</span>
+                  )}
                   </div>
                   <p className="text-xs text-gray-500 mt-1">Each title max 25 characters</p>
                 </div>
@@ -457,12 +458,14 @@ export default function AdminHero() {
                   <h3 className="text-lg font-semibold text-white">Call to Action Buttons</h3>
                   <button
                     onClick={() => {
-                      if ((formData.cta_buttons || []).length >= 3) return;
+                      if ((formData.cta_buttons || []).length >= 3) {
+                        setShowMaxButtonsDialog(true);
+                        return;
+                      }
                       const newButtons = [...(formData.cta_buttons || []), { label: 'New Button', style: 'primary', link_type: 'internal', target: '', is_hidden: true }];
                       handleFieldChange('cta_buttons', newButtons);
                     }}
-                    disabled={(formData.cta_buttons || []).length >= 3}
-                    className="px-3 py-1 bg-gray-700 text-sm text-white rounded hover:bg-gray-600 transition"
+                    className={`px-3 py-1 bg-gray-700 text-sm text-white rounded transition ${(formData.cta_buttons || []).length >= 3 ? 'opacity-80 hover:bg-gray-700 cursor-help' : 'hover:bg-gray-600'}`}
                   >
                     + Add Button
                   </button>
@@ -579,8 +582,8 @@ export default function AdminHero() {
 
                 <div>
                   <label className="block text-sm mb-3 text-gray-400">Layout Template</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {['split', 'centered', 'photo-background'].map(layout => (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {['split', 'split-reverse', 'centered', 'photo-background'].map(layout => (
                       <div
                         key={layout}
                         onClick={() => handleFieldChange('layout_template', layout)}
@@ -588,6 +591,7 @@ export default function AdminHero() {
                       >
                         <div className="h-24 mb-2 flex flex-col items-center justify-center opacity-70">
                           {layout === 'split' && <div className="flex w-full gap-2 px-2"><div className="w-2/3 space-y-1"><div className="h-2 bg-gray-400 rounded w-1/2"></div><div className="h-4 bg-gray-200 rounded w-full"></div><div className="h-2 bg-gray-400 rounded w-3/4"></div></div><div className="w-1/3 aspect-square bg-gray-500 rounded-full"></div></div>}
+                          {layout === 'split-reverse' && <div className="flex w-full gap-2 px-2"><div className="w-1/3 aspect-square bg-gray-500 rounded-full"></div><div className="w-2/3 space-y-1"><div className="h-2 bg-gray-400 rounded w-1/2"></div><div className="h-4 bg-gray-200 rounded w-full"></div><div className="h-2 bg-gray-400 rounded w-3/4"></div></div></div>}
                           {layout === 'centered' && <div className="flex flex-col items-center w-full gap-2"><div className="w-8 aspect-square bg-gray-500 rounded-full"></div><div className="h-4 bg-gray-200 rounded w-3/4"></div><div className="h-2 bg-gray-400 rounded w-1/2"></div></div>}
                           {layout === 'photo-background' && <div className="relative w-full h-full bg-gray-700 rounded overflow-hidden flex flex-col items-center justify-center"><div className="h-4 bg-white rounded w-3/4 mb-1 z-10"></div><div className="h-2 bg-gray-300 rounded w-1/2 z-10"></div></div>}
                         </div>
@@ -608,24 +612,13 @@ export default function AdminHero() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm mb-1 text-gray-400">Animation Type</label>
-                    <select value={formData.animation_type || 'slide-up'} onChange={e => handleFieldChange('animation_type', e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-primary">
-                      <option value="none">None</option>
-                      <option value="fade">Fade In</option>
-                      <option value="slide-up">Slide Up</option>
-                      <option value="slide-in">Slide In (Side)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm mb-1 text-gray-400">Text Alignment</label>
-                    <select value={formData.text_alignment || 'left'} onChange={e => handleFieldChange('text_alignment', e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-primary">
-                      <option value="left">Left</option>
-                      <option value="center">Center</option>
-                      <option value="right">Right</option>
-                    </select>
-                  </div>
+                <div>
+                  <label className="block text-sm mb-1 text-gray-400">Text Alignment</label>
+                  <select value={formData.text_alignment || 'left'} onChange={e => handleFieldChange('text_alignment', e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:outline-none focus:border-primary">
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                  </select>
                 </div>
               </div>
             )}
@@ -890,6 +883,26 @@ export default function AdminHero() {
             setFilePickerTargetIndex(null);
           }}
         />
+      )}
+
+      {/* Max Buttons Dialog */}
+      {showMaxButtonsDialog && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-gray-800 border border-gray-700 rounded-lg max-w-sm w-full p-6 shadow-2xl">
+            <h3 className="text-xl font-bold text-white mb-2">Maximum Limit Reached</h3>
+            <p className="text-gray-300 mb-6 text-sm">
+              You can only have a maximum of 3 call-to-action buttons in the hero section to maintain a clean layout.
+            </p>
+            <div className="flex justify-end">
+              <button 
+                onClick={() => setShowMaxButtonsDialog(false)}
+                className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition text-sm font-medium"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

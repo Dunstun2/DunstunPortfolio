@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import BackToAbout from '@/components/BackToAbout';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
 import Link from 'next/link';
@@ -50,7 +51,8 @@ export default function AllEventsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-bg-dark text-text-light pt-24 pb-16">
+    <div className="min-h-screen py-12 md:py-20 relative">
+      <BackToAbout />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}

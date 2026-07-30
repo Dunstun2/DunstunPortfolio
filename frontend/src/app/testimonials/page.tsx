@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import BackToAbout from '@/components/BackToAbout';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
 import Link from 'next/link';
@@ -49,8 +50,9 @@ export default function AllTestimonialsPage() {
   const emptyMessage = settings?.testimonials_empty_message || 'No testimonials available yet';
 
   return (
-    <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 pb-24">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen py-12 md:py-20 relative">
+      <BackToAbout />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
 
         {/* Header */}
         <div className="text-center mb-16">
