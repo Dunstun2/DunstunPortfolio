@@ -4,19 +4,6 @@ import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
 import { API_BASE_URL, getFileUrl } from '@/utils/urls';
 
-const DEFAULT_CATEGORIES = [
-  'Software Development',
-  'Web Applications',
-  'Mobile Applications',
-  'Biomedical Engineering',
-  'Medical Technology',
-  'Research',
-  'Academic Projects',
-  'Personal Projects',
-  'Open Source',
-  'Experiments',
-];
-
 const PROJECT_TYPES = [
   'Personal',
   'Academic',
@@ -28,11 +15,16 @@ const PROJECT_TYPES = [
 export default function AdminProjects() {
   const refreshKey = useRealtimeRefresh('projects', false);
   const [items, setItems] = useState<any[]>([]);
+  const [categorySelectVal, setCategorySelectVal] = useState('');
   const [activeTab, setActiveTab] = useState<'basic' | 'cover' | 'caseStudy' | 'features' | 'tech' | 'gallery' | 'challenges' | 'results'>('basic');
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
   const [techInput, setTechInput] = useState('');
+
+  const availableCategories = Array.from(
+    new Set(items.map((i: any) => i.category).filter(Boolean))
+  ).sort() as string[];
 
   const initialForm = {
     title: '',
@@ -148,14 +140,16 @@ export default function AdminProjects() {
     setIsEditing(false);
     setEditId('');
     setActiveTab('basic');
+    setCategorySelectVal('');
   };
 
   const startEdit = (item: any) => {
+    const itemCat = item.category || '';
     setFormData({
       title: item.title || '',
       description: item.description || '',
       content: item.content || '',
-      category: item.category || '',
+      category: itemCat,
       project_type: item.project_type || '',
       start_date: item.start_date || '',
       end_date: item.end_date || '',
@@ -174,6 +168,15 @@ export default function AdminProjects() {
       lessons_learned: item.lessons_learned || '',
       future_improvements: item.future_improvements || '',
     });
+
+    if (itemCat && availableCategories.includes(itemCat)) {
+      setCategorySelectVal(itemCat);
+    } else if (itemCat) {
+      setCategorySelectVal('Other');
+    } else {
+      setCategorySelectVal('');
+    }
+
     setIsEditing(true);
     setEditId(item.id);
     setActiveTab('basic');
@@ -298,18 +301,36 @@ export default function AdminProjects() {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-gray-300">Category</label>
-                  <input
-                    list="category-options"
-                    value={formData.category}
-                    onChange={e => setFormData({ ...formData, category: e.target.value })}
+                  <select
+                    value={categorySelectVal}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setCategorySelectVal(val);
+                      if (val !== 'Other') {
+                        setFormData({ ...formData, category: val });
+                      } else {
+                        setFormData({ ...formData, category: '' });
+                      }
+                    }}
                     className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary"
-                    placeholder="Select or type a category..."
-                  />
-                  <datalist id="category-options">
-                    {Array.from(new Set([...DEFAULT_CATEGORIES, ...items.map(i => i.category).filter(Boolean)])).map(c => (
-                      <option key={c as string} value={c as string} />
+                  >
+                    <option value="">Select a Category...</option>
+                    {availableCategories.map(c => (
+                      <option key={c} value={c}>{c}</option>
                     ))}
-                  </datalist>
+                    <option value="Other">Other (Add New Category)...</option>
+                  </select>
+
+                  {categorySelectVal === 'Other' && (
+                    <input
+                      type="text"
+                      autoFocus
+                      value={formData.category}
+                      onChange={e => setFormData({ ...formData, category: e.target.value })}
+                      placeholder="Type new category name..."
+                      className="w-full mt-2 bg-gray-900 border border-primary/50 rounded-xl p-3 text-white placeholder-gray-500 focus:outline-none focus:border-primary"
+                    />
+                  )}
                 </div>
               </div>
 
