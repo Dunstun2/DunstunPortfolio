@@ -69,13 +69,18 @@ class ProjectService {
   async create(data) {
     // Auto-generate slug from title if not provided
     if (!data.slug && data.title) {
-      data.slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      data.slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'project';
     }
 
-    // Check for duplicate slug
-    const existing = await Project.findOne({ where: { slug: data.slug } });
+    // Check for duplicate slug and resolve with counter if needed
+    let baseSlug = data.slug;
+    let existing = await Project.findOne({ where: { slug: data.slug } });
     if (existing) {
-      throw new AppError('A project with this slug already exists', 409);
+      let counter = 1;
+      while (await Project.findOne({ where: { slug: `${baseSlug}-${counter}` } })) {
+        counter++;
+      }
+      data.slug = `${baseSlug}-${counter}`;
     }
 
     return await Project.create({ ...data, status: data.status || 'draft' });

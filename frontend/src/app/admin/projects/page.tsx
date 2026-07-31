@@ -137,7 +137,10 @@ export default function AdminProjects() {
       resetForm();
       loadData();
       alert(isEditing ? 'Project updated successfully!' : 'Project created successfully!');
-    } catch (err) { console.error(err); }
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Failed to save project');
+    }
   };
 
   const resetForm = () => {
@@ -295,10 +298,18 @@ export default function AdminProjects() {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-gray-300">Category</label>
-                  <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary">
-                    <option value="">Select Category...</option>
-                    {DEFAULT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                  <input
+                    list="category-options"
+                    value={formData.category}
+                    onChange={e => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:outline-none focus:border-primary"
+                    placeholder="Select or type a category..."
+                  />
+                  <datalist id="category-options">
+                    {Array.from(new Set([...DEFAULT_CATEGORIES, ...items.map(i => i.category).filter(Boolean)])).map(c => (
+                      <option key={c as string} value={c as string} />
+                    ))}
+                  </datalist>
                 </div>
               </div>
 

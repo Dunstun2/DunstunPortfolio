@@ -25,6 +25,8 @@ const validate = (schema) => {
         message: detail.message,
       }));
 
+      console.warn('[Validation Error]', JSON.stringify(errors, null, 2));
+
       return res.status(400).json({
         success: false,
         message: 'Validation error',

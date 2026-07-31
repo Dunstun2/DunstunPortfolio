@@ -7,23 +7,19 @@ const createServiceSchema = {
       'string.max': 'Service name must not exceed 200 characters',
       'any.required': 'Service name is required',
     }),
-    slug: Joi.string().min(1).max(200).pattern(/^[a-z0-9-]+$/).messages({
+    slug: Joi.string().min(1).max(200).pattern(/^[a-z0-9-]+$/).allow('', null).optional().messages({
       'string.pattern.base': 'Slug must contain only lowercase letters, numbers, and hyphens',
     }),
     description: Joi.string().min(10).required().messages({
       'string.min': 'Description must be at least 10 characters',
       'any.required': 'Description is required',
     }),
-    image_url: Joi.string().uri().allow('', null).messages({
-      'string.uri': 'Image URL must be a valid URL',
-    }),
-    video_url: Joi.string().uri().allow('', null).messages({
-      'string.uri': 'Video URL must be a valid URL',
-    }),
+    image_url: Joi.string().allow('', null),
+    video_url: Joi.string().allow('', null),
     price: Joi.string().max(100).allow('', null).messages({
       'string.max': 'Price must not exceed 100 characters',
     }),
-    features: Joi.array().items(Joi.string()).default([]),
+    features: Joi.array().items(Joi.alternatives().try(Joi.string(), Joi.object().unknown(true))).default([]),
     external_link: Joi.string().allow('', null),
     featured: Joi.boolean().default(false),
     status: Joi.string().valid('draft', 'published', 'archived').default('draft'),
@@ -40,22 +36,18 @@ const updateServiceSchema = {
       'string.min': 'Service name must be at least 2 characters',
       'string.max': 'Service name must not exceed 200 characters',
     }),
-    slug: Joi.string().min(1).max(200).pattern(/^[a-z0-9-]+$/).messages({
+    slug: Joi.string().min(1).max(200).pattern(/^[a-z0-9-]+$/).allow('', null).optional().messages({
       'string.pattern.base': 'Slug must contain only lowercase letters, numbers, and hyphens',
     }),
     description: Joi.string().min(10).messages({
       'string.min': 'Description must be at least 10 characters',
     }),
-    image_url: Joi.string().uri().allow('', null).messages({
-      'string.uri': 'Image URL must be a valid URL',
-    }),
-    video_url: Joi.string().uri().allow('', null).messages({
-      'string.uri': 'Video URL must be a valid URL',
-    }),
+    image_url: Joi.string().allow('', null),
+    video_url: Joi.string().allow('', null),
     price: Joi.string().max(100).allow('', null).messages({
       'string.max': 'Price must not exceed 100 characters',
     }),
-    features: Joi.array().items(Joi.string()),
+    features: Joi.array().items(Joi.alternatives().try(Joi.string(), Joi.object().unknown(true))),
     external_link: Joi.string().allow('', null),
     featured: Joi.boolean(),
     display_order: Joi.number().integer().min(0),

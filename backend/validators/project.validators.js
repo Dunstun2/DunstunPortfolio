@@ -3,12 +3,12 @@ const Joi = require('joi');
 const createProjectSchema = {
   body: Joi.object({
     title: Joi.string().min(1).max(200).required(),
-    slug: Joi.string().min(1).max(200).pattern(/^[a-z0-9-]+$/).required().messages({
+    slug: Joi.string().min(1).max(200).pattern(/^[a-z0-9-]+$/).allow('', null).optional().messages({
       'string.pattern.base': 'Slug must contain only lowercase letters, numbers, and hyphens',
     }),
     description: Joi.string().min(1).required(),
     content: Joi.string().allow('', null),
-    thumbnail_url: Joi.string().uri().allow('', null),
+    thumbnail_url: Joi.string().allow('', null),
     category: Joi.string().allow('', null),
     project_type: Joi.string().allow('', null),
     start_date: Joi.string().allow('', null),
@@ -19,12 +19,9 @@ const createProjectSchema = {
     responsibilities: Joi.string().allow('', null),
     team_size: Joi.string().allow('', null),
     technologies: Joi.array().items(Joi.string()).default([]),
-    features: Joi.array().items(Joi.string()).default([]),
-    screenshots: Joi.array().items(Joi.string().uri()).default([]),
-    challenges: Joi.array().items(Joi.object({
-      title: Joi.string().required(),
-      description: Joi.string().required(),
-    })).default([]),
+    features: Joi.array().items(Joi.alternatives().try(Joi.string(), Joi.object().unknown(true))).default([]),
+    screenshots: Joi.array().items(Joi.alternatives().try(Joi.string(), Joi.object().unknown(true))).default([]),
+    challenges: Joi.array().items(Joi.alternatives().try(Joi.string(), Joi.object().unknown(true))).default([]),
     outcomes: Joi.string().allow('', null),
     lessons_learned: Joi.string().allow('', null),
     future_improvements: Joi.string().allow('', null),
@@ -39,12 +36,12 @@ const updateProjectSchema = {
   }),
   body: Joi.object({
     title: Joi.string().min(1).max(200),
-    slug: Joi.string().min(1).max(200).pattern(/^[a-z0-9-]+$/).messages({
+    slug: Joi.string().min(1).max(200).pattern(/^[a-z0-9-]+$/).allow('', null).optional().messages({
       'string.pattern.base': 'Slug must contain only lowercase letters, numbers, and hyphens',
     }),
     description: Joi.string().min(1),
     content: Joi.string().allow('', null),
-    thumbnail_url: Joi.string().uri().allow('', null),
+    thumbnail_url: Joi.string().allow('', null),
     category: Joi.string().allow('', null),
     project_type: Joi.string().allow('', null),
     start_date: Joi.string().allow('', null),
@@ -55,12 +52,9 @@ const updateProjectSchema = {
     responsibilities: Joi.string().allow('', null),
     team_size: Joi.string().allow('', null),
     technologies: Joi.array().items(Joi.string()),
-    features: Joi.array().items(Joi.string()),
-    screenshots: Joi.array().items(Joi.string().uri()),
-    challenges: Joi.array().items(Joi.object({
-      title: Joi.string().required(),
-      description: Joi.string().required(),
-    })),
+    features: Joi.array().items(Joi.alternatives().try(Joi.string(), Joi.object().unknown(true))),
+    screenshots: Joi.array().items(Joi.alternatives().try(Joi.string(), Joi.object().unknown(true))),
+    challenges: Joi.array().items(Joi.alternatives().try(Joi.string(), Joi.object().unknown(true))),
     outcomes: Joi.string().allow('', null),
     lessons_learned: Joi.string().allow('', null),
     future_improvements: Joi.string().allow('', null),
