@@ -62,10 +62,10 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
   const pageSubtitle = settings?.experience_page_subtitle || 'My career journey, roles, and professional achievements';
 
   return (
-    <section id="experience" className={`px-4 bg-bg-dark text-text-light relative ${variant === 'highlights' ? 'py-12 md:py-16' : 'py-8 md:py-12 pb-16 md:pb-24'}`}>
+    <section id="experience" className={`px-4 bg-bg-dark text-text-light relative ${variant === 'highlights' ? 'py-4 md:py-8' : 'py-8 md:py-12 pb-16 md:pb-24'}`}>
       <div className={variant === 'highlights' ? 'w-full max-w-full mx-auto md:px-4' : 'max-w-4xl mx-auto'}>
         {variant === 'highlights' ? (
-          <h2 className="text-3xl md:text-5xl font-bold text-heading-light mb-16 text-center">
+          <h2 className="text-3xl md:text-5xl font-bold text-heading-light mb-10 text-center">
             <SectionTitle title={sectionTitle} />
           </h2>
         ) : (
@@ -93,11 +93,13 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
                 {/* Timeline Dot */}
                 <div className="hidden md:block absolute -left-[90px] top-10 w-6 h-6 rounded-full bg-bg-dark border-4 border-primary z-10 shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.5)]"></div>
 
-                <div className="mb-2 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
-                  <h3 className="text-lg md:text-xl lg:text-2xl font-bold"><span className="text-orange-500">{exp.position}</span></h3>
-                  <div className="text-xs md:text-sm font-bold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20 inline-block w-max">
-                    {startStr} – {endStr} · {duration}
-                  </div>
+                <div className="mb-2 flex items-start justify-between gap-2 md:gap-4">
+                  <h3 className="text-lg md:text-xl lg:text-2xl font-bold leading-snug break-words">
+                    <span className="text-orange-500">{exp.position}</span>
+                  </h3>
+                  <span className="flex-shrink-0 inline-block align-middle text-[11px] md:text-sm font-bold text-primary bg-primary/10 px-2 md:px-3 py-1 rounded-full border border-primary/20 whitespace-nowrap mt-1">
+                    {startStr} – {endStr} <span className="hidden sm:inline">· {duration}</span>
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-4 mb-4">
@@ -108,18 +110,22 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
                       className="w-12 h-12 md:w-14 md:h-14 rounded-xl object-contain bg-white/10 p-1.5 border border-text-light/10 flex-shrink-0"
                     />
                   )}
-                  <h4 className="text-xl font-semibold text-subheading flex items-center gap-2 flex-wrap">
-                    <span className="text-primary">{exp.company}</span>
-                    {exp.company_website && (() => {
-                      const href = exp.company_website?.startsWith('http') ? exp.company_website : `https://${exp.company_website}`;
-                      return (
-                        <a href={href} target="_blank" rel="noreferrer" className="text-xs font-normal text-primary hover:underline bg-primary/10 px-2 py-1 rounded ml-2">
-                          Website ↗
-                        </a>
-                      );
-                    })()}
-                    {exp.location && <span className="text-muted-light font-normal text-base ml-auto">· {exp.location}</span>}
-                  </h4>
+                  <div className="flex flex-col">
+                    <h4 className="text-xl font-semibold text-heading-light flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <span>{exp.company}</span>
+                      {exp.company_website && (() => {
+                        const href = exp.company_website?.startsWith('http') ? exp.company_website : `https://${exp.company_website}`;
+                        return (
+                          <a href={href} target="_blank" rel="noreferrer" className="text-xs font-normal text-primary hover:underline bg-primary/10 px-2 py-1 rounded">
+                            Website ↗
+                          </a>
+                        );
+                      })()}
+                    </h4>
+                    <div className="flex items-center gap-x-2 mt-1 max-w-full overflow-hidden">
+                      {exp.location && <span className="text-muted-light font-normal text-sm md:text-base whitespace-nowrap shrink-0">· {exp.location}</span>}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex overflow-x-auto md:flex-wrap gap-2 mb-6 pb-2 md:pb-0 scrollbar-hide" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
@@ -259,7 +265,7 @@ export default function ExperienceSection({ variant = 'full' }: { variant?: 'ful
         </div>
 
         {variant === 'highlights' && (
-          <div className="mt-16 text-center">
+          <div className="mt-8 text-center">
             <a href="/experience" className="btn btn-md btn-secondary">
               View Full Experience Details
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>

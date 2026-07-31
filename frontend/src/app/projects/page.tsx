@@ -85,23 +85,23 @@ export default function AllProjectsPage() {
       </div>
 
       {/* Filter & Search Controls */}
-      <div className="glass p-6 rounded-2xl mb-12 flex flex-col md:flex-row gap-6 items-center justify-between">
-        <div className="relative w-full md:w-80">
+      <div className="glass p-4 md:p-6 rounded-2xl mb-12 flex flex-row gap-4 md:gap-6 items-center justify-between">
+        <div className="relative flex-1 md:w-80 md:flex-none">
           <input
             type="text"
             placeholder="Search projects or tech..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-black/10 dark:bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-heading-light focus:outline-none focus:border-primary"
+            className="w-full bg-black/10 dark:bg-white/5 border border-white/10 rounded-xl px-3 md:px-4 py-2.5 text-sm text-heading-light focus:outline-none focus:border-primary"
           />
         </div>
 
         {/* Category Dropdown */}
-        <div className="w-full md:w-auto">
+        <div className="flex-1 md:w-auto md:flex-none">
           <select
             value={selectedCategory}
             onChange={e => setSelectedCategory(e.target.value)}
-            className="w-full md:w-64 bg-black/10 dark:bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-heading-light focus:outline-none focus:border-primary font-medium cursor-pointer"
+            className="w-full md:w-64 bg-black/10 dark:bg-white/5 border border-white/10 rounded-xl px-3 md:px-4 py-2.5 text-sm text-heading-light focus:outline-none focus:border-primary font-medium cursor-pointer"
           >
             {categories.map(cat => (
               <option key={cat} value={cat} className="bg-bg-dark text-heading-light">
@@ -362,27 +362,7 @@ export default function AllProjectsPage() {
         </div>
       )}
 
-      {/* CTA Section */}
-      {filteredProjects.length > 0 && (
-        <div className="mt-20 glass rounded-3xl p-8 md:p-12 text-center border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-heading-light mb-4">
-              {ctaTitle.split(' ').map((word: string, i: number, arr: string[]) => (
-                i === arr.length - 1 ? <span key={i} className="text-primary">{word}</span> : word + ' '
-              ))}
-            </h2>
-            <p className="text-text-light text-lg mb-8">
-              {ctaDescription}
-            </p>
-            <a
-              href="/contact"
-              className="inline-flex items-center justify-center px-8 py-4 bg-primary text-white font-bold rounded-full hover:bg-primary/90 transition-all hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.5)] hover:-translate-y-1"
-            >
-              {ctaButtonText} &rarr;
-            </a>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }

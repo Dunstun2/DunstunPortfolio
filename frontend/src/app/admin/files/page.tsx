@@ -375,7 +375,10 @@ export default function FileManagerPage() {
                       <img src={getFileUrl(file.file_path)} alt={file.file_name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="text-4xl text-gray-600">
-                        {file.file_name.endsWith('.pdf') ? '📄' : file.file_name.endsWith('.doc') || file.file_name.endsWith('.docx') ? '📝' : '📁'}
+                        {file.file_name.endsWith('.pdf') ? '📄' : 
+                         file.file_name.endsWith('.doc') || file.file_name.endsWith('.docx') ? '📝' : 
+                         file.file_name.endsWith('.xls') || file.file_name.endsWith('.xlsx') || file.file_name.endsWith('.csv') ? '📊' : 
+                         file.file_name.endsWith('.ppt') || file.file_name.endsWith('.pptx') ? '📽️' : '📁'}
                       </div>
                     )}
                   </div>
@@ -389,7 +392,15 @@ export default function FileManagerPage() {
                   {/* Actions overlay */}
                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col space-y-1">
                     <button 
-                      onClick={() => window.open(getFileUrl(file.file_path), '_blank')}
+                      onClick={() => {
+                        const url = getFileUrl(file.file_path);
+                        const isOfficeDoc = file.file_name.match(/\.(doc|docx|xls|xlsx|ppt|pptx)$/i);
+                        if (isOfficeDoc) {
+                          window.open(`https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=false`, '_blank');
+                        } else {
+                          window.open(url, '_blank');
+                        }
+                      }}
                       className="bg-gray-900/80 text-white p-1.5 rounded-md hover:bg-primary transition-colors"
                       title="View/Download"
                     >

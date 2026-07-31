@@ -126,13 +126,62 @@ export default function HeroSection() {
           else if (btn.style === 'outline') styles = 'btn-outline';
           else if (btn.style === 'ghost') styles = 'btn-ghost';
           
+          const btnClass = `btn flex-shrink min-w-[80px] text-center whitespace-nowrap text-xs sm:text-sm md:text-base px-2 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-3 ${styles}`;
+
+          // File Download: force download via Cloudinary fl_attachment or fallback fetch+blob
+          if (btn.link_type === 'file') {
+            const handleDownload = async (e: React.MouseEvent) => {
+              e.preventDefault();
+              const url = btn.target || '';
+              if (!url) return;
+              
+              // For Cloudinary URLs, add fl_attachment to force download
+              if (url.includes('cloudinary.com')) {
+                const dlUrl = url.replace('/upload/', '/upload/fl_attachment/');
+                window.open(dlUrl, '_blank');
+              } else {
+                window.open(url, '_blank');
+              }
+            };
+            return (
+              <button key={idx} onClick={handleDownload} className={btnClass}>
+                {btn.label}
+              </button>
+            );
+          }
+
+          // View File: open document for reading in browser
+          if (btn.link_type === 'view') {
+            const handleView = (e: React.MouseEvent) => {
+              e.preventDefault();
+              const url = btn.target || '';
+              if (!url) return;
+
+              const ext = url.split('.').pop()?.toLowerCase() || '';
+              const officeExts = ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'];
+              
+              if (officeExts.includes(ext)) {
+                // Office docs: use Google Docs Viewer
+                window.open(`https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=false`, '_blank');
+              } else {
+                // PDFs, text, images: open directly in browser
+                window.open(url, '_blank');
+              }
+            };
+            return (
+              <button key={idx} onClick={handleView} className={btnClass}>
+                {btn.label}
+              </button>
+            );
+          }
+
+          // Internal (#section) and External (https://...) links
           return (
             <Link 
               key={idx} 
               href={btn.target || '#'} 
-              target={btn.link_type === 'external' || btn.link_type === 'view' ? '_blank' : '_self'}
-              download={btn.link_type === 'file' ? true : undefined}
-              className={`btn flex-shrink min-w-[80px] text-center whitespace-nowrap text-xs sm:text-sm md:text-base px-2 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-3 ${styles}`}
+              target={btn.link_type === 'external' ? '_blank' : '_self'}
+              className={btnClass}
             >
               {btn.label}
             </Link>

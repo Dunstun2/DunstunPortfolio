@@ -26,16 +26,16 @@ export default function EventsSection() {
   };
 
   return (
-    <section id="events" className="py-12 md:py-16 relative">
+    <section id="events" className="py-4 md:py-8 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-3xl md:text-5xl font-bold text-heading-light mb-4 text-center">
           <SectionTitle title="Events & Networking" />
         </h2>
-        <p className="text-text-light text-center mb-16 max-w-2xl mx-auto">
+        <p className="text-text-light text-center mb-8 max-w-2xl mx-auto">
           Conferences, workshops, and professional events I&apos;ve attended — sharing lessons learned and connections made.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {events.map((event) => (
             <div
               key={event.id}

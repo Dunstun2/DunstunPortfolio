@@ -17,7 +17,17 @@ cloudinary.config({
 const ALLOWED_IMAGE_TYPES = [
   'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'
 ];
-const ALLOWED_DOCUMENT_TYPES = ['application/pdf', 'text/plain'];
+const ALLOWED_DOCUMENT_TYPES = [
+  'application/pdf', 
+  'text/plain', 
+  'text/csv',
+  'application/msword', 
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+];
 const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska'];
 const ALLOWED_MEDIA_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_DOCUMENT_TYPES, ...ALLOWED_VIDEO_TYPES];
 
@@ -37,11 +47,20 @@ const storage = new CloudinaryStorage({
     let resource_type = 'auto';
     if (file.mimetype.startsWith('video/')) {
       resource_type = 'video';
+    } else if (!file.mimetype.startsWith('image/')) {
+      resource_type = 'raw';
     }
+    
+    let public_id = crypto.randomBytes(16).toString('hex');
+    // Raw files in Cloudinary require the file extension in the public_id
+    if (resource_type === 'raw' && file.originalname) {
+      public_id += path.extname(file.originalname).toLowerCase();
+    }
+
     return {
       folder: 'portfolio_uploads',
       resource_type: resource_type,
-      public_id: crypto.randomBytes(16).toString('hex')
+      public_id: public_id
     };
   }
 });

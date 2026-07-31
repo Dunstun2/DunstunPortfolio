@@ -69,10 +69,10 @@ export default function EducationSection({ variant = 'full' }: { variant?: 'full
   const pageSubtitle = settings?.education_page_subtitle || 'My academic background, degrees, and scholarly achievements';
 
   return (
-    <section id="education" className={`px-4 bg-bg-dark/50 text-text-light relative ${variant === 'highlights' ? 'py-12 md:py-16 border-t border-text-light/10' : 'py-8 md:py-12'}`}>
+    <section id="education" className={`px-4 bg-bg-dark/50 text-text-light relative ${variant === 'highlights' ? 'py-4 md:py-8 border-t border-text-light/10' : 'py-8 md:py-12'}`}>
       <div className={variant === 'highlights' ? 'w-full max-w-full mx-auto md:px-4' : 'max-w-4xl mx-auto'}>
         {variant === 'highlights' ? (
-          <h2 className="text-3xl md:text-5xl font-bold text-heading-light mb-16 text-center">
+          <h2 className="text-3xl md:text-5xl font-bold text-heading-light mb-10 text-center">
             <SectionTitle title={sectionTitle} />
           </h2>
         ) : (
@@ -107,15 +107,15 @@ export default function EducationSection({ variant = 'full' }: { variant?: 'full
                 {/* Timeline Dot */}
                 <div className="hidden md:block absolute -left-[90px] top-10 w-6 h-6 rounded-full bg-bg-dark border-4 border-primary z-10 shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.5)]"></div>
 
-                <div className="mb-2 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
-                  <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-heading-light">
+                <div className="mb-2 flex items-start justify-between gap-2 md:gap-4">
+                  <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-heading-light leading-snug break-words">
                     {edu.degree && <span className="text-orange-500">{edu.degree}</span>}
                     {edu.degree && edu.field_of_study && ' in '}
                     {edu.field_of_study && <span className="text-primary">{edu.field_of_study}</span>}
                   </h3>
-                  <div className="text-sm font-bold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20 inline-block w-max">
+                  <span className="flex-shrink-0 inline-block align-middle text-[11px] md:text-sm font-bold text-primary bg-primary/10 px-2 md:px-3 py-1 rounded-full border border-primary/20 whitespace-nowrap mt-1">
                     {startStr} – {endStr}
-                  </div>
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-4 mb-4">
@@ -284,7 +284,7 @@ export default function EducationSection({ variant = 'full' }: { variant?: 'full
         </div>
 
         {variant === 'highlights' && (
-          <div className="mt-16 text-center">
+          <div className="mt-8 text-center">
             <a href="/education" className="btn btn-md btn-secondary">
               View Full Education Details
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>

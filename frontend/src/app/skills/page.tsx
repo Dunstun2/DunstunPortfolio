@@ -27,7 +27,11 @@ export default function SkillsPage() {
 
   // Group skills by category
   const groupedSkills: Record<string, any[]> = skills.reduce((acc: Record<string, any[]>, skill: any) => {
-    const cat = skill.category || 'Other';
+    let cat = (skill.category || 'Other').trim();
+    // Fix common typo where 'Development' is truncated
+    if (cat.endsWith('Developmen')) {
+      cat = cat + 't';
+    }
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(skill);
     return acc;
@@ -61,19 +65,18 @@ export default function SkillsPage() {
 
       {/* Category Filter */}
       {categories.length > 1 && (
-        <div className="glass p-6 rounded-2xl mb-12 flex flex-wrap gap-3 justify-center">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-6 py-2.5 rounded-xl font-semibold text-sm transition-all ${selectedCategory === cat
-                ? 'bg-primary text-white shadow-lg'
-                : 'bg-black/10 dark:bg-white/5 text-text-light hover:bg-primary/20 border border-white/10'
-                }`}
-            >
-              {cat}
-            </button>
-          ))}
+        <div className="glass p-6 rounded-2xl mb-12 flex justify-center">
+          <select
+            value={categories.includes(selectedCategory) ? selectedCategory : 'All'}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="w-full md:w-80 bg-black/10 dark:bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-heading-light focus:outline-none focus:border-primary font-medium cursor-pointer"
+          >
+            {categories.map(cat => (
+              <option key={cat} value={cat} className="bg-bg-dark text-heading-light">
+                {cat === 'All' ? 'All Categories' : cat}
+              </option>
+            ))}
+          </select>
         </div>
       )}
 

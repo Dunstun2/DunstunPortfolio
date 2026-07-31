@@ -31,16 +31,6 @@ router.get(
   cvImportController.getPreview
 );
 
-/**
- * @route   POST /api/cv/enhance/:importId
- * @desc    Enhance parsed CV data with AI improvements
- * @access  Private (Admin only)
- */
-router.post(
-  '/enhance/:importId',
-  authMiddleware,
-  cvImportController.enhanceCV
-);
 
 /**
  * @route   POST /api/cv/import/:importId

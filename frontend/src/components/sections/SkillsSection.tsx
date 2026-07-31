@@ -44,10 +44,10 @@ export default function SkillsSection({ variant = 'full' }: { variant?: 'highlig
   const pageSubtitle = settings?.skills_page_subtitle || 'Technologies, tools, and capabilities I work with';
 
   return (
-    <section id="skills" className={`bg-bg-dark/50 relative ${isHighlights ? 'py-12 md:py-16' : 'py-8 md:py-12 pb-16 md:pb-24'}`}>
+    <section id="skills" className={`bg-bg-dark/50 relative ${isHighlights ? 'py-4 md:py-8' : 'py-8 md:py-12 pb-16 md:pb-24'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {isHighlights ? (
-          <h2 className="text-3xl md:text-5xl font-bold text-heading-light mb-16 text-center">
+          <h2 className="text-3xl md:text-5xl font-bold text-heading-light mb-10 text-center">
             <SectionTitle title={sectionTitle} />
           </h2>
         ) : (
@@ -98,7 +98,7 @@ export default function SkillsSection({ variant = 'full' }: { variant?: 'highlig
 
         {/* "View All Skills" button for homepage highlights */}
         {isHighlights && allCategories.length > 3 && (
-          <div className="text-center mt-12">
+          <div className="text-center mt-8">
             <Link
               href="/skills"
               className="inline-flex items-center gap-2 px-8 py-3 rounded-full border border-primary/40 text-primary font-bold hover:bg-primary hover:text-white transition-all duration-300 hover:-translate-y-1"

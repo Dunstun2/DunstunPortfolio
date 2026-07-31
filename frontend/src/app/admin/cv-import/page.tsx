@@ -1,8 +1,9 @@
 'use client';
 
+
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Upload, FileText, CheckCircle, AlertCircle, Loader2, Download, Trash2, Eye, X } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, Loader2, Download, Trash2, Eye, X, Info } from 'lucide-react';
 
 export default function CVImportPage() {
   const router = useRouter();
@@ -13,13 +14,12 @@ export default function CVImportPage() {
   const [importId, setImportId] = useState<number | null>(null);
   const [parsedData, setParsedData] = useState<any>(null);
   const [mappedData, setMappedData] = useState<any>(null);
-  const [enhancedData, setEnhancedData] = useState<any>(null);
   const [preview, setPreview] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedSections, setSelectedSections] = useState<string[]>([]);
-  const [enhancing, setEnhancing] = useState(false);
-  const [useEnhanced, setUseEnhanced] = useState(true);
+  const [reviewedSections, setReviewedSections] = useState<string[]>([]);
+  const [documentType, setDocumentType] = useState<string>('auto');
   const [previewSection, setPreviewSection] = useState<string | null>(null);
 
   // Handle file selection
@@ -89,6 +89,7 @@ export default function CVImportPage() {
     try {
       const formData = new FormData();
       formData.append('cv', file);
+      formData.append('documentType', documentType);
 
       const token = localStorage.getItem('token');
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cv/upload`, {
@@ -106,13 +107,25 @@ export default function CVImportPage() {
       }
 
       setImportId(result.data.importId);
-      setPreview(result.data.preview);
-      setMappedData(result.data.mappedData);
-      setEnhancedData(result.data.enhancedData);
+      // We set mappedData directly to the AI output
+      const aiData = result.data.mappedData?.data || {};
+      setMappedData(aiData);
+      
+      // Compute preview metrics from the AI data
+      setPreview({
+        skillsCount: aiData.skills?.length || 0,
+        experienceCount: aiData.experience?.length || 0,
+        educationCount: aiData.education?.length || 0,
+        certificationsCount: aiData.certifications?.length || 0,
+        achievementsCount: aiData.achievements?.length || 0,
+        projectsCount: aiData.projects?.length || 0,
+        testimonialsCount: aiData.testimonials?.length || 0,
+      });
+
       setParsedData(result.data);
 
-      // Select all sections by default
-      setSelectedSections(['hero', 'about', 'skills', 'experience', 'education', 'certifications', 'achievements', 'projects', 'social', 'settings']);
+      // All sections deselected by default — admin must review and select each one
+      setSelectedSections([]);
 
       setSuccess('CV parsed successfully! Review the data below and select sections to import.');
     } catch (err: any) {
@@ -138,7 +151,7 @@ export default function CVImportPage() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ sections: selectedSections, useEnhanced }),
+        body: JSON.stringify({ sections: selectedSections }),
       });
 
       const result = await response.json();
@@ -161,41 +174,15 @@ export default function CVImportPage() {
     }
   };
 
-  // Enhance CV data with AI improvements
-  const handleEnhance = async () => {
-    if (!importId) return;
 
-    setEnhancing(true);
-    setError(null);
 
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cv/enhance/${importId}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Failed to enhance CV data');
-      }
-
-      setEnhancedData(result.data.enhanced);
-      setSuccess(`CV enhanced successfully! Added ${result.data.improvements.totalEnhancements} improvements.`);
-    } catch (err: any) {
-      setError(err.message || 'Failed to enhance CV data');
-      console.error('Enhancement error:', err);
-    } finally {
-      setEnhancing(false);
-    }
-  };
-
-  // Toggle section selection
+  // Toggle section selection (only if reviewed)
   const toggleSection = (section: string) => {
+    if (!reviewedSections.includes(section)) {
+      setError(`Please review "${section}" first by clicking the 👁 eye icon before selecting it for import.`);
+      setTimeout(() => setError(null), 4000);
+      return;
+    }
     setSelectedSections(prev =>
       prev.includes(section)
         ? prev.filter(s => s !== section)
@@ -203,9 +190,21 @@ export default function CVImportPage() {
     );
   };
 
-  // Select all sections
+  // Mark a section as reviewed
+  const markReviewed = (section: string) => {
+    setReviewedSections(prev =>
+      prev.includes(section) ? prev : [...prev, section]
+    );
+  };
+
+  // Select all reviewed sections
   const selectAll = () => {
-    setSelectedSections(['hero', 'about', 'skills', 'experience', 'education', 'certifications', 'achievements', 'projects', 'social', 'settings']);
+    if (reviewedSections.length === 0) {
+      setError('You must review sections first using the 👁 eye icon before selecting them for import.');
+      setTimeout(() => setError(null), 4000);
+      return;
+    }
+    setSelectedSections([...reviewedSections]);
   };
 
   // Deselect all sections
@@ -213,9 +212,8 @@ export default function CVImportPage() {
     setSelectedSections([]);
   };
 
-  // Get data for preview (enhanced or mapped)
   const getPreviewData = () => {
-    return useEnhanced && enhancedData ? enhancedData : mappedData;
+    return mappedData;
   };
 
   // Render section preview content
@@ -420,6 +418,31 @@ export default function CVImportPage() {
           </div>
         );
 
+      case 'testimonials':
+        return (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Testimonials (from Recommendation Letters)</h2>
+            <div className="space-y-6">
+              {data.testimonials?.map((testim: any, i: number) => (
+                <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border-l-4 border-indigo-500">
+                  <div className="flex gap-4">
+                    {testim.image_url && (
+                      <img src={testim.image_url} alt={testim.author_name} className="w-16 h-16 rounded-full object-cover" />
+                    )}
+                    <div className="flex-1">
+                      <p className="text-gray-800 dark:text-gray-200 italic mb-3">"{testim.content}"</p>
+                      <h4 className="font-semibold text-gray-900 dark:text-white">{testim.author_name}</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {testim.author_title} {testim.author_company && `at ${testim.author_company}`}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
       case 'social':
         return (
           <div>
@@ -479,7 +502,7 @@ export default function CVImportPage() {
             Import CV to Portfolio
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Upload your CV (PDF, DOCX, or TXT) and we'll automatically parse it into your portfolio sections.
+            Upload your CV, Resume, or Recommendation Letter (PDF, DOCX, or TXT) and we'll automatically parse it into your portfolio sections using AI.
           </p>
         </div>
 
@@ -501,11 +524,28 @@ export default function CVImportPage() {
               {!file ? (
                 <>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                    Drop your CV here or click to browse
+                    Drop your document here or click to browse
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400 mb-4">
                     Supports PDF, DOCX, and TXT files (max 10MB)
                   </p>
+                  
+                  <div className="mb-6 flex justify-center">
+                    <div className="flex flex-col text-left">
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Document Type</label>
+                      <select 
+                        value={documentType}
+                        onChange={(e) => setDocumentType(e.target.value)}
+                        className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <option value="auto">Auto-Detect</option>
+                        <option value="cv">CV / Resume</option>
+                        <option value="recommendation">Recommendation Letter</option>
+                      </select>
+                    </div>
+                  </div>
+
                   <label className="inline-block">
                     <input
                       type="file"
@@ -577,71 +617,7 @@ export default function CVImportPage() {
         {/* Preview and Import Section */}
         {parsedData && mappedData && (
           <div className="mt-8 space-y-6">
-            {/* Enhancement Options */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                AI Enhancement Options
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Enhance your CV with AI-powered improvements including better descriptions, keyword optimization, and professional formatting.
-              </p>
 
-              <div className="flex items-center gap-4 mb-4">
-                <button
-                  onClick={handleEnhance}
-                  disabled={enhancing || !mappedData}
-                  className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {enhancing ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Enhancing...
-                    </>
-                  ) : (
-                    <>
-                      <span>✨</span>
-                      Enhance with AI
-                    </>
-                  )}
-                </button>
-
-                {enhancedData && (
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={useEnhanced}
-                      onChange={(e) => setUseEnhanced(e.target.checked)}
-                      className="w-4 h-4 text-purple-600 rounded"
-                    />
-                    <span className="text-gray-700 dark:text-gray-300">
-                      Use enhanced data for import
-                    </span>
-                  </label>
-                )}
-              </div>
-
-              {enhancedData && (
-                <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
-                  <h3 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">
-                    ✨ Enhancement Complete!
-                  </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                    <div className="text-purple-700 dark:text-purple-300">
-                      • Improved descriptions
-                    </div>
-                    <div className="text-purple-700 dark:text-purple-300">
-                      • SEO keywords added
-                    </div>
-                    <div className="text-purple-700 dark:text-purple-300">
-                      • Professional formatting
-                    </div>
-                    <div className="text-purple-700 dark:text-purple-300">
-                      • Enhanced readability
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
 
             {/* Summary */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
@@ -676,6 +652,24 @@ export default function CVImportPage() {
               </div>
             </div>
 
+            {/* Step-by-step instructions */}
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-5">
+              <div className="flex items-start gap-3">
+                <Info className="w-6 h-6 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-bold text-amber-800 dark:text-amber-200 mb-2">How to import</h3>
+                  <ol className="list-decimal list-inside space-y-1 text-sm text-amber-700 dark:text-amber-300">
+                    <li><strong>Review</strong> each section by clicking the 👁 eye icon to verify the extracted data is correct.</li>
+                    <li><strong>Select</strong> the reviewed sections you want to import by ticking their checkbox.</li>
+                    <li><strong>Click &quot;Import to Portfolio&quot;</strong> once you are satisfied with your selections.</li>
+                  </ol>
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 italic">
+                    You cannot select a section for import until you have reviewed it. Sections with 0 items contain no extracted data.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* Section Selection */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
               <div className="flex items-center justify-between mb-4">
@@ -703,47 +697,61 @@ export default function CVImportPage() {
                 {[
                   { key: 'hero', label: 'Hero Section', count: 1 },
                   { key: 'about', label: 'About Section', count: 1 },
-                  { key: 'skills', label: 'Skills', count: (useEnhanced && enhancedData ? enhancedData.skills?.length : mappedData.skills?.length) || 0 },
-                  { key: 'experience', label: 'Experience', count: (useEnhanced && enhancedData ? enhancedData.experience?.length : mappedData.experience?.length) || 0 },
-                  { key: 'education', label: 'Education', count: (useEnhanced && enhancedData ? enhancedData.education?.length : mappedData.education?.length) || 0 },
-                  { key: 'certifications', label: 'Certifications', count: (useEnhanced && enhancedData ? enhancedData.certifications?.length : mappedData.certifications?.length) || 0 },
-                  { key: 'achievements', label: 'Achievements', count: (useEnhanced && enhancedData ? enhancedData.achievements?.length : mappedData.achievements?.length) || 0 },
-                  { key: 'projects', label: 'Projects', count: (useEnhanced && enhancedData ? enhancedData.projects?.length : mappedData.projects?.length) || 0 },
-                  { key: 'social', label: 'Social Accounts', count: (useEnhanced && enhancedData ? enhancedData.social?.length : mappedData.social?.length) || 0 },
-                  { key: 'settings', label: 'Site Settings', count: Object.keys((useEnhanced && enhancedData ? enhancedData.settings : mappedData.settings) || {}).length },
+                  { key: 'skills', label: 'Skills', count: mappedData.skills?.length || 0 },
+                  { key: 'experience', label: 'Experience', count: mappedData.experience?.length || 0 },
+                  { key: 'education', label: 'Education', count: mappedData.education?.length || 0 },
+                  { key: 'certifications', label: 'Certifications', count: mappedData.certifications?.length || 0 },
+                  { key: 'achievements', label: 'Achievements', count: mappedData.achievements?.length || 0 },
+                  { key: 'projects', label: 'Projects', count: mappedData.projects?.length || 0 },
+                  { key: 'testimonials', label: 'Testimonials', count: mappedData.testimonials?.length || 0 },
+                  { key: 'social', label: 'Social Accounts', count: mappedData.social?.length || 0 },
+                  { key: 'settings', label: 'Site Settings', count: Object.keys(mappedData.settings || {}).length },
                 ].map((section) => (
                   <div
                     key={section.key}
-                    className={`flex items-center gap-3 p-4 border-2 rounded-lg transition-colors ${selectedSections.includes(section.key)
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-                      }`}
+                    className={`flex items-center gap-3 p-4 border-2 rounded-lg transition-colors ${
+                      selectedSections.includes(section.key)
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        : reviewedSections.includes(section.key)
+                          ? 'border-green-300 dark:border-green-700 bg-green-50/50 dark:bg-green-900/10'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                    }`}
                   >
                     <input
                       type="checkbox"
                       checked={selectedSections.includes(section.key)}
                       onChange={() => toggleSection(section.key)}
-                      className="w-5 h-5 text-blue-600 rounded"
+                      disabled={!reviewedSections.includes(section.key)}
+                      className={`w-5 h-5 rounded ${reviewedSections.includes(section.key) ? 'text-blue-600' : 'text-gray-300 cursor-not-allowed'}`}
+                      title={!reviewedSections.includes(section.key) ? 'Review this section first using the eye icon' : ''}
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-gray-900 dark:text-white">
                           {section.label}
                         </p>
-                        {useEnhanced && enhancedData && (
-                          <span className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-2 py-0.5 rounded-full">
-                            ✨ Enhanced
-                          </span>
+                        {reviewedSections.includes(section.key) && (
+                          <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full font-medium">Reviewed</span>
                         )}
                       </div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         {section.count} item{section.count !== 1 ? 's' : ''}
+                        {!reviewedSections.includes(section.key) && (
+                          <span className="ml-2 text-amber-600 dark:text-amber-400">— click 👁 to review before selecting</span>
+                        )}
                       </p>
                     </div>
                     <button
-                      onClick={() => setPreviewSection(section.key)}
-                      className="p-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                      title="Preview section"
+                      onClick={() => {
+                        markReviewed(section.key);
+                        setPreviewSection(section.key);
+                      }}
+                      className={`p-2 rounded-lg transition-colors ${
+                        reviewedSections.includes(section.key)
+                          ? 'text-green-600 hover:bg-green-100 dark:hover:bg-green-900/20'
+                          : 'text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/20'
+                      }`}
+                      title="Review section data"
                     >
                       <Eye className="w-5 h-5" />
                     </button>
@@ -753,36 +761,54 @@ export default function CVImportPage() {
             </div>
 
             {/* Import Button */}
-            <div className="flex gap-4 justify-end">
-              <button
-                onClick={() => {
-                  setParsedData(null);
-                  setMappedData(null);
-                  setFile(null);
-                  setImportId(null);
-                }}
-                disabled={importing}
-                className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleImport}
-                disabled={importing || selectedSections.length === 0}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {importing ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Importing...
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-5 h-5" />
-                    Import to Portfolio
-                  </>
-                )}
-              </button>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+              {selectedSections.length === 0 && reviewedSections.length === 0 ? (
+                <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400">
+                  <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                  <p className="text-sm">Start by reviewing sections using the 👁 eye icon, then check the ones you want to import.</p>
+                </div>
+              ) : selectedSections.length === 0 ? (
+                <div className="flex items-center gap-3 text-amber-600 dark:text-amber-400">
+                  <Info className="w-5 h-5 flex-shrink-0" />
+                  <p className="text-sm">{reviewedSections.length} section{reviewedSections.length !== 1 ? 's' : ''} reviewed. Now check the ones you want to import.</p>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 mb-4 text-green-700 dark:text-green-400">
+                  <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                  <p className="text-sm font-medium">{selectedSections.length} section{selectedSections.length !== 1 ? 's' : ''} selected and reviewed — ready to import.</p>
+                </div>
+              )}
+              <div className="flex gap-4 justify-end">
+                <button
+                  onClick={() => {
+                    setParsedData(null);
+                    setMappedData(null);
+                    setFile(null);
+                    setImportId(null);
+                  }}
+                  disabled={importing}
+                  className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleImport}
+                  disabled={importing || selectedSections.length === 0}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {importing ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Importing...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-5 h-5" />
+                      Import to Portfolio ({selectedSections.length})
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -798,11 +824,6 @@ export default function CVImportPage() {
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                     Section Preview
                   </h2>
-                  {useEnhanced && enhancedData && (
-                    <span className="text-sm bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-3 py-1 rounded-full">
-                      ✨ Enhanced Version
-                    </span>
-                  )}
                 </div>
                 <button
                   onClick={() => setPreviewSection(null)}

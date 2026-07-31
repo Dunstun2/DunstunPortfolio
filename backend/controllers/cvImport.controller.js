@@ -1,14 +1,13 @@
 /**
  * CV Import Controller
  * 
- * Handles CV upload, parsing, preview, and importing to portfolio
+ * Handles Document upload, AI parsing, preview, and importing to portfolio
  */
 
-const cvParserService = require('../services/cvParser.service');
-const cvMapperService = require('../services/cvMapper.service');
-const cvEnhancerService = require('../services/cvEnhancer.service');
+const cvParserService = require('../services/cvParser.service'); // Kept only for extractText
+const aiDocumentParserService = require('../services/aiDocumentParser.service');
 const { Hero, About, AboutHighlight, AboutValue, AboutIdentityCard, AboutExploration } = require('../models');
-const { Skill, Experience, Education, Certification, Achievement } = require('../models');
+const { Skill, Experience, Education, Certification, Achievement, Testimonial } = require('../models');
 const { Project, SocialAccount, Setting } = require('../models');
 const CVImport = require('../models/CVImport');
 const fs = require('fs').promises;
@@ -16,7 +15,7 @@ const path = require('path');
 
 class CVImportController {
   /**
-   * Upload and parse CV
+   * Upload and parse Document with AI
    * POST /api/cv/upload
    */
   async uploadAndParse(req, res) {
@@ -24,13 +23,14 @@ class CVImportController {
       if (!req.file) {
         return res.status(400).json({
           success: false,
-          message: 'No file uploaded. Please upload a CV file (PDF, DOCX, or TXT).',
+          message: 'No file uploaded. Please upload a document (PDF, DOCX, or TXT).',
         });
       }
 
       const file = req.file;
       const filePath = file.path;
       const fileType = file.mimetype;
+      const documentType = req.body.documentType || 'auto'; // Accept documentType from frontend
 
       // Validate file type
       const allowedTypes = [
@@ -52,57 +52,43 @@ class CVImportController {
         });
       }
 
-      // Extract text from CV
+      // 1. Extract raw text from the document
       const extractedText = await cvParserService.extractText(filePath, fileType);
 
-      // Parse CV into structured data
-      const parsedCV = cvParserService.parseCV(extractedText);
+      // 2. Pass to AI for structured parsing and mapping
+      const aiParsedData = await aiDocumentParserService.parseDocument(extractedText, documentType);
 
-      // Map to portfolio modules
-      const mappedData = cvMapperService.mapToPortfolio(parsedCV);
-
-      // Enhance with AI improvements
-      const enhancedData = cvEnhancerService.enhanceCV(mappedData);
-
-      // Save import record
+      // 3. Save import record
       const cvImport = await CVImport.create({
         fileName: file.originalname,
         fileSize: file.size,
         fileType: fileType,
         filePath: filePath,
         extractedText: extractedText,
-        parsedData: parsedCV,
-        mappedData: mappedData,
-        enhancedData: enhancedData,
+        parsedData: null, // Legacy, no longer used
+        mappedData: aiParsedData, // We store the AI output directly in mappedData
+        enhancedData: null, // Legacy, AI output is already enhanced
         status: 'parsed',
         importedBy: req.user?.id || null,
+        metadata: {
+          documentType: aiParsedData.documentType,
+          summary: aiParsedData.summary,
+        }
       });
-
-      // Clean up file after processing (optional - keep for preview)
-      // await fs.unlink(filePath).catch(() => {});
 
       return res.status(200).json({
         success: true,
-        message: 'CV uploaded and parsed successfully',
+        message: 'Document uploaded and parsed successfully by AI',
         data: {
           importId: cvImport.id,
           fileName: file.originalname,
-          metadata: parsedCV.metadata,
-          preview: {
-            personalInfo: parsedCV.parsed.personalInfo,
-            summary: parsedCV.parsed.summary,
-            skillsCount: parsedCV.parsed.skills.length,
-            experienceCount: parsedCV.parsed.experience.length,
-            educationCount: parsedCV.parsed.education.length,
-            certificationsCount: parsedCV.parsed.certifications.length,
-            achievementsCount: parsedCV.parsed.achievements.length,
-          },
-          mappedData: mappedData,
-          enhancedData: enhancedData,
+          documentType: aiParsedData.documentType,
+          summary: aiParsedData.summary,
+          mappedData: aiParsedData, // Send this back for the preview UI
         },
       });
     } catch (error) {
-      console.error('Error uploading and parsing CV:', error);
+      console.error('Error uploading and parsing document:', error);
 
       // Clean up file on error
       if (req.file?.path) {
@@ -111,14 +97,14 @@ class CVImportController {
 
       return res.status(500).json({
         success: false,
-        message: 'Failed to process CV',
+        message: 'Failed to process document',
         error: error.message,
       });
     }
   }
 
   /**
-   * Get parsed CV preview
+   * Get parsed document preview
    * GET /api/cv/preview/:importId
    */
   async getPreview(req, res) {
@@ -130,7 +116,7 @@ class CVImportController {
       if (!cvImport) {
         return res.status(404).json({
           success: false,
-          message: 'CV import not found',
+          message: 'Document import not found',
         });
       }
 
@@ -140,148 +126,68 @@ class CVImportController {
           id: cvImport.id,
           fileName: cvImport.fileName,
           status: cvImport.status,
-          parsedData: cvImport.parsedData,
           mappedData: cvImport.mappedData,
-          enhancedData: cvImport.enhancedData,
           createdAt: cvImport.createdAt,
         },
       });
     } catch (error) {
-      console.error('Error fetching CV preview:', error);
+      console.error('Error fetching document preview:', error);
       return res.status(500).json({
         success: false,
-        message: 'Failed to fetch CV preview',
+        message: 'Failed to fetch document preview',
         error: error.message,
       });
     }
   }
 
   /**
-   * Import CV data to portfolio
+   * Import parsed data to portfolio
    * POST /api/cv/import/:importId
    */
   async importToPortfolio(req, res) {
     try {
       const { importId } = req.params;
-      const { sections = [], useEnhanced = true } = req.body; // Option to use enhanced data
+      const { sections = [] } = req.body; 
 
       const cvImport = await CVImport.findByPk(importId);
 
       if (!cvImport) {
         return res.status(404).json({
           success: false,
-          message: 'CV import not found',
+          message: 'Document import not found',
         });
       }
 
       if (cvImport.status === 'imported') {
         return res.status(400).json({
           success: false,
-          message: 'This CV has already been imported',
+          message: 'This document has already been imported',
         });
       }
 
-      // Choose between enhanced or mapped data
-      const dataToImport = useEnhanced && cvImport.enhancedData ? cvImport.enhancedData : cvImport.mappedData;
+      const dataToImport = cvImport.mappedData?.data;
+      if (!dataToImport) {
+        return res.status(400).json({
+          success: false,
+          message: 'No data to import',
+        });
+      }
+      
       const importAll = sections.length === 0 || sections.includes('all');
 
       const results = {
-        hero: null,
-        about: null,
         skills: [],
         experience: [],
         education: [],
         certifications: [],
         achievements: [],
         projects: [],
+        testimonials: [],
         social: [],
-        settings: [],
       };
 
-      // Import Hero
-      if (importAll || sections.includes('hero')) {
-        const heroData = dataToImport.hero;
-        const existingHero = await Hero.findOne();
-
-        if (existingHero) {
-          await existingHero.update(heroData);
-          results.hero = existingHero;
-        } else {
-          results.hero = await Hero.create(heroData);
-        }
-      }
-
-      // Import About
-      if (importAll || sections.includes('about')) {
-        const aboutData = dataToImport.about;
-        const existingAbout = await About.findOne();
-
-        if (existingAbout) {
-          await existingAbout.update({
-            title: aboutData.title,
-            subtitle: aboutData.subtitle,
-            bio: aboutData.bio,
-            imageUrl: aboutData.imageUrl,
-          });
-          results.about = existingAbout;
-
-          // Update nested sections
-          await AboutHighlight.destroy({ where: {} });
-          await AboutValue.destroy({ where: {} });
-          await AboutIdentityCard.destroy({ where: {} });
-          await AboutExploration.destroy({ where: {} });
-        } else {
-          results.about = await About.create({
-            title: aboutData.title,
-            subtitle: aboutData.subtitle,
-            bio: aboutData.bio,
-            imageUrl: aboutData.imageUrl,
-          });
-        }
-
-        // Create highlights
-        if (aboutData.highlights) {
-          for (const highlight of aboutData.highlights) {
-            await AboutHighlight.create({
-              ...highlight,
-              aboutId: results.about.id,
-            });
-          }
-        }
-
-        // Create values
-        if (aboutData.values) {
-          for (const value of aboutData.values) {
-            await AboutValue.create({
-              ...value,
-              aboutId: results.about.id,
-            });
-          }
-        }
-
-        // Create identity cards
-        if (aboutData.identityCards) {
-          for (const card of aboutData.identityCards) {
-            await AboutIdentityCard.create({
-              ...card,
-              aboutId: results.about.id,
-            });
-          }
-        }
-
-        // Create explorations
-        if (aboutData.explorations) {
-          for (const exploration of aboutData.explorations) {
-            await AboutExploration.create({
-              ...exploration,
-              aboutId: results.about.id,
-            });
-          }
-        }
-      }
-
       // Import Skills
-      if (importAll || sections.includes('skills')) {
+      if ((importAll || sections.includes('skills')) && dataToImport.skills) {
         for (const skillData of dataToImport.skills) {
           const skill = await Skill.create(skillData);
           results.skills.push(skill);
@@ -289,7 +195,7 @@ class CVImportController {
       }
 
       // Import Experience
-      if (importAll || sections.includes('experience')) {
+      if ((importAll || sections.includes('experience')) && dataToImport.experience) {
         for (const expData of dataToImport.experience) {
           const experience = await Experience.create(expData);
           results.experience.push(experience);
@@ -297,7 +203,7 @@ class CVImportController {
       }
 
       // Import Education
-      if (importAll || sections.includes('education')) {
+      if ((importAll || sections.includes('education')) && dataToImport.education) {
         for (const eduData of dataToImport.education) {
           const education = await Education.create(eduData);
           results.education.push(education);
@@ -305,7 +211,7 @@ class CVImportController {
       }
 
       // Import Certifications
-      if (importAll || sections.includes('certifications')) {
+      if ((importAll || sections.includes('certifications')) && dataToImport.certifications) {
         for (const certData of dataToImport.certifications) {
           const certification = await Certification.create(certData);
           results.certifications.push(certification);
@@ -313,7 +219,7 @@ class CVImportController {
       }
 
       // Import Achievements
-      if (importAll || sections.includes('achievements')) {
+      if ((importAll || sections.includes('achievements')) && dataToImport.achievements) {
         for (const achData of dataToImport.achievements) {
           const achievement = await Achievement.create(achData);
           results.achievements.push(achievement);
@@ -321,47 +227,26 @@ class CVImportController {
       }
 
       // Import Projects
-      if (importAll || sections.includes('projects')) {
+      if ((importAll || sections.includes('projects')) && dataToImport.projects) {
         for (const projData of dataToImport.projects) {
           const project = await Project.create(projData);
           results.projects.push(project);
         }
       }
 
-      // Import Social Accounts
-      if (importAll || sections.includes('social')) {
-        for (const socialData of dataToImport.social) {
-          const social = await SocialAccount.create({
-            platform_name: socialData.platform,
-            url: socialData.url,
-            username: socialData.username,
-            display_order: socialData.order,
-            is_active: true,
-          });
-          results.social.push(social);
+      // Import Testimonials (from Recommendation letters)
+      if ((importAll || sections.includes('testimonials')) && dataToImport.testimonials) {
+        for (const testimonialData of dataToImport.testimonials) {
+          const testimonial = await Testimonial.create(testimonialData);
+          results.testimonials.push(testimonial);
         }
       }
 
-      // Import Settings
-      if (importAll || sections.includes('settings')) {
-        for (const [key, value] of Object.entries(dataToImport.settings)) {
-          if (value) {
-            const [setting, created] = await Setting.findOrCreate({
-              where: { key },
-              defaults: {
-                key,
-                value,
-                type: 'text',
-                category: 'general',
-              },
-            });
-
-            if (!created) {
-              await setting.update({ value });
-            }
-
-            results.settings.push(setting);
-          }
+      // Import Social Accounts
+      if ((importAll || sections.includes('social')) && dataToImport.social) {
+        for (const socialData of dataToImport.social) {
+          const social = await SocialAccount.create(socialData);
+          results.social.push(social);
         }
       }
 
@@ -379,28 +264,26 @@ class CVImportController {
 
       return res.status(200).json({
         success: true,
-        message: 'CV data imported successfully',
+        message: 'Document data imported successfully',
         data: {
           imported: {
-            hero: results.hero ? 1 : 0,
-            about: results.about ? 1 : 0,
             skills: results.skills.length,
             experience: results.experience.length,
             education: results.education.length,
             certifications: results.certifications.length,
             achievements: results.achievements.length,
             projects: results.projects.length,
+            testimonials: results.testimonials.length,
             social: results.social.length,
-            settings: results.settings.length,
           },
           results,
         },
       });
     } catch (error) {
-      console.error('Error importing CV data:', error);
+      console.error('Error importing document data:', error);
       return res.status(500).json({
         success: false,
-        message: 'Failed to import CV data',
+        message: 'Failed to import document data',
         error: error.message,
       });
     }
@@ -433,106 +316,6 @@ class CVImportController {
   }
 
   /**
-   * Enhance parsed CV data with AI improvements
-   * POST /api/cv/enhance/:importId
-   */
-  async enhanceCV(req, res) {
-    try {
-      const { importId } = req.params;
-
-      const cvImport = await CVImport.findByPk(importId);
-
-      if (!cvImport) {
-        return res.status(404).json({
-          success: false,
-          message: 'CV import not found',
-        });
-      }
-
-      if (!cvImport.mappedData) {
-        return res.status(400).json({
-          success: false,
-          message: 'CV must be parsed first before enhancement',
-        });
-      }
-
-      // Enhance the mapped data
-      const enhancedData = cvEnhancerService.enhanceCV(cvImport.mappedData);
-
-      // Update the import record with enhanced data
-      await cvImport.update({
-        enhancedData: enhancedData,
-      });
-
-      return res.status(200).json({
-        success: true,
-        message: 'CV data enhanced successfully',
-        data: {
-          original: cvImport.mappedData,
-          enhanced: enhancedData,
-          improvements: this.getImprovementsSummary(cvImport.mappedData, enhancedData),
-        },
-      });
-    } catch (error) {
-      console.error('Error enhancing CV data:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to enhance CV data',
-        error: error.message,
-      });
-    }
-  }
-
-  /**
-   * Get improvements summary comparing original vs enhanced
-   */
-  getImprovementsSummary(original, enhanced) {
-    const improvements = {
-      hero: [],
-      about: [],
-      skills: [],
-      experience: [],
-      projects: [],
-      totalEnhancements: 0,
-    };
-
-    // Compare hero section
-    if (enhanced.hero?.keywords && enhanced.hero.keywords.length > 0) {
-      improvements.hero.push(`Added ${enhanced.hero.keywords.length} SEO keywords`);
-      improvements.totalEnhancements++;
-    }
-
-    // Compare about section
-    if (enhanced.about?.keywords && enhanced.about.keywords.length > 0) {
-      improvements.about.push(`Added ${enhanced.about.keywords.length} content keywords`);
-      improvements.totalEnhancements++;
-    }
-
-    // Compare skills
-    const skillsWithDesc = enhanced.skills?.filter(s => s.description).length || 0;
-    if (skillsWithDesc > 0) {
-      improvements.skills.push(`Generated descriptions for ${skillsWithDesc} skills`);
-      improvements.totalEnhancements++;
-    }
-
-    // Compare experience
-    const expWithKeywords = enhanced.experience?.filter(e => e.keywords?.length > 0).length || 0;
-    if (expWithKeywords > 0) {
-      improvements.experience.push(`Added keywords to ${expWithKeywords} positions`);
-      improvements.totalEnhancements++;
-    }
-
-    // Compare projects
-    const projWithComplexity = enhanced.projects?.filter(p => p.complexity).length || 0;
-    if (projWithComplexity > 0) {
-      improvements.projects.push(`Analyzed complexity for ${projWithComplexity} projects`);
-      improvements.totalEnhancements++;
-    }
-
-    return improvements;
-  }
-
-  /**
    * Delete import record
    * DELETE /api/cv/:importId
    */
@@ -545,7 +328,7 @@ class CVImportController {
       if (!cvImport) {
         return res.status(404).json({
           success: false,
-          message: 'CV import not found',
+          message: 'Import record not found',
         });
       }
 
@@ -558,17 +341,19 @@ class CVImportController {
 
       return res.status(200).json({
         success: true,
-        message: 'CV import deleted successfully',
+        message: 'Import record deleted successfully',
       });
     } catch (error) {
-      console.error('Error deleting CV import:', error);
+      console.error('Error deleting import record:', error);
       return res.status(500).json({
         success: false,
-        message: 'Failed to delete CV import',
+        message: 'Failed to delete import record',
         error: error.message,
       });
     }
   }
+
+  // The enhanceCV endpoint is removed because AI automatically enhances data during parsing
 }
 
 module.exports = new CVImportController();
