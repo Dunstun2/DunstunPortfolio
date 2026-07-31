@@ -70,11 +70,11 @@ export default function ExperiencePage() {
   const emptyMessage = settings?.experience_empty_message || 'Experience information coming soon';
 
   return (
-    <div className="min-h-screen py-12 md:py-20 relative">
+    <div className="min-h-screen pt-12 pb-4 md:pt-20 md:pb-8 relative">
       <BackToAbout />
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         {/* Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-6">
           <h1 className="text-4xl md:text-6xl font-extrabold text-heading-light mb-4">
             {pageTitle.split(' ').map((word: string, i: number, arr: string[]) => (
               i === arr.length - 1 ? <span key={i} className="text-primary">{word}</span> : word + ' '
@@ -87,19 +87,25 @@ export default function ExperiencePage() {
 
         {/* Filter */}
         {employmentTypes.length > 1 && (
-          <div className="glass p-6 rounded-2xl mb-12 flex flex-wrap gap-3 justify-center">
-            {employmentTypes.map(type => (
-              <button
-                key={type}
-                onClick={() => setFilterType(type)}
-                className={`px-6 py-2.5 rounded-xl font-semibold text-sm transition-all ${filterType === type
-                    ? 'bg-primary text-white shadow-lg'
-                    : 'bg-black/10 dark:bg-white/5 text-text-light hover:bg-primary/20 border border-white/10'
-                  }`}
+          <div className="flex justify-end mb-8 md:pr-4">
+            <div className="relative">
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="appearance-none glass px-6 py-3 pr-12 rounded-xl font-semibold text-sm text-heading-light bg-black/10 dark:bg-white/5 border border-white/10 hover:border-primary/50 transition-all outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer"
               >
-                {type}
-              </button>
-            ))}
+                {employmentTypes.map(type => (
+                  <option key={type} value={type} className="bg-bg-dark text-text-light">
+                    {type === 'All' ? 'All Roles' : type}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none text-text-light">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
           </div>
         )}
 
@@ -114,7 +120,7 @@ export default function ExperiencePage() {
             <p className="text-text-light text-lg">{emptyMessage}</p>
           </div>
         ) : (
-          <div className="relative md:border-l-2 md:border-text-light/15 md:ml-8 md:pl-12 space-y-16 mb-20">
+          <div className="relative md:border-l-2 md:border-text-light/15 md:ml-8 md:pl-12 space-y-16 mb-8">
             {filteredExp.map((exp, index) => {
               const startStr = new Date(exp.start_date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
               const endStr = exp.is_current ? 'Present' : new Date(exp.end_date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -125,45 +131,51 @@ export default function ExperiencePage() {
                   {/* Timeline Dot */}
                   <div className="hidden md:block absolute -left-[90px] top-10 w-6 h-6 rounded-full bg-bg-dark border-4 border-primary z-10 shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.5)]"></div>
 
-                  {/* Current Badge */}
-                  {exp.is_current && (
-                    <div className="absolute top-4 right-4 px-3 py-1 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/30">
-                      Currently Working
-                    </div>
-                  )}
 
-                  {/* Header */}
-                  <div className="mb-4">
-                    <h3 className="text-2xl md:text-3xl font-bold text-heading-light mb-2">{exp.position}</h3>
-                    <div className="text-sm font-bold text-primary bg-primary/10 px-4 py-2 rounded-full border border-primary/20 inline-block">
-                      {startStr} – {endStr} · {duration}
-                    </div>
-                  </div>
-
-                  {/* Company Info */}
-                  <div className="flex items-center gap-4 mb-6">
+                  {/* Header & Company Info */}
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-4 mb-6">
                     {exp.company_logo && (
                       <img
                         src={getFileUrl(exp.company_logo)}
                         alt={`${exp.company} logo`}
-                        className="w-16 h-16 rounded-xl object-contain bg-white/10 p-2 border border-text-light/10"
+                        className="w-16 h-16 rounded-xl object-contain bg-white/10 p-2 border border-text-light/10 shrink-0"
                       />
                     )}
-                    <div>
-                      <h4 className="text-xl font-semibold text-primary flex items-center gap-3 flex-wrap">
-                        {exp.company}
+                    <div className="flex-1 min-w-0">
+                      {/* Position and Company on same line */}
+                      <h3 className="text-2xl md:text-3xl font-bold text-heading-light flex items-center flex-wrap gap-2 mb-3">
+                        <span>{exp.position}</span>
+                        <span className="text-primary hidden sm:inline px-1">•</span>
+                        <span className="text-primary font-semibold flex items-center gap-2">
+                          {exp.company}
+                          {exp.is_current && (
+                            <span className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)] animate-pulse" title="Currently Working"></span>
+                          )}
+                        </span>
                         {exp.company_website && (
                           <a
                             href={exp.company_website?.startsWith('http') ? exp.company_website : `https://${exp.company_website}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-xs font-normal text-primary hover:underline bg-primary/10 px-3 py-1 rounded-full"
+                            className="text-xs font-normal text-primary hover:underline bg-primary/10 px-3 py-1 rounded-full ml-1"
                           >
                             Website ↗
                           </a>
                         )}
-                      </h4>
-                      {exp.location && <p className="text-text-light/70 text-sm mt-1">📍 {exp.location}</p>}
+                      </h3>
+                      
+                      {/* Location and Duration on same line */}
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+                        {exp.location && (
+                          <span className="text-text-light/80 font-medium flex items-center gap-1">
+                            <span>📍</span> {exp.location}
+                          </span>
+                        )}
+                        {exp.location && <span className="text-white/20 hidden sm:inline">•</span>}
+                        <span className="font-bold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+                          {startStr} – {endStr} · {duration}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -319,27 +331,7 @@ export default function ExperiencePage() {
           </div>
         )}
 
-        {/* CTA Section */}
-        {filteredExp.length > 0 && (
-          <div className="glass rounded-3xl p-8 md:p-12 text-center border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-            <div className="max-w-2xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold text-heading-light mb-4">
-                {ctaTitle.split(' ').map((word: string, i: number, arr: string[]) => (
-                  i === arr.length - 1 ? <span key={i} className="text-primary">{word}</span> : word + ' '
-                ))}
-              </h2>
-              <p className="text-text-light text-lg mb-8">
-                {ctaDescription}
-              </p>
-              <Link
-                href="/contact"
-                className="inline-flex items-center justify-center px-8 py-4 bg-primary text-white font-bold rounded-full hover:bg-primary/90 transition-all hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.5)] hover:-translate-y-1"
-              >
-                {ctaButtonText} &rarr;
-              </Link>
-            </div>
-          </div>
-        )}
+
       </div>
     </div>
   );

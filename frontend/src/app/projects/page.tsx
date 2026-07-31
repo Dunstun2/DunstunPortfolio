@@ -197,7 +197,7 @@ export default function AllProjectsPage() {
                         onClick={() => toggleExpand(project.id)}
                         className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-blue-600 transition-all text-sm shadow-md"
                       >
-                        {isExpanded ? 'Hide Case Study Details ▲' : 'View Full Case Study Details ▼'}
+                        {isExpanded ? 'Hide Project Details ▲' : 'View Project Details ▼'}
                       </button>
                     </div>
                   </div>

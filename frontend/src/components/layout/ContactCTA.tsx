@@ -34,7 +34,7 @@ export default function ContactCTA() {
   }
 
   return (
-    <section className="w-full py-16 sm:py-20 px-4">
+    <section className="w-full pt-8 pb-16 sm:pt-10 sm:pb-20 px-4">
       <div className="max-w-4xl mx-auto text-center">
         <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-primary/20 via-secondary/10 to-primary/5 border border-primary/20 backdrop-blur-xl p-8 sm:p-12 md:p-16">
           {/* Background Glow Effects */}
