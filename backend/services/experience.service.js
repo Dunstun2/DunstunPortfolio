@@ -1,4 +1,10 @@
 const { Experience } = require('../models');
+const { sanitizeObjectDates } = require('../utils/dateSanitizer');
+
+const DATE_SPEC = {
+  start_date: { required: true, fallback: '2020-01-01' },
+  end_date: { required: false }
+};
 
 class ExperienceService {
   async getAll() {
@@ -10,17 +16,19 @@ class ExperienceService {
   }
 
   async create(data) {
-    if (data.title && data.company) {
-      const existing = await Experience.findOne({ where: { title: data.title, company: data.company } });
+    const cleanData = sanitizeObjectDates(data, DATE_SPEC);
+    if (cleanData.title && cleanData.company) {
+      const existing = await Experience.findOne({ where: { title: cleanData.title, company: cleanData.company } });
       if (existing) throw new Error('An experience with this title and company already exists.');
     }
-    return await Experience.create(data);
+    return await Experience.create(cleanData);
   }
 
   async update(id, data) {
     const experience = await Experience.findByPk(id);
     if (!experience) throw new Error('Experience not found');
-    return await experience.update(data);
+    const cleanData = sanitizeObjectDates(data, DATE_SPEC);
+    return await experience.update(cleanData);
   }
 
   async delete(id) {
