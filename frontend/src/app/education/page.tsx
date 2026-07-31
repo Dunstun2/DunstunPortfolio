@@ -124,14 +124,8 @@ export default function EducationPage() {
 
         {/* Education Degree Filter */}
         {degreeTypes.length > 1 && (
-          <div className="glass p-4 md:p-6 rounded-2xl mb-12">
-            <div className="flex items-center gap-3">
-              {/* Filter Label */}
-              <label className="text-xs md:text-sm font-semibold text-text-light whitespace-nowrap flex-shrink-0">
-                Filter:
-              </label>
-
-              {/* Dropdown - Minimized */}
+          <div className="flex items-center gap-3 mb-12">
+              {/* Dropdown */}
               <select
                 value={filterDegree}
                 onChange={(e) => setFilterDegree(e.target.value)}
@@ -157,7 +151,6 @@ export default function EducationPage() {
                   <span>View Certifications</span>
                 </button>
               )}
-            </div>
           </div>
         )}
 

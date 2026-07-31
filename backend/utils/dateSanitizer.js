@@ -31,6 +31,12 @@ function sanitizeObjectDates(data, spec = {}) {
       sanitized[field] = sanitizeDate(sanitized[field], options?.required, options?.fallback);
     }
   }
+  // Second pass: catch any remaining "Invalid date" strings in non-spec fields
+  for (const [key, val] of Object.entries(sanitized)) {
+    if (typeof val === 'string' && (val === 'Invalid date' || val === 'Invalid Date')) {
+      sanitized[key] = null;
+    }
+  }
   return sanitized;
 }
 

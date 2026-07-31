@@ -180,7 +180,7 @@ export default function AchievementsPage() {
               >
                 {/* Featured Image */}
                 {it.featured_image && (
-                  <Link href={`/achievements/${it.slug}`}>
+                  <Link href={`/achievements/${it.slug || it.id}`}>
                     <div className="aspect-video overflow-hidden bg-gray-900">
                       <img
                         src={it.featured_image}
@@ -208,7 +208,7 @@ export default function AchievementsPage() {
 
                   {/* Title */}
                   <h2 className="text-xl font-bold mb-2 group-hover:text-primary transition line-clamp-2">
-                    <Link href={`/achievements/${it.slug}`}>{it.title}</Link>
+                    <Link href={`/achievements/${it.slug || it.id}`}>{it.title}</Link>
                   </h2>
 
                   {/* Meta Info */}
@@ -229,7 +229,7 @@ export default function AchievementsPage() {
 
                   {/* Read More Link - Always at bottom */}
                   <Link
-                    href={`/achievements/${it.slug}`}
+                    href={`/achievements/${it.slug || it.id}`}
                     className="inline-flex items-center gap-2 text-primary hover:gap-3 transition-all text-sm font-medium mt-auto"
                   >
                     Learn More

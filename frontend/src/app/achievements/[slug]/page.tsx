@@ -28,8 +28,15 @@ export default function AchievementDetail() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!slug) return;
-    fetchApi(`/achievements/slug/${slug}`).then(res => setItem(res.data)).catch(console.error);
+    if (!slug || slug === 'null') return;
+    fetchApi(`/achievements/slug/${slug}`)
+      .then(res => setItem(res.data))
+      .catch(() => {
+        // Fallback: try fetching by ID if slug lookup fails
+        fetchApi(`/achievements/${slug}`)
+          .then(res => setItem(res.data))
+          .catch(console.error);
+      });
   }, [slug]);
 
   if (!item) return null;
