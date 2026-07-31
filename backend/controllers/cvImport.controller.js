@@ -189,64 +189,115 @@ class CVImportController {
       // Import Skills
       if ((importAll || sections.includes('skills')) && dataToImport.skills) {
         for (const skillData of dataToImport.skills) {
-          const skill = await Skill.create(skillData);
-          results.skills.push(skill);
+          try {
+            if (!skillData.name) continue;
+            const skill = await Skill.create(skillData);
+            results.skills.push(skill);
+          } catch (err) {
+            console.error('Failed to import skill:', err.message);
+          }
         }
       }
 
       // Import Experience
       if ((importAll || sections.includes('experience')) && dataToImport.experience) {
         for (const expData of dataToImport.experience) {
-          const experience = await Experience.create(expData);
-          results.experience.push(experience);
+          try {
+            if (!expData.company) expData.company = 'Company';
+            if (!expData.position) expData.position = 'Position';
+            if (!expData.start_date) expData.start_date = '2020-01-01';
+            const experience = await Experience.create(expData);
+            results.experience.push(experience);
+          } catch (err) {
+            console.error('Failed to import experience:', err.message);
+          }
         }
       }
 
       // Import Education
       if ((importAll || sections.includes('education')) && dataToImport.education) {
         for (const eduData of dataToImport.education) {
-          const education = await Education.create(eduData);
-          results.education.push(education);
+          try {
+            if (!eduData.degree) eduData.degree = 'Qualification';
+            if (!eduData.institution) eduData.institution = 'Institution';
+            if (!eduData.field_of_study) eduData.field_of_study = 'General Study';
+            if (!eduData.start_date) eduData.start_date = '2020-01-01';
+            const education = await Education.create(eduData);
+            results.education.push(education);
+          } catch (err) {
+            console.error('Failed to import education:', err.message);
+          }
         }
       }
 
       // Import Certifications
       if ((importAll || sections.includes('certifications')) && dataToImport.certifications) {
         for (const certData of dataToImport.certifications) {
-          const certification = await Certification.create(certData);
-          results.certifications.push(certification);
+          try {
+            if (!certData.certification_name) certData.certification_name = 'Certification';
+            if (!certData.issuing_organization) certData.issuing_organization = 'Organization';
+            const certification = await Certification.create(certData);
+            results.certifications.push(certification);
+          } catch (err) {
+            console.error('Failed to import certification:', err.message);
+          }
         }
       }
 
       // Import Achievements
       if ((importAll || sections.includes('achievements')) && dataToImport.achievements) {
         for (const achData of dataToImport.achievements) {
-          const achievement = await Achievement.create(achData);
-          results.achievements.push(achievement);
+          try {
+            if (!achData.title) achData.title = 'Achievement';
+            const achievement = await Achievement.create(achData);
+            results.achievements.push(achievement);
+          } catch (err) {
+            console.error('Failed to import achievement:', err.message);
+          }
         }
       }
 
       // Import Projects
       if ((importAll || sections.includes('projects')) && dataToImport.projects) {
         for (const projData of dataToImport.projects) {
-          const project = await Project.create(projData);
-          results.projects.push(project);
+          try {
+            if (!projData.title) projData.title = 'Project';
+            if (!projData.description) projData.description = projData.title;
+            if (!projData.slug) {
+              projData.slug = projData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now().toString(36);
+            }
+            const project = await Project.create(projData);
+            results.projects.push(project);
+          } catch (err) {
+            console.error('Failed to import project:', err.message);
+          }
         }
       }
 
       // Import Testimonials (from Recommendation letters)
       if ((importAll || sections.includes('testimonials')) && dataToImport.testimonials) {
         for (const testimonialData of dataToImport.testimonials) {
-          const testimonial = await Testimonial.create(testimonialData);
-          results.testimonials.push(testimonial);
+          try {
+            if (!testimonialData.author_name) testimonialData.author_name = 'Anonymous';
+            if (!testimonialData.content) testimonialData.content = 'Recommendation';
+            const testimonial = await Testimonial.create(testimonialData);
+            results.testimonials.push(testimonial);
+          } catch (err) {
+            console.error('Failed to import testimonial:', err.message);
+          }
         }
       }
 
       // Import Social Accounts
       if ((importAll || sections.includes('social')) && dataToImport.social) {
         for (const socialData of dataToImport.social) {
-          const social = await SocialAccount.create(socialData);
-          results.social.push(social);
+          try {
+            if (!socialData.platform_name || !socialData.url) continue;
+            const social = await SocialAccount.create(socialData);
+            results.social.push(social);
+          } catch (err) {
+            console.error('Failed to import social:', err.message);
+          }
         }
       }
 
