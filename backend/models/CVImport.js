@@ -58,7 +58,7 @@ const CVImport = sequelize.define('CVImport', {
     field: 'file_path',
   },
   extractedText: {
-    type: DataTypes.TEXT('long'),
+    type: DataTypes.TEXT,
     allowNull: true,
     field: 'extracted_text',
   },

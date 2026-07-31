@@ -34,7 +34,7 @@ module.exports = {
         comment: 'Temporary storage path'
       },
       extractedText: {
-        type: Sequelize.TEXT('long'),
+        type: Sequelize.TEXT,
         allowNull: true,
         field: 'extracted_text',
         comment: 'Raw text extracted from CV'
