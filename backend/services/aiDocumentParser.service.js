@@ -9,6 +9,7 @@
  */
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const documentSchema = require('./aiSchema');
 
 class AIDocumentParserService {
   constructor() {
@@ -33,10 +34,10 @@ class AIDocumentParserService {
 
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({
-      model: 'gemini-flash-latest',
+      model: 'gemini-1.5-pro',
       generationConfig: {
         responseMimeType: 'application/json',
-        temperature: 0.1,       // Low temperature for accuracy
+        temperature: 0.1,
       },
     });
   }
@@ -209,19 +210,71 @@ class AIDocumentParserService {
    * @param {string} documentType  – "cv" | "recommendation" | "auto" (default "auto").
    * @returns {Promise<Object>} – { documentType, data: { experience, education, ... } }
    */
-  async parseDocument(extractedText, documentType = 'auto') {
+  async parseDocument(extractedText, documentType = 'auto', fileData = null) {
     this._ensureClient();
 
-    if (!extractedText || extractedText.trim().length < 20) {
+    // Only attach binary data if it's a PDF AND we don't have enough extracted text (i.e., it's a scanned PDF or image)
+    const isPDF = fileData && (fileData.mimeType === 'application/pdf' || fileData.mimeType?.includes('pdf'));
+    const isScanned = !extractedText || extractedText.trim().length < 100;
+    const attachFile = fileData && isPDF && isScanned;
+
+    console.log(`--- [DEBUG] PARSER DECISION: isPDF=${isPDF}, isScanned=${isScanned}, attachFile=${attachFile}, textLength=${extractedText?.length || 0}, documentType=${documentType} ---`);
+
+    if ((!extractedText || extractedText.trim().length < 20) && !attachFile) {
       throw new Error('Document text is too short or empty. Please upload a valid document.');
     }
 
-    const prompt = this._buildPrompt(extractedText, documentType);
+    const buildPromptPayload = (includeFile) => {
+      const promptText = this._buildPrompt(extractedText || '(No text extracted - see attached file)', documentType);
+      const payload = [];
+      if (includeFile && fileData) {
+        payload.push({
+          inlineData: {
+            data: fileData.data,
+            mimeType: 'application/pdf'
+          }
+        });
+      }
+      payload.push(promptText);
+      return payload;
+    };
 
     try {
-      const result = await this.model.generateContent(prompt);
+      let result;
+      let retries = 3;
+      let useAttachment = attachFile;
+
+      while (retries > 0) {
+        try {
+          const payload = buildPromptPayload(useAttachment);
+          result = await this.model.generateContent(payload);
+          break;
+        } catch (err) {
+          retries--;
+          
+          // If Gemini fails on the PDF attachment (e.g. "no pages" or corrupted PDF structure)
+          // and we have local extracted text, fall back to parsing ONLY the text.
+          if (useAttachment && extractedText && extractedText.trim().length >= 20 && 
+              (err.message?.includes('no pages') || err.message?.includes('400') || err.status === 400)) {
+            console.warn('Gemini rejected the raw PDF attachment. Falling back to local extracted text.');
+            useAttachment = false;
+            retries = 2; // Reset retries for the text-only fallback
+            continue;
+          }
+
+          if (retries === 0 || err.message?.includes('API key')) {
+            throw err;
+          }
+          console.warn(`Gemini API call failed, retrying... (${3 - retries}/3). Error: ${err.message}`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * (3 - retries))); // 1s, then 2s
+        }
+      }
       const response = result.response;
       const text = response.text();
+
+      console.log('--- [DEBUG] RAW GEMINI RESPONSE ---');
+      console.log(text);
+      console.log('-----------------------------------');
 
       // Parse the JSON response
       let parsed;
@@ -265,11 +318,11 @@ class AIDocumentParserService {
 
     return `You are an expert document analyst for a professional portfolio website.
 
-Your task: Read the document below, understand ALL of it, and extract EVERY piece of relevant information into structured JSON that matches the database schemas provided.
+Your task: Read the attached document (and any text provided below), understand ALL of it, and extract EVERY piece of relevant information into structured JSON that matches the database schemas provided.
 
 ## DOCUMENT TYPE
 ${documentType === 'auto'
-  ? 'Auto-detect the document type. It could be a CV/Resume, a Recommendation Letter, or another professional document.'
+  ? 'Auto-detect the document type. Follow these rules:\n- Set to "cv" if the document is a CV, Resume, or contains lists of professional experience, education, and skills.\n- Set to "recommendation" if it is a recommendation letter, reference letter, or testimonial from a colleague/manager.\n- Set to "other" only if it fits neither category.'
   : `This document is a ${documentType === 'cv' ? 'CV / Resume' : 'Recommendation Letter'}.`
 }
 
@@ -279,12 +332,13 @@ ${documentType === 'auto'
 3. **Status must always be "published"** for all records.
 4. **Proficiency for skills** must be an integer 1-100. Estimate intelligently: if the CV shows years of experience with a skill → 80-95, if it's listed without elaboration → 50-70, if marked as beginner → 20-40.
 5. **Slugs** must be URL-friendly: lowercase, hyphens instead of spaces, no special characters.
-6. **Do NOT invent data.** Only extract what is actually in the document. If a field is not mentioned, set it to null or omit it.
+6. **Be Comprehensive:** Do NOT invent facts, but DO synthesize descriptions, summaries, and skills from the available text. If a certificate or role has a lot of context (e.g. paragraphs of text), summarize it into the 'short_description' or 'full_description' fields. Infer 'skills_covered' based on the context.
 7. **Order fields:** Most recent items first (order: 0), then incrementing.
 8. **For Recommendation Letters:** Extract the recommender's name, title, company, and the full recommendation text into the testimonials section. Also extract any skills, achievements, or experience details mentioned.
+9. **Extract All Sections Regardless of Document Type:** Even if the document type is classified as "other" or "recommendation", you MUST still extract all experience, education, skills, certifications, achievements, and projects if they are present in the text/document. Do not skip them.
 
 ## DATABASE SCHEMAS
-Each top-level key in your output must be an array of objects matching these schemas:
+Each key in your "data" object must be an array of objects matching these exact keys and types:
 
 ${schemaStr}
 
@@ -292,7 +346,6 @@ ${schemaStr}
 Return a single JSON object with this exact structure:
 {
   "documentType": "cv" | "recommendation" | "other",
-  "summary": "A brief 1-2 sentence summary of what was extracted",
   "data": {
     "experience": [...],
     "education": [...],
@@ -305,13 +358,14 @@ Return a single JSON object with this exact structure:
   }
 }
 
-Only include sections that have data. Empty arrays should be omitted.
-The "data" object must contain ONLY the keys listed above.
+Only include sections that have data. The "data" object must contain ONLY the keys listed above.
 
-## DOCUMENT TEXT
+
+${text && text !== '(No text extracted - see attached file)' ? `## DOCUMENT TEXT
 ---BEGIN DOCUMENT---
 ${text}
----END DOCUMENT---
+---END DOCUMENT---` : `## DOCUMENT ATTACHMENT
+Please read the file attached to this prompt.`}
 
 Now parse the document and return the structured JSON.`;
   }
@@ -324,6 +378,7 @@ Now parse the document and return the structured JSON.`;
     const result = {
       documentType: parsed.documentType || 'other',
       summary: parsed.summary || 'Document parsed successfully',
+      raw_extraction: parsed.raw_extraction || '',
       data: {},
     };
 

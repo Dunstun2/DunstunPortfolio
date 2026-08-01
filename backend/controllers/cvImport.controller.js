@@ -4,12 +4,12 @@
  * Handles Document upload, AI parsing, preview, and importing to portfolio
  */
 
-const cvParserService = require('../services/cvParser.service'); // Kept only for extractText
 const aiDocumentParserService = require('../services/aiDocumentParser.service');
 const { Hero, About, AboutHighlight, AboutValue, AboutIdentityCard, AboutExploration } = require('../models');
 const { Skill, Experience, Education, Certification, Achievement, Testimonial } = require('../models');
 const { Project, SocialAccount, Setting } = require('../models');
 const CVImport = require('../models/CVImport');
+const cvParserService = require('../services/cvParser.service');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -52,11 +52,35 @@ class CVImportController {
         });
       }
 
-      // 1. Extract raw text from the document
-      const extractedText = await cvParserService.extractText(filePath, fileType);
+      // 1. Extract text locally first (for text-based PDFs, DOCX, TXT)
+      let extractedText = '';
+      try {
+        extractedText = await cvParserService.extractText(filePath, fileType);
+      } catch (err) {
+        console.warn('Local text extraction failed, relying purely on Gemini binary OCR:', err.message);
+      }
 
-      // 2. Pass to AI for structured parsing and mapping
-      const aiParsedData = await aiDocumentParserService.parseDocument(extractedText, documentType);
+      // Get the raw buffer to pass to Gemini (it supports native PDF OCR)
+      let fileBuffer;
+      if (filePath.startsWith('http')) {
+        const response = await fetch(filePath);
+        fileBuffer = Buffer.from(await response.arrayBuffer());
+      } else {
+        fileBuffer = await fs.readFile(filePath);
+      }
+
+      const fileData = {
+        mimeType: fileType,
+        data: fileBuffer.toString('base64')
+      };
+
+      // 2. Pass to AI for structured parsing and mapping.
+      // We pass BOTH the extracted text AND the raw file binary (if it's a PDF) to the AI service.
+      const aiParsedData = await aiDocumentParserService.parseDocument(extractedText, documentType, fileData);
+
+      console.log('--- [DEBUG] AI PARSED DATA ---');
+      console.log(JSON.stringify(aiParsedData, null, 2));
+      console.log('------------------------------');
 
       // 3. Save import record
       const cvImport = await CVImport.create({
@@ -64,7 +88,7 @@ class CVImportController {
         fileSize: file.size,
         fileType: fileType,
         filePath: filePath,
-        extractedText: extractedText,
+        extractedText: '', // No longer extracting text locally
         parsedData: null, // Legacy, no longer used
         mappedData: aiParsedData, // We store the AI output directly in mappedData
         enhancedData: null, // Legacy, AI output is already enhanced

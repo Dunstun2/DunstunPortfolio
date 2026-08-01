@@ -109,7 +109,7 @@ export default function EducationPage() {
   return (
     <div className="min-h-screen py-12 md:py-20 bg-bg-dark text-text-light selection:bg-primary/30 relative">
       <BackToAbout />
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-6xl font-extrabold text-heading-light mb-4">
@@ -124,7 +124,7 @@ export default function EducationPage() {
 
         {/* Education Degree Filter */}
         {degreeTypes.length > 1 && (
-          <div className="flex items-center gap-3 mb-12">
+          <div className="flex items-center gap-4 mb-12 w-fit">
               {/* Dropdown */}
               <select
                 value={filterDegree}
@@ -143,7 +143,7 @@ export default function EducationPage() {
                     const certSection = document.getElementById('certifications-section');
                     certSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }}
-                  className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-2.5 bg-primary hover:bg-primary/90 text-white font-bold text-xs md:text-sm rounded-xl transition-all hover:shadow-lg ml-auto"
+                  className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-2.5 bg-primary hover:bg-primary/90 text-white font-bold text-xs md:text-sm rounded-xl transition-all hover:shadow-lg"
                 >
                   <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
@@ -190,15 +190,15 @@ export default function EducationPage() {
                   )}
 
                   {/* Header */}
-                  <div className="mb-2 flex flex-col md:flex-row md:items-baseline md:justify-between gap-2">
-                    <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-heading-light">
+                  <div className="mb-2">
+                    <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-heading-light leading-snug break-words">
                       {edu.degree && <span className="text-orange-500">{edu.degree}</span>}
                       {edu.degree && edu.field_of_study && ' in '}
                       {edu.field_of_study && <span className="text-primary">{edu.field_of_study}</span>}
+                      <span className="inline-block ml-3 align-middle text-sm font-bold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20 whitespace-nowrap mb-1">
+                        {startStr} – {endStr}
+                      </span>
                     </h3>
-                    <div className="text-sm font-bold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20 inline-block w-max">
-                      {startStr} – {endStr}
-                    </div>
                   </div>
 
                   {/* Institution Info */}
@@ -603,7 +603,7 @@ export default function EducationPage() {
         {filteredEdu.length > 0 && (
           <div className="glass rounded-3xl p-8 md:p-12 text-center border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
             <div className="max-w-2xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-bold text-heading-light mb-4">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-heading-light mb-4">
                 {ctaTitle.split(' ').map((word: string, i: number, arr: string[]) => (
                   i === arr.length - 1 ? <span key={i} className="text-primary">{word}</span> : word + ' '
                 ))}

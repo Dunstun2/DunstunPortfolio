@@ -103,12 +103,15 @@ export default function CVImportPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Failed to upload CV');
+        throw new Error(result.error || result.message || 'Failed to upload CV');
       }
 
       setImportId(result.data.importId);
       // We set mappedData directly to the AI output
       const aiData = result.data.mappedData?.data || {};
+      if (result.data.mappedData?.raw_extraction) {
+        aiData.raw_extraction = result.data.mappedData.raw_extraction;
+      }
       setMappedData(aiData);
       
       // Compute preview metrics from the AI data
@@ -222,6 +225,21 @@ export default function CVImportPage() {
     if (!data) return null;
 
     switch (sectionKey) {
+      case 'raw_extraction':
+        return (
+          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6">
+            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+              <FileText className="w-6 h-6 text-blue-500" />
+              General Preview (Raw Extraction)
+            </h2>
+            <div className="prose dark:prose-invert max-w-none">
+              <pre className="whitespace-pre-wrap text-sm font-mono bg-white dark:bg-black p-4 rounded border border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-300">
+                {data.raw_extraction || 'No raw extraction available.'}
+              </pre>
+            </div>
+          </div>
+        );
+
       case 'hero':
         return (
           <div className="bg-gradient-to-br from-blue-600 to-purple-700 text-white p-8 rounded-lg">
@@ -308,30 +326,61 @@ export default function CVImportPage() {
       case 'education':
         return (
           <div>
-            <h2 className="text-2xl font-bold mb-4">Education</h2>
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <span className="text-blue-500">🎓</span> Education
+            </h2>
             <div className="space-y-6">
-              {data.education?.map((edu: any, i: number) => (
-                <div key={i} className="border-l-4 border-green-500 pl-4">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {edu.degree_title || edu.degree}
-                  </h3>
-                  <p className="text-lg text-gray-700 dark:text-gray-300">
-                    {edu.institution_name || edu.institution}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                    {edu.start_date} - {edu.end_date || 'Present'}
-                    {edu.location && ` • ${edu.location}`}
-                  </p>
-                  {edu.description && (
-                    <p className="text-gray-700 dark:text-gray-300">{edu.description}</p>
-                  )}
-                  {edu.gpa && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      GPA: {edu.gpa}
-                    </p>
-                  )}
-                </div>
-              ))}
+              {data.education?.map((edu: any, index: number) => {
+                const startStr = edu.start_date ? new Date(edu.start_date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '';
+                let endStr = 'Present';
+                if (edu.end_date) {
+                  endStr = new Date(edu.end_date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                } else if (edu.is_current && edu.expected_graduation) {
+                  endStr = 'Expected ' + new Date(edu.expected_graduation).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                }
+                
+                return (
+                  <div key={index} className="glass p-6 md:p-8 rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(var(--color-primary-rgb),0.15)] hover:border-primary/30 bg-white/5 border border-gray-200 dark:border-gray-800">
+                    <div className="mb-2 flex flex-col md:flex-row items-start justify-between gap-2 md:gap-4">
+                      <h3 className="text-lg md:text-xl lg:text-2xl font-bold leading-snug break-words text-gray-900 dark:text-white">
+                        {edu.degree && <span className="text-orange-500">{edu.degree}</span>}
+                        {edu.degree && edu.field_of_study && ' in '}
+                        {edu.field_of_study && <span className="text-blue-500">{edu.field_of_study}</span>}
+                      </h3>
+                      <span className="flex-shrink-0 inline-block align-middle text-[11px] md:text-sm font-bold text-blue-500 bg-blue-500/10 px-2 md:px-3 py-1 rounded-full border border-blue-500/20 whitespace-nowrap mt-1">
+                        {startStr} – {endStr}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-4 mb-4">
+                      <h4 className="text-xl font-semibold text-gray-700 dark:text-gray-300">
+                        {edu.institution}
+                        {edu.faculty && <span className="text-gray-500 dark:text-gray-500 font-normal"> | {edu.faculty}</span>}
+                        {edu.department && <span className="text-gray-500 dark:text-gray-500 font-normal"> | {edu.department}</span>}
+                      </h4>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {edu.gpa && <span className="text-xs font-mono bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-400 px-2 py-1 rounded border border-gray-200 dark:border-gray-800">GPA: {edu.gpa}</span>}
+                      {edu.grade && <span className="text-xs font-mono bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-400 px-2 py-1 rounded border border-gray-200 dark:border-gray-800">Grade: {edu.grade}</span>}
+                      {edu.honors && <span className="text-xs font-mono bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 px-2 py-1 rounded border border-yellow-500/20">{edu.honors}</span>}
+                      {edu.specialization && <span className="text-xs font-mono bg-black/5 dark:bg-white/5 text-gray-600 dark:text-gray-400 px-2 py-1 rounded border border-gray-200 dark:border-gray-800">Spec: {edu.specialization}</span>}
+                    </div>
+
+                    {edu.short_summary && (
+                      <p className="text-gray-700 dark:text-gray-300 text-lg mb-4 border-l-4 border-blue-500 pl-4 py-1 italic">
+                        {edu.short_summary}
+                      </p>
+                    )}
+                    
+                    {edu.full_description && (
+                      <div className="text-gray-600 dark:text-gray-400 text-sm md:text-base leading-relaxed mb-6 whitespace-pre-wrap">
+                        {edu.full_description}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         );
@@ -650,6 +699,17 @@ export default function CVImportPage() {
                   </p>
                 </div>
               </div>
+            </div>
+
+            {/* General Preview Button */}
+            <div className="mb-6">
+              <button
+                onClick={() => setPreviewSection('raw_extraction')}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium rounded-lg transition-colors border border-gray-200 dark:border-gray-700 shadow-sm"
+              >
+                <FileText className="w-5 h-5 text-blue-500" />
+                View Raw Document Extraction (What the AI saw)
+              </button>
             </div>
 
             {/* Step-by-step instructions */}

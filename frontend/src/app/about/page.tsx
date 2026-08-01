@@ -111,7 +111,7 @@ export default function AboutPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none"></div>
         <div className="absolute top-10 right-10 w-72 h-72 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-secondary/5 rounded-full blur-[80px] pointer-events-none"></div>
-        <div className="max-w-7xl mx-auto px-0 sm:px-4 md:px-6 lg:px-8 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className={`relative ${expandIntro ? "" : "overflow-hidden max-h-[32rem] md:max-h-[28rem]"}`}>
             {about.image_url && (
               <div className="relative group float-none md:float-left md:mr-14 mb-8 flex justify-center md:block">
@@ -232,7 +232,7 @@ export default function AboutPage() {
       {/* 6. Skills Overview */}
       {skillCategories.length > 0 && (
         <section className="py-8 md:py-12 bg-black/5 dark:bg-white/5">
-          <div className="max-w-7xl mx-auto px-0 sm:px-4 md:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold mb-6 md:mb-8 text-center"><ColoredTitle title="Skills & Expertise" /></h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
               {skillCategories.map((category, idx) => {
@@ -350,7 +350,7 @@ export default function AboutPage() {
       {/* 8. Awards & Interests */}
       {(achievements.length > 0 || validInterests.length > 0) && (
         <section className="py-8 md:py-12 bg-black/5 dark:bg-white/5 border-y border-black/5 dark:border-white/5">
-          <div className="max-w-7xl mx-auto px-0 sm:px-4 md:px-6 lg:px-8 w-full">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
               
               {/* Awards */}

@@ -50,7 +50,8 @@ export default function SkillsPage() {
   const emptyMessage = settings?.skills_empty_message || 'Skills information coming soon';
 
   return (
-    <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto pb-24">
+    <div className="min-h-screen py-16 pb-24 relative">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="text-center mb-16">
         <h1 className="text-4xl md:text-6xl font-extrabold text-heading-light mb-4">
@@ -175,6 +176,7 @@ export default function SkillsPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

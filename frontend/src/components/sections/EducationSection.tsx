@@ -107,15 +107,15 @@ export default function EducationSection({ variant = 'full' }: { variant?: 'full
                 {/* Timeline Dot */}
                 <div className="hidden md:block absolute -left-[90px] top-10 w-6 h-6 rounded-full bg-bg-dark border-4 border-primary z-10 shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.5)]"></div>
 
-                <div className="mb-2 flex items-start justify-between gap-2 md:gap-4">
+                <div className="mb-2">
                   <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-heading-light leading-snug break-words">
                     {edu.degree && <span className="text-orange-500">{edu.degree}</span>}
                     {edu.degree && edu.field_of_study && ' in '}
                     {edu.field_of_study && <span className="text-primary">{edu.field_of_study}</span>}
+                    <span className="inline-block ml-3 align-middle text-sm font-bold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20 whitespace-nowrap mb-1">
+                      {startStr} – {endStr}
+                    </span>
                   </h3>
-                  <span className="flex-shrink-0 inline-block align-middle text-[11px] md:text-sm font-bold text-primary bg-primary/10 px-2 md:px-3 py-1 rounded-full border border-primary/20 whitespace-nowrap mt-1">
-                    {startStr} – {endStr}
-                  </span>
                 </div>
 
                 <div className="flex items-center gap-4 mb-4">
@@ -146,7 +146,43 @@ export default function EducationSection({ variant = 'full' }: { variant?: 'full
                   </p>
                 )}
 
-                {/* Expandable details — always visible in 'full' mode, toggled per-card in 'highlights' */}
+                {/* Always visible: Coursework & Activities */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  {edu.coursework && edu.coursework.length > 0 && (
+                    <div>
+                      <h5 className="text-sm font-bold uppercase tracking-wider text-subheading mb-3">📚 Key Coursework</h5>
+                      <div className="flex flex-wrap gap-2">
+                        {edu.coursework.map((c: string, i: number) => (
+                          <span key={i} className="text-xs bg-black/5 dark:bg-white/5 border border-text-light/15 text-muted-light px-2 py-1 rounded">{c}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {edu.activities && edu.activities.length > 0 && (
+                    <div>
+                      <h5 className="text-sm font-bold uppercase tracking-wider text-subheading mb-3">🎯 Activities / Involvements</h5>
+                      <div className="flex flex-wrap gap-2">
+                        {edu.activities.map((a: string, i: number) => (
+                          <span key={i} className="text-xs bg-black/5 dark:bg-white/5 border border-text-light/15 text-muted-light px-2 py-1 rounded">{a}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Load More toggle — only when collapsed */}
+                {variant === 'highlights' && !expandedCards[edu.id] && (edu.full_description || edu.research_title || (edu.certifications && edu.certifications.length > 0) || (edu.achievements && edu.achievements.length > 0) || (edu.related_projects && edu.related_projects.length > 0) || (edu.external_links && edu.external_links.length > 0)) && (
+                  <button
+                    onClick={() => setExpandedCards(prev => ({ ...prev, [edu.id]: true }))}
+                    className="mb-4 inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-primary/80 transition-colors group"
+                  >
+                    Load More
+                    <svg className="w-4 h-4 transition-transform group-hover:translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  </button>
+                )}
+
+                {/* Expandable details — toggled per-card in 'highlights' */}
                 {(variant === 'full' || expandedCards[edu.id]) && (
                   <>
                     {edu.full_description && (
@@ -172,40 +208,16 @@ export default function EducationSection({ variant = 'full' }: { variant?: 'full
                       </div>
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                      {edu.coursework && edu.coursework.length > 0 && (
-                        <div>
-                          <h5 className="text-sm font-bold uppercase tracking-wider text-subheading mb-3">📚 Key Coursework</h5>
-                          <div className="flex flex-wrap gap-2">
-                            {edu.coursework.map((c: string, i: number) => (
-                              <span key={i} className="text-xs bg-black/5 dark:bg-white/5 border border-text-light/15 text-muted-light px-2 py-1 rounded">{c}</span>
-                            ))}
-                          </div>
+                    {edu.certifications && edu.certifications.length > 0 && (
+                      <div className="mb-6">
+                        <h5 className="text-sm font-bold uppercase tracking-wider text-subheading mb-3">🏆 Related Certifications</h5>
+                        <div className="flex flex-wrap gap-2">
+                          {edu.certifications.map((c: string, i: number) => (
+                            <span key={i} className="text-xs bg-black/5 dark:bg-white/5 border border-text-light/15 text-muted-light px-2 py-1 rounded">{c}</span>
+                          ))}
                         </div>
-                      )}
-
-                      {edu.activities && edu.activities.length > 0 && (
-                        <div>
-                          <h5 className="text-sm font-bold uppercase tracking-wider text-subheading mb-3">🎯 Activities / Involvements</h5>
-                          <div className="flex flex-wrap gap-2">
-                            {edu.activities.map((a: string, i: number) => (
-                              <span key={i} className="text-xs bg-black/5 dark:bg-white/5 border border-text-light/15 text-muted-light px-2 py-1 rounded">{a}</span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {edu.certifications && edu.certifications.length > 0 && (
-                        <div>
-                          <h5 className="text-sm font-bold uppercase tracking-wider text-subheading mb-3">🏆 Related Certifications</h5>
-                          <div className="flex flex-wrap gap-2">
-                            {edu.certifications.map((c: string, i: number) => (
-                              <span key={i} className="text-xs bg-black/5 dark:bg-white/5 border border-text-light/15 text-muted-light px-2 py-1 rounded">{c}</span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
 
                     {edu.achievements && edu.achievements.length > 0 && (
                       <div className="mb-6">
@@ -255,27 +267,18 @@ export default function EducationSection({ variant = 'full' }: { variant?: 'full
                         )}
                       </div>
                     )}
-                  </>
-                )}
 
-                {/* Load More / Show Less toggle — only in highlights mode */}
-                {variant === 'highlights' && (edu.full_description || edu.research_title || (edu.coursework && edu.coursework.length > 0) || (edu.activities && edu.activities.length > 0) || (edu.achievements && edu.achievements.length > 0) || (edu.certifications && edu.certifications.length > 0)) && (
-                  <button
-                    onClick={() => setExpandedCards(prev => ({ ...prev, [edu.id]: !prev[edu.id] }))}
-                    className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-primary/80 transition-colors group"
-                  >
-                    {expandedCards[edu.id] ? (
-                      <>
+                    {/* Show Less toggle — only when expanded */}
+                    {variant === 'highlights' && expandedCards[edu.id] && (
+                      <button
+                        onClick={() => setExpandedCards(prev => ({ ...prev, [edu.id]: false }))}
+                        className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-primary/80 transition-colors group"
+                      >
                         Show Less
                         <svg className="w-4 h-4 transition-transform group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                      </>
-                    ) : (
-                      <>
-                        Load More
-                        <svg className="w-4 h-4 transition-transform group-hover:translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                      </>
+                      </button>
                     )}
-                  </button>
+                  </>
                 )}
 
               </div>
