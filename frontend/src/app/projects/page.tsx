@@ -70,19 +70,16 @@ export default function AllProjectsPage() {
   const emptyMessage = settings?.projects_empty_message || 'No projects available at this time';
 
   return (
-    <div className="min-h-screen py-16 pb-24 relative">
+    <div className="min-h-screen py-16 pb-8 md:pb-24 relative">
       <BackToAbout />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Header */}
-      <div className="text-center mb-16">
+      <div className="text-center mb-6">
         <h1 className="text-4xl md:text-6xl font-extrabold text-heading-light mb-4">
           {pageTitle.split(' ').map((word: string, i: number, arr: string[]) => (
             i === arr.length - 1 ? <span key={i} className="text-primary">{word}</span> : word + ' '
           ))}
         </h1>
-        <p className="text-text-light text-lg max-w-2xl mx-auto">
-          {pageSubtitle}
-        </p>
       </div>
 
       {/* Filter & Search Controls */}
@@ -135,10 +132,10 @@ export default function AllProjectsPage() {
                 className="glass rounded-3xl overflow-hidden border border-white/10 transition-all duration-300 shadow-xl"
               >
                 {/* Project Header / Main Card Block */}
-                <div className="p-8 md:p-10 flex flex-col md:flex-row gap-8 items-start">
+                <div className="p-0 md:p-10 flex flex-col md:flex-row gap-6 md:gap-8 items-start">
                   {/* Left: Thumbnail */}
                   {project.thumbnail_url ? (
-                    <div className="w-full md:w-80 h-52 rounded-2xl overflow-hidden relative flex-shrink-0 border border-white/10 shadow-md">
+                    <div className="w-full md:w-80 h-52 rounded-t-3xl md:rounded-2xl overflow-hidden relative flex-shrink-0 border-b md:border border-white/10 shadow-md">
                       <img src={project.thumbnail_url} alt={project.title} className="w-full h-full object-cover" />
                       {project.category && (
                         <span className="absolute top-3 left-3 px-3 py-1 bg-black/70 backdrop-blur-md text-primary font-bold text-xs rounded-full">
@@ -147,7 +144,7 @@ export default function AllProjectsPage() {
                       )}
                     </div>
                   ) : (
-                    <div className="w-full md:w-80 h-52 bg-black/20 rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/10 relative">
+                    <div className="w-full md:w-80 h-52 bg-black/20 rounded-t-3xl md:rounded-2xl flex items-center justify-center flex-shrink-0 border-b md:border border-white/10 relative">
                       <span className="text-text-light/50 font-bold">No Cover Image</span>
                       {project.category && (
                         <span className="absolute top-3 left-3 px-3 py-1 bg-black/70 backdrop-blur-md text-primary font-bold text-xs rounded-full">
@@ -158,7 +155,7 @@ export default function AllProjectsPage() {
                   )}
 
                   {/* Right: Meta & Actions */}
-                  <div className="flex-1 w-full flex flex-col justify-between h-full">
+                  <div className="flex-1 w-full flex flex-col justify-between h-full p-6 md:p-0">
                     <div>
                       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                         <div className="flex items-center gap-2">
@@ -282,11 +279,11 @@ export default function AllProjectsPage() {
 
                     {/* Screenshots Gallery */}
                     {project.screenshots && project.screenshots.length > 0 && (
-                      <div>
-                        <h3 className="text-xl font-bold text-heading-light mb-6">Screenshots & Media</h3>
+                      <div className="-mx-8 md:mx-0">
+                        <h3 className="text-xl font-bold text-heading-light mb-6 px-8 md:px-0">Screenshots & Media</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {project.screenshots.map((s: any, idx: number) => (
-                            <div key={idx} className="glass rounded-2xl overflow-hidden border border-white/10 group">
+                            <div key={idx} className="glass rounded-none md:rounded-2xl overflow-hidden border-y md:border border-white/10 group">
                               <div className="h-56 overflow-hidden relative">
                                 <img src={s.image_url} alt={s.caption || `Screenshot ${idx + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                               </div>

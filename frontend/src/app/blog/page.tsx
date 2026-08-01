@@ -49,58 +49,47 @@ export default function BlogPage() {
       <div className="min-h-screen bg-bg-dark text-text-light pt-24 pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
 
-          {/* Header */}
-          <div className="text-center space-y-6 max-w-3xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-              {(settings?.blog_page_title || 'Insights, Ideas & Experiences').split(' ').map((word: string, i: number, arr: string[]) => (
-                i === arr.length - 1 ? <span key={i} className="text-primary">{word}</span> : word + ' '
-              ))}
-            </h1>
-            <p className="text-lg text-gray-400">
-              {settings?.blog_page_subtitle || 'A collection of thoughts on software development, technology, and life.'}
-            </p>
+      {/* Header */}
+      <div className="text-center mb-6">
+        <h1 className="text-4xl md:text-6xl font-extrabold text-heading-light mb-4">
+          {(settings?.blog_page_title || 'Blogs/News').split(' ').map((word: string, i: number, arr: string[]) => (
+            i === arr.length - 1 ? <span key={i} className="text-primary">{word}</span> : word + ' '
+          ))}
+        </h1>
+      </div>
 
-            <div className="max-w-xl mx-auto pt-4 relative">
-              <input
-                type="text"
-                placeholder="Search articles..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-900 border border-gray-800 rounded-full px-6 py-3 text-white focus:outline-none focus:border-primary pl-12 shadow-inner"
-              />
-              <svg className="w-5 h-5 text-gray-500 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-          </div>
+      {/* Filter & Search Controls */}
+      <div className="glass p-4 md:p-6 rounded-2xl mb-12 flex flex-row gap-4 md:gap-6 items-center justify-between">
+        <div className="relative flex-1 md:w-80 md:flex-none">
+          <input
+            type="text"
+            placeholder="Search articles..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-black/10 dark:bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-heading-light focus:outline-none focus:border-primary pl-10"
+          />
+          <svg className="w-5 h-5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
 
-          {/* Categories */}
-          {categories.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-3">
-              <button
-                onClick={() => setActiveCategory('')}
-                className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${activeCategory === ''
-                  ? 'bg-primary text-black shadow-lg shadow-primary/20'
-                  : 'bg-gray-900 text-gray-400 hover:text-white border border-gray-800 hover:border-gray-700'
-                  }`}
-              >
-                All Topics
-              </button>
+        {categories.length > 0 && (
+          <div className="flex-1 md:w-64 md:flex-none">
+            <select
+              value={activeCategory}
+              onChange={(e) => setActiveCategory(e.target.value)}
+              className="w-full bg-black/10 dark:bg-white/5 border border-white/10 rounded-xl px-3 md:px-4 py-2.5 text-sm text-heading-light focus:outline-none focus:border-primary font-medium cursor-pointer"
+            >
+              <option value="" className="bg-bg-dark text-heading-light">All Topics</option>
               {categories.map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.slug)}
-                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${activeCategory === cat.slug
-                    ? 'bg-primary text-black shadow-lg shadow-primary/20'
-                    : 'bg-gray-900 text-gray-400 hover:text-white border border-gray-800 hover:border-gray-700'
-                    }`}
-                >
-                  {cat.icon && <span>{cat.icon}</span>}
-                  {cat.name}
-                </button>
+                <option key={cat.id} value={cat.slug} className="bg-bg-dark text-heading-light">
+                  {cat.icon ? `${cat.icon} ` : ''}{cat.name}
+                </option>
               ))}
-            </div>
-          )}
+            </select>
+          </div>
+        )}
+      </div>
 
           {/* Featured Post (Only show if no search/category filter) */}
           {featuredPost && !activeCategory && !searchQuery && (

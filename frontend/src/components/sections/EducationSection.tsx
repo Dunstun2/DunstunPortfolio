@@ -102,7 +102,7 @@ export default function EducationSection({ variant = 'full' }: { variant?: 'full
             }
 
             return (
-              <div key={edu.id} className="relative animate-fade-in-up glass p-6 md:p-8 -mx-4 md:mx-0 rounded-none md:rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(var(--color-primary-rgb),0.15)] hover:border-primary/30" style={{ animationDelay: `${index * 100}ms` }}>
+              <div key={edu.id} className="relative animate-fade-in-up glass p-6 md:p-8 rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(var(--color-primary-rgb),0.15)] hover:border-primary/30" style={{ animationDelay: `${index * 100}ms` }}>
 
                 {/* Timeline Dot */}
                 <div className="hidden md:block absolute -left-[90px] top-10 w-6 h-6 rounded-full bg-bg-dark border-4 border-primary z-10 shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.5)]"></div>

@@ -159,8 +159,8 @@ export default function AboutPage() {
 
       {/* 3. Professional Summary */}
       {about.professional_summary && (
-        <section className="pt-4 pb-8 md:pb-12 max-w-7xl mx-auto px-0 sm:px-4 md:px-6 lg:px-8 w-full">
-          <div className="glass p-5 md:p-12 rounded-none sm:rounded-3xl border-t-4 border-t-secondary relative overflow-hidden">
+        <section className="pt-4 pb-8 md:pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="glass p-5 md:p-12 rounded-3xl border-t-4 border-t-secondary relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-3xl"></div>
             <h2 className="text-3xl font-bold mb-8 relative z-10"><ColoredTitle title="Professional Summary" /></h2>
             
@@ -189,8 +189,8 @@ export default function AboutPage() {
 
       {/* 4. Mission & Vision */}
       {(about.mission_statement || (about as any).vision_statement) && (
-        <section className="pb-8 md:pb-12 max-w-7xl mx-auto px-0 sm:px-4 md:px-6 lg:px-8 w-full">
-          <div className="glass p-5 md:p-12 rounded-none sm:rounded-3xl border-t-4 border-t-primary relative overflow-hidden">
+        <section className="pb-8 md:pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="glass p-5 md:p-12 rounded-3xl border-t-4 border-t-primary relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
             <div className="flex flex-col gap-6 text-left">
               {(about as any).vision_statement && (
@@ -216,11 +216,11 @@ export default function AboutPage() {
 
       {/* 5. Core Values */}
       {validValues.length > 0 && (
-        <section className="py-8 md:py-12 max-w-7xl mx-auto px-0 sm:px-4 md:px-6 lg:px-8 w-full">
+        <section className="py-8 md:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <h2 className="text-3xl font-bold mb-6 md:mb-8 text-center"><ColoredTitle title="My Values" /></h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {validValues.map((val: any) => (
-              <div key={val.id} className="glass p-5 md:p-8 rounded-none sm:rounded-2xl hover:-translate-y-2 transition-transform duration-300 group">
+              <div key={val.id} className="glass p-5 md:p-8 rounded-2xl hover:-translate-y-2 transition-transform duration-300 group">
                 <h3 className="text-xl font-bold text-heading-light mb-4">{val.title}</h3>
                 <p className="text-text-light leading-relaxed">{val.description}</p>
               </div>
@@ -238,7 +238,7 @@ export default function AboutPage() {
               {skillCategories.map((category, idx) => {
                 const skillsArray = groupedSkills[category] || [];
                 return (
-                  <div key={`${category}-${idx}`} className="glass p-5 md:p-8 rounded-none sm:rounded-3xl border border-white/10 text-left">
+                  <div key={`${category}-${idx}`} className="glass p-5 md:p-8 rounded-3xl border border-white/10 text-left">
                     {/* Category Header */}
                     <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
                       <h3 className="text-2xl font-bold text-heading-light">{category}</h3>
@@ -299,7 +299,7 @@ export default function AboutPage() {
 
       {/* 7. Timeline & Exploring */}
       {(validHighlights.length > 0 || validExplorations.length > 0) && (
-        <section className="py-8 md:py-12 max-w-7xl mx-auto px-0 sm:px-4 md:px-6 lg:px-8 w-full">
+        <section className="py-8 md:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
             
             {/* Key Milestones */}
@@ -327,7 +327,7 @@ export default function AboutPage() {
                 <h2 className="text-3xl font-bold mb-6 md:mb-8"><ColoredTitle title="Currently Exploring" /></h2>
                 <div className="flex flex-col gap-6">
                   {validExplorations.map((exp: any) => (
-                    <div key={exp.id} className="glass px-6 py-5 rounded-none sm:rounded-2xl flex flex-col gap-2 hover:border-primary/50 transition-colors w-full">
+                    <div key={exp.id} className="glass px-6 py-5 rounded-2xl flex flex-col gap-2 hover:border-primary/50 transition-colors w-full">
                       <span className="text-xs font-bold uppercase tracking-wider text-primary">{exp.category}</span>
                       <div className="flex items-center justify-between gap-4">
                         <span className="text-heading-light font-medium text-lg flex-1">{exp.title}</span>
@@ -392,11 +392,11 @@ export default function AboutPage() {
 
       {/* 9. Statistics */}
       {validStatistics.length > 0 && (
-        <section className="py-8 md:py-12 max-w-7xl mx-auto px-0 sm:px-4 md:px-6 lg:px-8 w-full">
+        <section className="py-8 md:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <h2 className="text-3xl font-bold mb-6 md:mb-8 text-center"><ColoredTitle title="Impact in Numbers" /></h2>
           
           {/* Mobile: single card with rows */}
-          <div className="block md:hidden glass p-5 rounded-none sm:rounded-3xl divide-y divide-white/10">
+          <div className="block md:hidden glass p-5 rounded-3xl divide-y divide-white/10">
             {validStatistics.map((stat, i) => (
               <div key={i} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
                 <span className="text-text-light font-medium uppercase tracking-wider text-sm">{stat.label}</span>
@@ -442,8 +442,8 @@ export default function AboutPage() {
       </section>
 
       {/* 10. Final CTA */}
-      <section className="py-8 md:py-12 max-w-5xl mx-auto px-0 sm:px-4 md:px-6 lg:px-8 w-full text-center">
-        <div className="glass p-5 md:p-12 rounded-none sm:rounded-[3rem] relative overflow-hidden border border-primary/20 shadow-[0_0_50px_rgba(var(--color-primary-rgb),0.1)] group">
+      <section className="py-8 md:py-12 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full text-center">
+        <div className="glass p-5 md:p-12 rounded-[2rem] sm:rounded-[3rem] relative overflow-hidden border border-primary/20 shadow-[0_0_50px_rgba(var(--color-primary-rgb),0.1)] group">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl mix-blend-screen pointer-events-none group-hover:bg-primary/20 transition-colors duration-700"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary/10 rounded-full blur-3xl mix-blend-screen pointer-events-none group-hover:bg-secondary/20 transition-colors duration-700"></div>
           

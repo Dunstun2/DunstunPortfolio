@@ -21,7 +21,7 @@ export default function Footer() {
   }, [refreshKey]);
 
   return (
-    <footer className="w-full glass py-8 mt-12">
+    <footer className="w-full glass py-6 mt-4 md:mt-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center">
         {socials.length > 0 && (
           <div className="flex gap-4 mb-6">

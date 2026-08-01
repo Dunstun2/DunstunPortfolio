@@ -50,18 +50,15 @@ export default function SkillsPage() {
   const emptyMessage = settings?.skills_empty_message || 'Skills information coming soon';
 
   return (
-    <div className="min-h-screen py-16 pb-24 relative">
+    <div className="min-h-screen py-16 pb-8 md:pb-24 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Header */}
-      <div className="text-center mb-16">
+      <div className="text-center mb-6">
         <h1 className="text-4xl md:text-6xl font-extrabold text-heading-light mb-4">
           {pageTitle.split(' ').map((word: string, i: number, arr: string[]) => (
             i === arr.length - 1 ? <span key={i} className="text-primary">{word}</span> : word + ' '
           ))}
         </h1>
-        <p className="text-text-light text-lg max-w-2xl mx-auto">
-          {pageSubtitle}
-        </p>
       </div>
 
       {/* Category Filter */}
@@ -155,27 +152,7 @@ export default function SkillsPage() {
         </div>
       )}
 
-      {/* CTA Section */}
-      {skills.length > 0 && (
-        <div className="glass rounded-3xl p-8 md:p-12 text-center border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-heading-light mb-4">
-              {ctaTitle.split(' ').map((word: string, i: number, arr: string[]) => (
-                i === arr.length - 1 ? <span key={i} className="text-primary">{word}</span> : word + ' '
-              ))}
-            </h2>
-            <p className="text-text-light text-lg mb-8">
-              {ctaDescription}
-            </p>
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center px-8 py-4 bg-primary text-white font-bold rounded-full hover:bg-primary/90 transition-all hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.5)] hover:-translate-y-1"
-            >
-              {ctaButtonText} &rarr;
-            </Link>
-          </div>
-        </div>
-      )}
+
       </div>
     </div>
   );

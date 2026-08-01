@@ -377,7 +377,7 @@ export default function AdminBlogPosts() {
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-bold text-gray-200">Tab 1: Basic Info</h4>
-                    <p className="text-sm text-gray-400">Set your Title, Excerpt (a short summary for previews), Category, Tags, Cover Image, and Status. You can save a post as a <strong>Draft</strong> if you're not ready for the public to see it.</p>
+                    <p className="text-sm text-gray-400">Set your Title, Sub Title (an optional short summary for previews), Category, Tags, Cover Image, and Status. You can save a post as a <strong>Draft</strong> if you're not ready for the public to see it.</p>
                   </div>
                   
                   <div>
@@ -476,8 +476,8 @@ export default function AdminBlogPosts() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-300">Excerpt</label>
-                    <textarea value={formData.excerpt} onChange={e => setFormData({...formData, excerpt: e.target.value})} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary h-24" />
+                    <label className="block text-sm font-medium text-gray-300">Sub Title (Optional)</label>
+                    <textarea value={formData.excerpt} onChange={e => setFormData({...formData, excerpt: e.target.value})} placeholder="A short sub title or summary for the post" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary h-24" />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -755,7 +755,7 @@ export default function AdminBlogPosts() {
                   </div>
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-300">SEO Description</label>
-                    <textarea value={formData.seo_description} onChange={e => setFormData({...formData, seo_description: e.target.value})} placeholder="Fallback to post excerpt" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary h-24" />
+                    <textarea value={formData.seo_description} onChange={e => setFormData({...formData, seo_description: e.target.value})} placeholder="Fallback to post sub title" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary h-24" />
                   </div>
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-300">SEO Keywords</label>
