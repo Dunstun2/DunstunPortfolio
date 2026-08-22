@@ -107,9 +107,11 @@ export default function ObsidianNavbar({ config }: TemplateSectionProps) {
             ) : (
               // Fallback to site name
               <InlineButtonLink href="/" onClick={() => setIsOpen(false)} className="text-xl font-bold text-nav-text tracking-wider">
-                <InlineText settingKey="site_name" defaultValue="PORTFOLIO">
-                  {settings?.site_name || 'PORTFOLIO'}
-                </InlineText>
+                <span>
+                  <InlineText settingKey="site_name" defaultValue="PORTFOLIO">
+                    {settings?.site_name || 'PORTFOLIO'}
+                  </InlineText>
+                </span>
               </InlineButtonLink>
             )}
           </div>

@@ -1198,7 +1198,7 @@ export default function SettingsAdmin() {
                 <ul className="text-xs text-blue-200 space-y-1 list-disc list-inside">
                   <li>Maximum file size: 5 MB</li>
                   <li>Supported formats: JPG, PNG, WebP, GIF, SVG</li>
-                  <li>Recommended dimensions: 200x60 px (landscape)</li>
+                  <li>Recommended dimensions: 300x60 px (landscape)</li>
                   <li>Logo will be displayed in the navbar on corporate websites</li>
                 </ul>
               </div>
