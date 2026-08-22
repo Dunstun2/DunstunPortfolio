@@ -59,11 +59,11 @@ export default function ContactSection() {
   const availability = settings.contact_availability || 'Open to selected opportunities and collaborations';
 
   return (
-    <section id="contact" className="py-12 md:py-20 bg-bg-dark relative">
+    <section id="contact" className="pt-6 md:pt-10 pb-12 md:pb-16 bg-bg-dark relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <div className="text-center mb-12 md:mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-heading-light mb-4">
+        <div className="text-center mb-8 md:mb-12">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-heading-light mb-3">
             <ColoredTitle settingKey="contact_section_title" title={sectionTitle} />
           </h2>
           <p className="text-text-light/80 text-lg max-w-2xl mx-auto font-medium">

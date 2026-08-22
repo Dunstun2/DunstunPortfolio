@@ -88,6 +88,7 @@ export default function SettingsAdmin() {
 
   // Branding State (Logo)
   const [corporateLogo, setCorporateLogo] = useState('');
+  const [logoWidth, setLogoWidth] = useState(1000);
   const [logoUploading, setLogoUploading] = useState(false);
   const [logoError, setLogoError] = useState('');
 
@@ -123,6 +124,7 @@ export default function SettingsAdmin() {
         if (res.data.active_template) setActiveTemplate(res.data.active_template);
         if (res.data.show_social_floater !== undefined) setShowSocialFloater(res.data.show_social_floater === 'true');
         if (res.data.corporate_logo_url) setCorporateLogo(res.data.corporate_logo_url);
+        if (res.data.corporate_logo_width) setLogoWidth(parseInt(res.data.corporate_logo_width) || 1000);
 
         // Services Section Content
         if (res.data.services_section_title) setServicesSectionTitle(res.data.services_section_title);
@@ -570,6 +572,23 @@ export default function SettingsAdmin() {
 
       setCorporateLogo('');
       setMessage('Logo removed successfully!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
+
+  const handleSaveLogoWidth = async () => {
+    setMessage('Saving logo width...');
+    try {
+      await fetchApi('/settings', {
+        method: 'PUT',
+        body: JSON.stringify({
+          corporate_logo_width: logoWidth.toString(),
+        })
+      });
+
+      setMessage('Logo width updated successfully!');
       setTimeout(() => setMessage(''), 3000);
     } catch (err: any) {
       setMessage(`Error: ${err.message}`);
@@ -1208,6 +1227,38 @@ export default function SettingsAdmin() {
                 <div className="p-4 bg-red-900/20 border border-red-800/50 rounded-lg text-red-400 text-sm">
                   <i className="fas fa-exclamation-circle mr-2"></i>
                   {logoError}
+                </div>
+              )}
+
+              {/* Logo Width Settings */}
+              {corporateLogo && (
+                <div>
+                  <label className="block text-sm font-semibold mb-3 text-gray-300">Logo Width (px)</label>
+                  <div className="flex gap-3 items-end">
+                    <div className="flex-1">
+                      <input
+                        type="range"
+                        min="200"
+                        max="1500"
+                        value={logoWidth}
+                        onChange={(e) => setLogoWidth(parseInt(e.target.value))}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>200px</span>
+                        <span className="text-primary font-semibold">{logoWidth}px</span>
+                        <span>1500px</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSaveLogoWidth}
+                      className="px-4 py-2 bg-primary hover:bg-blue-600 text-white font-medium text-sm rounded-lg transition-all duration-200"
+                    >
+                      <i className="fas fa-save mr-2"></i> Save Width
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">Adjust the slider to set the logo width in the navbar</p>
                 </div>
               )}
             </div>

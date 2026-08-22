@@ -72,11 +72,13 @@ export default function ProjectsSection({ variant = 'full' }: { variant?: 'full'
   const sectionTitle = settings?.projects_section_title || 'Featured Projects';
 
   return (
-    <section id="projects" className="py-4 md:py-8 bg-bg-dark/50 relative">
+    <section id="projects" className="pt-6 md:pt-10 pb-8 md:pb-12 bg-bg-dark/50 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl md:text-5xl font-bold text-heading-light mb-10 text-center">
-          <ColoredTitle settingKey="projects_section_title" title={sectionTitle} />
-        </h2>
+        <div className="text-center mb-6 md:mb-8">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4 text-center">
+            <ColoredTitle settingKey="projects_section_title" title={sectionTitle} />
+          </h2>
+        </div>
 
         {projects.length > 0 ? (
           (() => {
@@ -98,7 +100,7 @@ export default function ProjectsSection({ variant = 'full' }: { variant?: 'full'
                 switch (itemKey) {
                   case 'image':
                     return (
-                      <div className="h-48 overflow-hidden relative w-full">
+                      <div className="h-48 sm:h-52 overflow-hidden relative w-full">
                         <div className="absolute inset-0 bg-primary/20 group-hover:bg-transparent transition-colors z-10 pointer-events-none" />
                         <InlineResourceImage
                           resource="projects" id={project.id} field="thumbnail_url"
@@ -117,7 +119,7 @@ export default function ProjectsSection({ variant = 'full' }: { variant?: 'full'
                     );
                   case 'title':
                     return (
-                      <div className="px-6 pt-6 w-full">
+                      <div className="px-5 sm:px-6 pt-5 sm:pt-6 w-full">
                         <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-heading-light mb-2">
                           <InlineResourceText resource="projects" id={project.id} field="title" defaultValue={project.title} />
                         </h3>
@@ -125,7 +127,7 @@ export default function ProjectsSection({ variant = 'full' }: { variant?: 'full'
                     );
                   case 'description':
                     return (
-                      <div className="px-6 py-1 w-full">
+                      <div className="px-5 sm:px-6 py-1 w-full">
                         <p className="text-text-light text-sm mb-2 line-clamp-3">
                           <InlineResourceText resource="projects" id={project.id} field="description" multiline defaultValue={project.description || project.short_description} />
                         </p>
@@ -133,10 +135,10 @@ export default function ProjectsSection({ variant = 'full' }: { variant?: 'full'
                     );
                   case 'cta':
                     return (
-                      <div className="px-6 pb-6 pt-1 w-full mt-auto">
+                      <div className="px-5 sm:px-6 pb-5 sm:pb-6 pt-1 w-full mt-auto">
                         <Link
                           href={`/projects/${project.slug || project.id}`}
-                          className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-primary/80 transition-colors"
+                          className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-primary/80 transition-colors min-h-[36px]"
                         >
                           View Case Study &rarr;
                         </Link>
@@ -166,17 +168,17 @@ export default function ProjectsSection({ variant = 'full' }: { variant?: 'full'
                 onReorder={handleReorder}
                 renderItem={renderProject}
                 isPreview={isPreview}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8 w-full relative z-10"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-8 w-full relative z-10"
               />
             );
           })()
         ) : null}
 
         {variant === 'highlights' && (
-          <div className="text-center mt-12">
+          <div className="text-center mt-8 md:mt-12">
             <Link
               href="/projects"
-              className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white bg-primary rounded-full hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.5)] transition-all hover:-translate-y-1 border border-primary/50"
+              className="inline-flex items-center justify-center px-6 py-3 md:px-8 md:py-4 text-sm md:text-base font-bold text-white bg-transparent border-2 border-primary rounded-full hover:bg-primary hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.5)] transition-all hover:-translate-y-1"
             >
               View All Projects &rarr;
             </Link>

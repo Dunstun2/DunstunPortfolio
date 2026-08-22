@@ -497,6 +497,11 @@ export default function CorporateHero() {
           isolation: isolate;
           min-height: ${sectionH};
         }
+        @media (max-width: 768px) {
+          .corp-hero-section {
+            min-height: auto;
+          }
+        }
 
         /* ── Background layers ───────────────────────────────── */
         .corp-hero-bg-media {
@@ -543,7 +548,7 @@ export default function CorporateHero() {
           width: 100%;
           max-width: 1280px;
           margin: 0 auto;
-          padding: 2.25rem 1.5rem 1.75rem;
+          padding: 2.75rem 1.5rem 2.25rem;
           display: flex;
           flex-direction: column;
           gap: 0;
@@ -557,19 +562,23 @@ export default function CorporateHero() {
           margin: 0 auto;
         }
 
-        /* SPLIT layout — equal columns */
-        .corp-hero-section[data-layout="split"] .corp-hero-inner {
-          flex-direction: row;
-          align-items: center;
-          gap: 3.5rem;
-        }
-        .corp-hero-section[data-layout="split"] .corp-hero-content {
-          flex: 1 1 0;
-          text-align: left;
-          align-items: flex-start;
-        }
-        .corp-hero-section[data-layout="split"] .corp-hero-media-col {
-          flex: 1 1 0;
+        /* SPLIT layout — desktop (min-width: 769px) */
+        @media (min-width: 769px) {
+          .corp-hero-section[data-layout="split"] .corp-hero-inner {
+            flex-direction: row;
+            align-items: center;
+            gap: 3rem;
+          }
+          .corp-hero-section[data-layout="split"] .corp-hero-content {
+            flex: 1 1 0;
+            text-align: left;
+            align-items: flex-start;
+            order: 1;
+          }
+          .corp-hero-section[data-layout="split"] .corp-hero-media-col {
+            flex: 1 1 0;
+            order: 2;
+          }
         }
 
         /* PHOTO-BACKGROUND layout — full bleed, content centered */
@@ -588,11 +597,15 @@ export default function CorporateHero() {
         .corp-hero-content {
           display: flex;
           flex-direction: column;
-          min-height: 420px;
           justify-content: center;
           opacity: 0;
           transform: translateY(20px);
           transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        @media (min-width: 769px) {
+          .corp-hero-content {
+            min-height: 380px;
+          }
         }
         .corp-hero-section[data-visible="true"] .corp-hero-content {
           opacity: 1;
@@ -613,30 +626,29 @@ export default function CorporateHero() {
           display: inline-flex;
           align-items: center;
           gap: 0.4rem;
-          padding: 0.35rem 1rem;
+          padding: 0.35rem 0.95rem;
           border-radius: 99px;
           background: rgba(0, 0, 0, 0.45);
           backdrop-filter: blur(8px);
           border: 1px solid color-mix(in srgb, var(--color-primary, #3b82f6) 45%, transparent);
           color: var(--color-primary, #60a5fa);
-          font-size: 0.75rem;
+          font-size: clamp(0.68rem, 1.2vw, 0.75rem);
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          margin-bottom: 1.25rem;
+          margin-bottom: 1rem;
           width: fit-content;
           box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
         }
 
         /* ── Headline ────────────────────────────────────────── */
         .corp-hero-headline {
-          font-size: clamp(2rem, 4.2vw, 3.6rem);
+          font-size: clamp(1.85rem, 4.4vw, 3.6rem);
           font-weight: 900;
-          line-height: 1.1;
+          line-height: 1.15;
           letter-spacing: -0.02em;
           color: #ffffff;
           margin-bottom: 0.875rem;
-          min-height: 2.2em;
           text-shadow: 0 2px 12px rgba(0, 0, 0, 0.95), 0 4px 30px rgba(0, 0, 0, 0.85);
         }
         .corp-hero-highlight {
@@ -648,11 +660,10 @@ export default function CorporateHero() {
 
         /* ── Subheadline ─────────────────────────────────────── */
         .corp-hero-sub {
-          font-size: clamp(0.95rem, 1.8vw, 1.15rem);
-          line-height: 1.55;
+          font-size: clamp(0.92rem, 1.6vw, 1.15rem);
+          line-height: 1.6;
           color: #f8fafc;
           max-width: 600px;
-          min-height: 3.1em;
           margin-bottom: 1.25rem;
           text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9), 0 4px 20px rgba(0, 0, 0, 0.8);
         }
@@ -668,12 +679,14 @@ export default function CorporateHero() {
         .corp-hero-btn-outline {
           display: inline-flex;
           align-items: center;
+          justify-content: center;
           gap: 0.5rem;
-          padding: 0.875rem 2rem;
+          padding: 0.75rem 1.75rem;
+          min-height: 46px;
           background: var(--color-primary, #3b82f6);
           color: #ffffff !important;
           font-weight: 700;
-          font-size: 0.95rem;
+          font-size: clamp(0.88rem, 1.2vw, 0.95rem);
           border-radius: 99px;
           box-shadow: 0 8px 28px color-mix(in srgb, var(--color-primary, #3b82f6) 40%, transparent);
           transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
@@ -725,8 +738,8 @@ export default function CorporateHero() {
           box-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary, #3b82f6) 45%, transparent);
         }
         .corp-hero-arrow-btn {
-          width: 32px;
-          height: 32px;
+          width: 34px;
+          height: 34px;
           border-radius: 50%;
           background: rgba(0, 0, 0, 0.4);
           border: 1px solid rgba(255, 255, 255, 0.2);
@@ -749,14 +762,14 @@ export default function CorporateHero() {
           display: flex;
           flex-wrap: wrap;
           align-items: center;
-          gap: 0;
+          gap: 0.5rem;
           margin-bottom: 1.25rem;
         }
         .corp-hero-stat-item {
           display: flex;
           flex-direction: column;
           align-items: center;
-          padding: 0 1.5rem;
+          padding: 0 1.25rem;
           position: relative;
         }
         .corp-hero-stat-item:first-child { padding-left: 0; }
@@ -769,7 +782,7 @@ export default function CorporateHero() {
           background: color-mix(in srgb, var(--color-text-light, #cbd5e1) 20%, transparent);
         }
         .corp-hero-stat-number {
-          font-size: clamp(1.4rem, 2.5vw, 2rem);
+          font-size: clamp(1.3rem, 2.2vw, 1.85rem);
           font-weight: 900;
           color: var(--color-heading-light, #f1f5f9);
           line-height: 1;
@@ -779,16 +792,16 @@ export default function CorporateHero() {
           color: var(--color-primary, #3b82f6);
         }
         .corp-hero-stat-label {
-          font-size: 0.7rem;
+          font-size: 0.68rem;
           font-weight: 600;
           letter-spacing: 0.06em;
           text-transform: uppercase;
-          color: color-mix(in srgb, var(--color-text-light, #cbd5e1) 60%, transparent);
-          margin-top: 0.2rem;
+          color: color-mix(in srgb, var(--color-text-light, #cbd5e1) 70%, transparent);
+          margin-top: 0.25rem;
         }
 
         /* ── Trust indicators ────────────────────────────────── */
-        .corp-hero-trust-list {
+        .corp-hero-trust {
           display: flex;
           flex-wrap: wrap;
           gap: 0.6rem 1.25rem;
@@ -798,7 +811,7 @@ export default function CorporateHero() {
           display: inline-flex;
           align-items: center;
           gap: 0.45rem;
-          font-size: 0.8rem;
+          font-size: clamp(0.75rem, 1.2vw, 0.82rem);
           font-weight: 600;
           color: #f1f5f9;
           text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
@@ -826,7 +839,7 @@ export default function CorporateHero() {
           gap: 0.875rem;
         }
         .corp-logos-strip-label {
-          font-size: 0.72rem;
+          font-size: clamp(0.65rem, 1.2vw, 0.72rem);
           font-weight: 800;
           letter-spacing: 0.12em;
           color: #94a3b8;
@@ -837,11 +850,11 @@ export default function CorporateHero() {
           align-items: center;
           justify-content: center;
           flex-wrap: wrap;
-          gap: 1.25rem 2.5rem;
+          gap: 1.25rem 2.25rem;
         }
         .corp-hero-logo-img {
-          height: 32px;
-          max-width: 140px;
+          height: clamp(24px, 3.5vw, 34px);
+          max-width: clamp(100px, 14vw, 140px);
           object-fit: contain;
           opacity: 0.92;
           filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
@@ -855,11 +868,11 @@ export default function CorporateHero() {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
-          padding: 0.5rem 1.1rem;
+          padding: 0.45rem 1rem;
           border-radius: 99px;
           background: rgba(255, 255, 255, 0.06);
           border: 1px solid rgba(255, 255, 255, 0.15);
-          font-size: 0.82rem;
+          font-size: 0.8rem;
           font-weight: 700;
           letter-spacing: 0.04em;
           color: #ffffff;
@@ -872,10 +885,12 @@ export default function CorporateHero() {
         }
 
         /* ── Media (image or video) ──────────────────────────── */
-        .corp-hero-media-col { width: 100%; }
+        .corp-hero-media-col { 
+          width: 100%; 
+        }
         .corp-hero-media-wrap {
           width: 100%;
-          height: 360px;
+          height: clamp(240px, 35vw, 380px);
           border-radius: 1.25rem;
           overflow: hidden;
           box-shadow: 0 32px 80px rgba(0,0,0,0.35);
@@ -884,8 +899,7 @@ export default function CorporateHero() {
         }
         .corp-hero-media-img {
           width: 100%;
-          height: auto;
-          max-height: 380px;
+          height: 100%;
           object-fit: cover;
           display: block;
         }
@@ -953,37 +967,115 @@ export default function CorporateHero() {
           transform: translateY(-2px);
         }
 
-        /* ── Responsive ──────────────────────────────────────── */
+        /* ── Responsive Mobile Overrides (Media First & Clean Organization) ── */
         @media (max-width: 768px) {
-          .corp-hero-section[data-layout="split"] .corp-hero-inner {
-            flex-direction: column;
-            gap: 2rem;
+          .corp-hero-section .corp-hero-inner,
+          .corp-hero-section[data-layout="split"] .corp-hero-inner,
+          .corp-hero-inner {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 1.25rem !important;
+            padding: 1.25rem 1rem 3.5rem 1rem !important;
           }
-          .corp-hero-section[data-layout="split"] .corp-hero-content {
-            text-align: center;
-            align-items: center;
+          .corp-hero-section .corp-hero-promo-badge,
+          .corp-hero-promo-badge {
+            position: relative !important;
+            top: auto !important;
+            right: auto !important;
+            left: auto !important;
+            order: 0 !important;
+            margin: 0 auto 0.5rem auto !important;
+            display: table !important;
+            font-size: 0.7rem !important;
+            padding: 0.35rem 0.85rem !important;
+            z-index: 10 !important;
+            text-align: center !important;
+          }
+          .corp-hero-section .corp-hero-media-col,
+          .corp-hero-section[data-layout="split"] .corp-hero-media-col,
+          .corp-hero-media-col {
+            order: 1 !important; /* Starts with Image or Video on mobile */
+            width: 100% !important;
+            margin-bottom: 0.25rem !important;
+          }
+          .corp-hero-section .corp-hero-media-wrap,
+          .corp-hero-section[data-layout="split"] .corp-hero-media-wrap,
+          .corp-hero-media-wrap {
+            height: clamp(210px, 54vw, 290px) !important;
+            border-radius: 1rem !important;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+          }
+          .corp-hero-section .corp-hero-content,
+          .corp-hero-section[data-layout="split"] .corp-hero-content,
+          .corp-hero-content {
+            order: 2 !important; /* Content organized below media on mobile */
+            text-align: center !important;
+            align-items: center !important;
+            width: 100% !important;
+          }
+          .corp-hero-eyebrow {
+            margin-bottom: 0.75rem !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            font-size: 0.7rem !important;
+          }
+          .corp-hero-headline {
+            font-size: clamp(1.65rem, 5vw, 2.35rem) !important;
+            margin-bottom: 0.75rem !important;
+            line-height: 1.2 !important;
+            text-align: center !important;
+          }
+          .corp-hero-sub {
+            font-size: 0.92rem !important;
+            margin-bottom: 1.25rem !important;
+            line-height: 1.55 !important;
+            max-width: 100% !important;
+            text-align: center !important;
           }
           .corp-hero-stats {
-            justify-content: center;
+            justify-content: center !important;
+            gap: 0.75rem !important;
           }
-          .corp-hero-stat-item:first-child { padding-left: 1.5rem; }
+          .corp-hero-stat-item {
+            padding: 0 0.85rem !important;
+          }
+          .corp-hero-stat-item:first-child { 
+            padding-left: 0.85rem !important; 
+          }
           .corp-hero-trust {
-            justify-content: center;
+            justify-content: center !important;
+            gap: 0.5rem 1rem !important;
+            margin-top: 0.75rem !important;
           }
           .corp-hero-ctas {
-            justify-content: center;
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: center !important;
+            gap: 0.6rem !important;
+            width: 100% !important;
+            margin-bottom: 0.75rem !important;
           }
-          .corp-hero-inner {
-            padding: 3rem 1.25rem 2.5rem;
-          }
-          .corp-hero-promo-badge {
-            top: 1rem;
-            right: 1rem;
+          .corp-hero-ctas > * {
+            flex: 1 1 0 !important;
+            min-width: 130px !important;
+            max-width: 220px !important;
+            padding: 0.75rem 1rem !important;
+            font-size: 0.85rem !important;
+            text-align: center !important;
+            justify-content: center !important;
           }
           .corp-hero-sound-btn {
-            bottom: 1rem;
-            right: 1rem;
+            bottom: 0.75rem;
+            right: 0.75rem;
             padding: 0.35rem 0.75rem;
+            font-size: 0.7rem;
+          }
+          .corp-logos-strip-bar {
+            padding: 1rem 1rem;
+          }
+          .corp-logos-strip-list {
+            gap: 0.85rem 1.5rem;
           }
         }
 
@@ -1026,7 +1118,7 @@ export default function CorporateHero() {
         /* ── Slide Pagination Indicator Dots ─────────────────── */
         .corp-hero-dots-container {
           position: absolute;
-          bottom: 1.25rem;
+          bottom: 1rem;
           left: 50%;
           transform: translateX(-50%);
           z-index: 30;
@@ -1108,9 +1200,6 @@ export default function CorporateHero() {
         {/* Background (Static Image or Video) */}
         <HeroBackground hero={hero} />
 
-        {/* Floating promo badge */}
-        <PromoBadge text={hero.promo_badge} />
-
         {/* Floating Navigation Arrows when multiple slides exist */}
         {hasMultipleSlides && (
           <>
@@ -1149,6 +1238,9 @@ export default function CorporateHero() {
         )}
 
         <div className="corp-hero-inner">
+
+          {/* Optional Promo Badge */}
+          <PromoBadge text={hero.promo_badge} />
 
           {/* ── Content column ── */}
           <div className="corp-hero-content">

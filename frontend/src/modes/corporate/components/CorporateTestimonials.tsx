@@ -90,15 +90,15 @@ export default function TestimonialsSection({ variant = 'full' }: { variant?: 'f
   };
 
   return (
-    <section id="testimonials" className="py-4 md:py-8 relative">
+    <section id="testimonials" className="pt-6 md:pt-10 pb-8 md:pb-12 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
-        <div className="text-center mb-12 flex flex-col items-center justify-center">
-          <h2 className="text-3xl md:text-5xl font-bold text-heading-light mb-2">
+        <div className="text-center mb-6 md:mb-10 flex flex-col items-center justify-center">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-heading-light mb-3">
             <ColoredTitle settingKey="testimonials_section_title" title={settings?.testimonials_section_title || 'Client & Peer Feedback'} />
           </h2>
-          <p className="text-text-light/70 text-sm max-w-xl">
+          <p className="text-text-light/70 text-sm md:text-base max-w-xl">
             Endorsements and testimonials from colleagues, partners, and clients I&apos;ve collaborated with.
           </p>
         </div>
@@ -106,7 +106,7 @@ export default function TestimonialsSection({ variant = 'full' }: { variant?: 'f
         {/* Cards Grid */}
         {testimonials.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-8 md:mb-12">
               {(variant === 'highlights' ? testimonials.slice(0, 3) : testimonials).map((test) => {
                 const showPhoto = (test.display_photo !== false) && !!test.avatar_url;
                 const showName = test.display_name !== false;
@@ -114,40 +114,46 @@ export default function TestimonialsSection({ variant = 'full' }: { variant?: 'f
                 const showCompany = test.display_company !== false;
 
                 return (
-                  <div key={test.id} className="glass p-8 rounded-2xl relative flex flex-col justify-between">
+                  <div key={test.id} className="glass p-6 sm:p-8 rounded-2xl relative flex flex-col justify-between hover:-translate-y-1 transition-transform">
                     <div>
                       <div className="text-primary/20 absolute top-4 right-4">
-                        <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 32 32"><path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z"></path></svg>
+                        <svg className="w-10 h-10 sm:w-12 sm:h-12" fill="currentColor" viewBox="0 0 32 32"><path d="M9.352 4C4.456 7.456 1 13.12 1 19.36c0 5.088 3.072 8.064 6.624 8.064 3.36 0 5.856-2.688 5.856-5.856 0-3.168-2.208-5.472-5.088-5.472-.576 0-1.344.096-1.536.192.48-3.264 3.552-7.104 6.624-9.024L9.352 4zm16.512 0c-4.8 3.456-8.256 9.12-8.256 15.36 0 5.088 3.072 8.064 6.624 8.064 3.264 0 5.856-2.688 5.856-5.856 0-3.168-2.304-5.472-5.184-5.472-.576 0-1.248.096-1.44.192.48-3.264 3.456-7.104 6.528-9.024L25.864 4z"></path></svg>
                       </div>
-                      <p className="text-text-light italic mb-8 relative z-10 leading-relaxed">
+                      <p className="text-text-light text-sm sm:text-base italic mb-6 sm:mb-8 relative z-10 leading-relaxed">
                         &ldquo;<InlineResourceText resource="testimonials" id={test.id} field="content" multiline defaultValue={test.content} />&rdquo;
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-4 pt-4 border-t border-text-light/10">
+                    <div className="flex items-center gap-3.5 pt-4 border-t border-text-light/10">
                       {(showPhoto || isInlineEditing) ? (
                         <InlineResourceImage
                           resource="testimonials" id={test.id} field="avatar_url"
-                          currentSrc={test.avatar_url} alt={test.author_name}
-                          className="w-12 h-12 rounded-full object-cover border border-primary/30"
-                          wrapperClassName="w-12 h-12 flex-shrink-0"
-                          iconSize="sm"
-                          width={150}
-                          height={150}
+                          currentSrc={test.avatar_url ? getFileUrl(test.avatar_url) : null}
+                          alt={test.author_name}
+                          className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border border-primary/30 shrink-0"
+                          wrapperClassName="w-11 h-11 sm:w-12 sm:h-12 flex-shrink-0"
+                          width={60}
+                          height={60}
                         />
-                      ) : showName ? (
-                        <div className="w-12 h-12 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center text-lg font-bold text-primary">
-                          {test.author_name ? test.author_name.charAt(0).toUpperCase() : '?'}
+                      ) : (
+                        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold text-base sm:text-lg shrink-0">
+                          {test.author_name ? test.author_name.charAt(0).toUpperCase() : 'U'}
                         </div>
-                      ) : null}
+                      )}
 
-                      <div>
-                        {showName && <h4 className="text-heading-light font-bold"><InlineResourceText resource="testimonials" id={test.id} field="author_name" defaultValue={test.author_name} /></h4>}
-                        <div className="text-primary text-xs">
-                          {showTitle && test.author_title && <span><InlineResourceText resource="testimonials" id={test.id} field="author_title" defaultValue={test.author_title} /></span>}
-                          {showTitle && test.author_title && showCompany && test.company && <span> @ </span>}
-                          {showCompany && test.company && <span><InlineResourceText resource="testimonials" id={test.id} field="company" defaultValue={test.company} /></span>}
-                        </div>
+                      <div className="min-w-0">
+                        {showName && (
+                          <h4 className="font-bold text-heading-light text-sm sm:text-base truncate">
+                            <InlineResourceText resource="testimonials" id={test.id} field="author_name" defaultValue={test.author_name} />
+                          </h4>
+                        )}
+                        {(showTitle || showCompany) && (
+                          <p className="text-xs text-text-light/60 truncate">
+                            {showTitle && <InlineResourceText resource="testimonials" id={test.id} field="author_title" defaultValue={test.author_title || ''} />}
+                            {showTitle && showCompany && test.company && ' at '}
+                            {showCompany && <InlineResourceText resource="testimonials" id={test.id} field="company" defaultValue={test.company || ''} />}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -156,11 +162,11 @@ export default function TestimonialsSection({ variant = 'full' }: { variant?: 'f
             </div>
 
             {/* Actions: View All Testimonials & Leave Feedback Button (After Testimonies) */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-center mt-8">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 text-center mt-6 md:mt-8">
               {variant === 'highlights' && (
                 <Link
                   href="/testimonials"
-                  className="inline-flex items-center justify-center px-8 py-3.5 text-sm font-bold text-white bg-primary rounded-full hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.5)] transition-all hover:-translate-y-0.5 border border-primary/50"
+                  className="inline-flex items-center justify-center px-6 py-3 md:px-8 md:py-4 text-sm md:text-base font-bold text-white bg-transparent border-2 border-primary rounded-full hover:bg-primary hover:shadow-[0_0_30px_rgba(var(--color-primary-rgb),0.5)] transition-all hover:-translate-y-1 w-full sm:w-auto"
                 >
                   View All Testimonials &rarr;
                 </Link>
@@ -168,7 +174,7 @@ export default function TestimonialsSection({ variant = 'full' }: { variant?: 'f
 
               <button
                 onClick={() => { setShowModal(true); setSubmitted(false); }}
-                className="inline-flex items-center justify-center px-8 py-3.5 bg-primary/20 hover:bg-primary text-primary hover:text-white border border-primary/40 font-bold text-sm rounded-full transition-all hover:-translate-y-0.5"
+                className="inline-flex items-center justify-center px-6 py-3 md:px-8 md:py-3.5 bg-primary/20 hover:bg-primary text-primary hover:text-white border border-primary/40 font-bold text-sm md:text-base rounded-full transition-all hover:-translate-y-0.5 w-full sm:w-auto min-h-[44px]"
               >
                 Leave Feedback
               </button>

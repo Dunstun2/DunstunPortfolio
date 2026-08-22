@@ -168,29 +168,28 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
   const showServices = businessType === 'services' || businessType === 'both';
 
   return (
-    <section id="about" className="pt-4 md:pt-8 pb-12 relative bg-background space-y-16">
+    <section id="about" className="pt-6 md:pt-10 pb-12 md:pb-16 relative bg-background space-y-10 md:space-y-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
-
-
         {/* ── 2. Who We Are (Overview Card with Photo & Metrics) ── */}
-        <div className="glass p-6 sm:p-10 md:p-14 rounded-3xl mb-12 border border-white/10 shadow-2xl">
-          <div className="flex flex-col lg:flex-row gap-10 lg:gap-14 items-center">
+        <div className="glass p-5 sm:p-8 md:p-12 lg:p-14 rounded-2xl sm:rounded-3xl mb-10 md:mb-14 border border-white/10 shadow-2xl">
+          <div className="flex flex-col lg:flex-row gap-8 sm:gap-10 lg:gap-14 items-center">
             
             {/* Visual Photo */}
             {(heroImage || isInlineEditing) && (
               <div className="w-full lg:w-1/2 flex-shrink-0">
-                <div className="relative rounded-2xl overflow-hidden border border-white/15 shadow-2xl group">
+                <div className="relative rounded-2xl overflow-hidden border border-white/15 shadow-2xl group w-full aspect-[16/10] sm:aspect-video lg:aspect-[16/10] bg-black/40">
                   <InlineResourceImage
                     resource="about" id="active" field="image_url"
                     currentSrc={getFileUrl(heroImage)} alt="Company Overview"
-                    className="w-full h-80 sm:h-96 object-cover transform group-hover:scale-105 transition-transform duration-700"
+                    className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-700"
                     wrapperClassName="w-full h-full"
                     width={1000}
+                    height={625}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
                   <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-primary bg-black/60 px-3 py-1 rounded-full backdrop-blur-md">
+                    <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-primary bg-black/60 px-3 py-1 rounded-full backdrop-blur-md">
                       {businessName} Excellence
                     </span>
                   </div>
@@ -200,41 +199,41 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
 
             {/* Content Details */}
             <div className="flex-1 w-full text-left space-y-4">
-              <span className="inline-block px-4 py-1.5 rounded-full bg-primary/15 border border-primary/30 text-primary text-xs sm:text-sm font-bold uppercase tracking-wider">
+              <span className="inline-block px-3.5 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary text-xs sm:text-sm font-bold uppercase tracking-wider">
                 Who We Are
               </span>
 
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-heading-light">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-heading-light tracking-tight leading-tight">
                 {categoriesSummary}
               </h2>
 
-              <p className="text-text-light/90 text-base md:text-lg leading-relaxed whitespace-pre-line">
+              <p className="text-text-light/90 text-sm sm:text-base md:text-lg leading-relaxed whitespace-pre-line">
                 {whoWeAreOverview}
               </p>
 
               {/* General Purpose */}
               {generalPurpose && (
-                <div className="p-3.5 bg-white/5 rounded-xl border border-white/10 text-xs sm:text-sm">
+                <div className="p-3 sm:p-3.5 bg-white/5 rounded-xl border border-white/10 text-xs sm:text-sm leading-relaxed">
                   <span className="text-primary font-bold">Core Purpose:</span> {generalPurpose}
                 </div>
               )}
 
               {/* Target Audience */}
               {whoServe && (
-                <div className="p-3.5 bg-white/5 rounded-xl border border-white/10 text-xs sm:text-sm">
+                <div className="p-3 sm:p-3.5 bg-white/5 rounded-xl border border-white/10 text-xs sm:text-sm leading-relaxed">
                   <span className="text-secondary font-bold">Who We Serve:</span> {whoServe}
                 </div>
               )}
 
               {/* Statistics Metrics Grid */}
               {statistics.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-white/10">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 pt-5 md:pt-6 border-t border-white/10">
                   {statistics.map((stat, idx) => (
                     <div key={idx} className="text-left">
-                      <div className="text-2xl sm:text-3xl font-extrabold text-primary leading-none mb-1">
+                      <div className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-primary leading-none mb-1">
                         {stat.value}
                       </div>
-                      <div className="text-[11px] sm:text-xs text-text-light/70 font-semibold uppercase tracking-wider">
+                      <div className="text-[10px] sm:text-xs text-text-light/70 font-semibold uppercase tracking-wider">
                         {stat.label}
                       </div>
                     </div>
@@ -243,10 +242,10 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
               )}
 
               {variant !== 'full' && (
-                <div className="pt-4">
+                <div className="pt-3 sm:pt-4">
                   <InlineButtonLink
                     href="/about"
-                    className="inline-flex items-center gap-2 px-8 py-3.5 bg-primary text-white font-bold rounded-full hover:bg-primary/90 transition-all shadow-lg hover:-translate-y-1"
+                    className="inline-flex items-center justify-center gap-2 px-7 py-3 sm:px-8 sm:py-3.5 bg-primary text-white font-bold text-sm sm:text-base rounded-full hover:bg-primary/90 transition-all shadow-lg hover:-translate-y-1 w-full sm:w-auto"
                   >
                     {buttonText} <span>→</span>
                   </InlineButtonLink>
@@ -261,11 +260,11 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
           <>
             {/* ── 3. Mission & Vision Cards ── */}
             {(missionStatement || visionStatement) && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-10 md:mb-14">
                 {missionStatement && (
-                  <div className="glass p-8 rounded-3xl border-t-4 border-t-primary border-x border-b border-white/10 shadow-lg space-y-3">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-primary/15 text-primary flex items-center justify-center font-bold text-2xl shrink-0">
+                  <div className="glass p-6 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl border-t-4 border-t-primary border-x border-b border-white/10 shadow-lg space-y-3.5">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-primary/15 text-primary flex items-center justify-center font-bold text-xl sm:text-2xl shrink-0">
                         🎯
                       </div>
                       <h3 className="text-xl sm:text-2xl font-bold text-heading-light">Our Mission</h3>
@@ -277,9 +276,9 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
                 )}
 
                 {visionStatement && (
-                  <div className="glass p-8 rounded-3xl border-t-4 border-t-secondary border-x border-b border-white/10 shadow-lg space-y-3">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-secondary/15 text-secondary flex items-center justify-center font-bold text-2xl shrink-0">
+                  <div className="glass p-6 sm:p-8 md:p-10 rounded-2xl sm:rounded-3xl border-t-4 border-t-secondary border-x border-b border-white/10 shadow-lg space-y-3.5">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-secondary/15 text-secondary flex items-center justify-center font-bold text-xl sm:text-2xl shrink-0">
                         👁️
                       </div>
                       <h3 className="text-xl sm:text-2xl font-bold text-heading-light">Our Vision</h3>
@@ -294,16 +293,16 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
 
             {/* ── 4. Core Values ── */}
             {valuesList.length > 0 && (
-              <div className="mb-12">
-                <div className="text-center max-w-2xl mx-auto mb-8">
+              <div className="mb-10 md:mb-14">
+                <div className="text-center max-w-2xl mx-auto mb-6 md:mb-8">
                   <span className="text-xs font-extrabold uppercase text-primary tracking-wider">What Guides Us</span>
                   <h3 className="text-2xl sm:text-3xl font-extrabold text-heading-light mt-1">Our Core Values</h3>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-5">
                   {valuesList.map((val: any, i: number) => (
-                    <div key={i} className="glass p-5 rounded-2xl border border-white/10 hover:border-primary/40 transition-all hover:-translate-y-1">
+                    <div key={i} className="glass p-4 sm:p-5 rounded-2xl border border-white/10 hover:border-primary/40 transition-all hover:-translate-y-1">
                       <div className="flex items-center gap-3 mb-2.5">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg shrink-0">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-base sm:text-lg shrink-0">
                           {val.icon || '⭐'}
                         </div>
                         <h4 className="text-base font-bold text-heading-light">{val.title}</h4>
@@ -317,18 +316,18 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
 
             {/* ── 5. Why Choose Us ── */}
             {whyChooseUsList.length > 0 && (
-              <div className="glass p-8 sm:p-12 rounded-3xl mb-12 border border-white/10">
-                <div className="text-center max-w-xl mx-auto mb-8">
+              <div className="glass p-6 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl mb-10 md:mb-14 border border-white/10">
+                <div className="text-center max-w-xl mx-auto mb-6 md:mb-8">
                   <span className="text-xs font-extrabold uppercase text-secondary tracking-wider">Our Competitive Edge</span>
                   <h3 className="text-2xl sm:text-3xl font-extrabold text-heading-light mt-1">Why Choose Us</h3>
                   <p className="text-xs sm:text-sm text-text-light/60 mt-1">What makes us the preferred partner for our customers.</p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                   {whyChooseUsList.map((reason: any, idx: number) => (
-                    <div key={idx} className="p-6 bg-white/5 rounded-2xl border border-white/10 space-y-2 hover:border-white/20 transition-all">
+                    <div key={idx} className="p-5 sm:p-6 bg-white/5 rounded-2xl border border-white/10 space-y-2 hover:border-white/20 transition-all">
                       <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center text-xl shrink-0">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center text-lg sm:text-xl shrink-0">
                           {reason.icon || '✅'}
                         </div>
                         <h4 className="text-base font-bold text-heading-light">{reason.title}</h4>
@@ -342,7 +341,7 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
 
             {/* ── 6. Our Story (Timeline Journey) ── */}
             {(corp.story_beginning || corp.story_headline) && (
-              <div className="glass p-8 sm:p-12 rounded-3xl mb-12 border border-white/10 space-y-8">
+              <div className="glass p-6 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl mb-10 md:mb-14 border border-white/10 space-y-6 md:space-y-8">
                 <div className="text-center max-w-2xl mx-auto">
                   <span className="text-xs font-extrabold uppercase text-primary tracking-wider">The Journey</span>
                   <h3 className="text-2xl sm:text-4xl font-extrabold text-heading-light mt-1 mb-2">
@@ -351,7 +350,7 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
                   <p className="text-xs sm:text-sm text-text-light/60">How we grew from a clear problem to a complete solution.</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                   <div className="p-5 bg-white/5 rounded-2xl border-t-4 border-t-primary border-x border-b border-white/10 space-y-2">
                     <span className="text-xs font-extrabold uppercase text-primary tracking-wider block">1. The Beginning</span>
                     <p className="text-xs sm:text-sm text-text-light/80 leading-relaxed">{corp.story_beginning || 'Our journey began with a simple idea to make quality solutions accessible.'}</p>
@@ -375,7 +374,7 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
             {/* ── 7 & 9. What We Offer + How It Works (Combined Adjacent Block) ── */}
             {((showProducts && (productCategories.length > 0 || productsWorkflow.length > 0)) ||
               (showServices && (serviceCategories.length > 0 || servicesWorkflow.length > 0))) && (
-              <div className="mb-12 space-y-10">
+              <div className="mb-10 md:mb-14 space-y-8 md:space-y-10">
 
                 {/* Section headers */}
                 <div className="text-center max-w-2xl mx-auto">
@@ -389,23 +388,23 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
                   <div className="space-y-8">
                     {/* What We Offer — 2-col */}
                     <div>
-                      <h4 className="text-sm font-extrabold uppercase tracking-wider text-text-light/40 mb-4 text-center">📋 What We Offer</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <h4 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-text-light/40 mb-4 text-center">📋 What We Offer</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
                         {/* Products */}
                         {productCategories.length > 0 && (
-                          <div className="glass p-6 sm:p-8 rounded-3xl border border-white/10 space-y-4">
-                            <h4 className="text-lg font-bold text-primary flex items-center gap-2">🛍️ Product Offerings</h4>
+                          <div className="glass p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-white/10 space-y-4">
+                            <h4 className="text-base sm:text-lg font-bold text-primary flex items-center gap-2">🛍️ Product Offerings</h4>
                             <div className="grid grid-cols-1 gap-3">
                               {productCategories.map((cat: any, i: number) => (
-                                <div key={i} className="p-4 bg-white/5 rounded-xl border border-white/10 flex items-center justify-between hover:border-white/20 transition-all">
-                                  <div className="flex items-center gap-3.5">
-                                    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-xl shrink-0">{cat.icon || '📦'}</div>
+                                <div key={i} className="p-3.5 sm:p-4 bg-white/5 rounded-xl border border-white/10 flex items-center justify-between hover:border-white/20 transition-all">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg sm:text-xl shrink-0">{cat.icon || '📦'}</div>
                                     <div>
                                       <h5 className="text-sm font-bold text-heading-light">{cat.title}</h5>
                                       <p className="text-xs text-text-light/70">{cat.description}</p>
                                     </div>
                                   </div>
-                                  <Link href={cat.link || '/projects'} className="text-xs font-bold text-primary hover:underline ml-3 shrink-0">Browse →</Link>
+                                  <Link href={cat.link || '/projects'} className="text-xs font-bold text-primary hover:underline ml-2.5 shrink-0 min-h-[32px] inline-flex items-center">Browse →</Link>
                                 </div>
                               ))}
                             </div>
@@ -413,19 +412,19 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
                         )}
                         {/* Services */}
                         {serviceCategories.length > 0 && (
-                          <div className="glass p-6 sm:p-8 rounded-3xl border border-white/10 space-y-4">
-                            <h4 className="text-lg font-bold text-secondary flex items-center gap-2">🛠️ Professional Services</h4>
+                          <div className="glass p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-white/10 space-y-4">
+                            <h4 className="text-base sm:text-lg font-bold text-secondary flex items-center gap-2">🛠️ Professional Services</h4>
                             <div className="grid grid-cols-1 gap-3">
                               {serviceCategories.map((cat: any, i: number) => (
-                                <div key={i} className="p-4 bg-white/5 rounded-xl border border-white/10 flex items-center justify-between hover:border-white/20 transition-all">
-                                  <div className="flex items-center gap-3.5">
-                                    <div className="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center text-xl shrink-0">{cat.icon || '💼'}</div>
+                                <div key={i} className="p-3.5 sm:p-4 bg-white/5 rounded-xl border border-white/10 flex items-center justify-between hover:border-white/20 transition-all">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center text-lg sm:text-xl shrink-0">{cat.icon || '💼'}</div>
                                     <div>
                                       <h5 className="text-sm font-bold text-heading-light">{cat.title}</h5>
                                       <p className="text-xs text-text-light/70">{cat.description}</p>
                                     </div>
                                   </div>
-                                  <Link href={cat.link || '/services'} className="text-xs font-bold text-secondary hover:underline ml-3 shrink-0">Request →</Link>
+                                  <Link href={cat.link || '/services'} className="text-xs font-bold text-secondary hover:underline ml-2.5 shrink-0 min-h-[32px] inline-flex items-center">Request →</Link>
                                 </div>
                               ))}
                             </div>
@@ -437,35 +436,35 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
                     {/* How It Works — 2-col */}
                     {(productsWorkflow.length > 0 || servicesWorkflow.length > 0) && (
                       <div>
-                        <h4 className="text-sm font-extrabold uppercase tracking-wider text-text-light/40 mb-4 text-center">⚙️ How It Works</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <h4 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-text-light/40 mb-4 text-center">⚙️ How It Works</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
                           {productsWorkflow.length > 0 && (
-                            <div className="glass p-6 sm:p-8 rounded-3xl border border-white/10 space-y-4">
+                            <div className="glass p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-white/10 space-y-4">
                               <h4 className="text-base font-bold text-primary flex items-center gap-2">🛍️ Ordering Products</h4>
                               <div className="space-y-3">
                                 {productsWorkflow.map((step: any, i: number) => (
-                                  <div key={i} className="p-4 bg-white/5 rounded-xl border border-white/10 space-y-1.5">
+                                  <div key={i} className="p-3.5 sm:p-4 bg-white/5 rounded-xl border border-white/10 space-y-1.5">
                                     <div className="flex items-center gap-3">
-                                      <span className="w-8 h-8 rounded-xl bg-primary text-white text-xs font-extrabold flex items-center justify-center shrink-0 shadow">{step.step || i + 1}</span>
+                                      <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-primary text-white text-xs font-extrabold flex items-center justify-center shrink-0 shadow">{step.step || i + 1}</span>
                                       <h5 className="text-sm font-bold text-heading-light">{step.title}</h5>
                                     </div>
-                                    <p className="text-xs text-text-light/70 pl-11">{step.description}</p>
+                                    <p className="text-xs text-text-light/70 pl-10 sm:pl-11">{step.description}</p>
                                   </div>
                                 ))}
                               </div>
                             </div>
                           )}
                           {servicesWorkflow.length > 0 && (
-                            <div className="glass p-6 sm:p-8 rounded-3xl border border-white/10 space-y-4">
+                            <div className="glass p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-white/10 space-y-4">
                               <h4 className="text-base font-bold text-secondary flex items-center gap-2">🛠️ Booking Services</h4>
                               <div className="space-y-3">
                                 {servicesWorkflow.map((step: any, i: number) => (
-                                  <div key={i} className="p-4 bg-white/5 rounded-xl border border-white/10 space-y-1.5">
+                                  <div key={i} className="p-3.5 sm:p-4 bg-white/5 rounded-xl border border-white/10 space-y-1.5">
                                     <div className="flex items-center gap-3">
-                                      <span className="w-8 h-8 rounded-xl bg-secondary text-white text-xs font-extrabold flex items-center justify-center shrink-0 shadow">{step.step || i + 1}</span>
+                                      <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-secondary text-white text-xs font-extrabold flex items-center justify-center shrink-0 shadow">{step.step || i + 1}</span>
                                       <h5 className="text-sm font-bold text-heading-light">{step.title}</h5>
                                     </div>
-                                    <p className="text-xs text-text-light/70 pl-11">{step.description}</p>
+                                    <p className="text-xs text-text-light/70 pl-10 sm:pl-11">{step.description}</p>
                                   </div>
                                 ))}
                               </div>
@@ -477,41 +476,41 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
                   </div>
                 ) : (
                   /* ── SINGLE type: What We Offer (left) + How It Works (right) side-by-side on lg ── */
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                     {/* Left — What We Offer */}
-                    <div className="glass p-6 sm:p-8 rounded-3xl border border-white/10 space-y-4">
+                    <div className="glass p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-white/10 space-y-4">
                       {showProducts ? (
                         <>
-                          <h4 className="text-lg font-bold text-primary flex items-center gap-2">🛍️ Product Offerings</h4>
+                          <h4 className="text-base sm:text-lg font-bold text-primary flex items-center gap-2">🛍️ Product Offerings</h4>
                           <div className="grid grid-cols-1 gap-3">
                             {productCategories.map((cat: any, i: number) => (
-                              <div key={i} className="p-4 bg-white/5 rounded-xl border border-white/10 flex items-center justify-between hover:border-white/20 transition-all">
-                                <div className="flex items-center gap-3.5">
-                                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-xl shrink-0">{cat.icon || '📦'}</div>
+                              <div key={i} className="p-3.5 sm:p-4 bg-white/5 rounded-xl border border-white/10 flex items-center justify-between hover:border-white/20 transition-all">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center text-lg sm:text-xl shrink-0">{cat.icon || '📦'}</div>
                                   <div>
                                     <h5 className="text-sm font-bold text-heading-light">{cat.title}</h5>
                                     <p className="text-xs text-text-light/70">{cat.description}</p>
                                   </div>
                                 </div>
-                                <Link href={cat.link || '/projects'} className="text-xs font-bold text-primary hover:underline ml-3 shrink-0">Browse →</Link>
+                                <Link href={cat.link || '/projects'} className="text-xs font-bold text-primary hover:underline ml-2.5 shrink-0 min-h-[32px] inline-flex items-center">Browse →</Link>
                               </div>
                             ))}
                           </div>
                         </>
                       ) : (
                         <>
-                          <h4 className="text-lg font-bold text-secondary flex items-center gap-2">🛠️ Professional Services</h4>
+                          <h4 className="text-base sm:text-lg font-bold text-secondary flex items-center gap-2">🛠️ Professional Services</h4>
                           <div className="grid grid-cols-1 gap-3">
                             {serviceCategories.map((cat: any, i: number) => (
-                              <div key={i} className="p-4 bg-white/5 rounded-xl border border-white/10 flex items-center justify-between hover:border-white/20 transition-all">
-                                <div className="flex items-center gap-3.5">
-                                  <div className="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center text-xl shrink-0">{cat.icon || '💼'}</div>
+                              <div key={i} className="p-3.5 sm:p-4 bg-white/5 rounded-xl border border-white/10 flex items-center justify-between hover:border-white/20 transition-all">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center text-lg sm:text-xl shrink-0">{cat.icon || '💼'}</div>
                                   <div>
                                     <h5 className="text-sm font-bold text-heading-light">{cat.title}</h5>
                                     <p className="text-xs text-text-light/70">{cat.description}</p>
                                   </div>
                                 </div>
-                                <Link href={cat.link || '/services'} className="text-xs font-bold text-secondary hover:underline ml-3 shrink-0">Request →</Link>
+                                <Link href={cat.link || '/services'} className="text-xs font-bold text-secondary hover:underline ml-2.5 shrink-0 min-h-[32px] inline-flex items-center">Request →</Link>
                               </div>
                             ))}
                           </div>
@@ -520,18 +519,18 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
                     </div>
 
                     {/* Right — How It Works */}
-                    <div className="glass p-6 sm:p-8 rounded-3xl border border-white/10 space-y-4">
+                    <div className="glass p-5 sm:p-8 rounded-2xl sm:rounded-3xl border border-white/10 space-y-4">
                       {showProducts ? (
                         <>
                           <h4 className="text-base font-bold text-primary flex items-center gap-2">🛍️ How Ordering Works</h4>
                           <div className="space-y-3">
                             {productsWorkflow.map((step: any, i: number) => (
-                              <div key={i} className="p-4 bg-white/5 rounded-xl border border-white/10 space-y-1.5">
+                              <div key={i} className="p-3.5 sm:p-4 bg-white/5 rounded-xl border border-white/10 space-y-1.5">
                                 <div className="flex items-center gap-3">
-                                  <span className="w-8 h-8 rounded-xl bg-primary text-white text-xs font-extrabold flex items-center justify-center shrink-0 shadow">{step.step || i + 1}</span>
+                                  <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-primary text-white text-xs font-extrabold flex items-center justify-center shrink-0 shadow">{step.step || i + 1}</span>
                                   <h5 className="text-sm font-bold text-heading-light">{step.title}</h5>
                                 </div>
-                                <p className="text-xs text-text-light/70 pl-11">{step.description}</p>
+                                <p className="text-xs text-text-light/70 pl-10 sm:pl-11">{step.description}</p>
                               </div>
                             ))}
                           </div>
@@ -541,12 +540,12 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
                           <h4 className="text-base font-bold text-secondary flex items-center gap-2">🛠️ How Booking Works</h4>
                           <div className="space-y-3">
                             {servicesWorkflow.map((step: any, i: number) => (
-                              <div key={i} className="p-4 bg-white/5 rounded-xl border border-white/10 space-y-1.5">
+                              <div key={i} className="p-3.5 sm:p-4 bg-white/5 rounded-xl border border-white/10 space-y-1.5">
                                 <div className="flex items-center gap-3">
-                                  <span className="w-8 h-8 rounded-xl bg-secondary text-white text-xs font-extrabold flex items-center justify-center shrink-0 shadow">{step.step || i + 1}</span>
+                                  <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-secondary text-white text-xs font-extrabold flex items-center justify-center shrink-0 shadow">{step.step || i + 1}</span>
                                   <h5 className="text-sm font-bold text-heading-light">{step.title}</h5>
                                 </div>
-                                <p className="text-xs text-text-light/70 pl-11">{step.description}</p>
+                                <p className="text-xs text-text-light/70 pl-10 sm:pl-11">{step.description}</p>
                               </div>
                             ))}
                           </div>
@@ -559,7 +558,7 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
             )}
 
             {/* ── 8. Our Commitment & Customer Promises ── */}
-            <div className="glass p-8 sm:p-12 rounded-3xl mb-12 border border-white/10 bg-gradient-to-br from-primary/10 to-transparent space-y-6">
+            <div className="glass p-6 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl mb-10 md:mb-14 border border-white/10 bg-gradient-to-br from-primary/10 to-transparent space-y-6">
               <div>
                 <span className="text-xs font-extrabold uppercase text-primary tracking-wider">Accountability</span>
                 <h3 className="text-2xl sm:text-3xl font-extrabold text-heading-light mt-1 mb-3">Our Commitment to Customers</h3>
@@ -571,7 +570,7 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
                   <h4 className="text-sm font-bold text-heading-light mb-3">Our Guiding Customer Promises:</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                     {customerPromises.map((promise, idx) => (
-                      <div key={idx} className="flex items-center gap-3 p-3.5 bg-white/5 rounded-xl border border-white/10 text-xs sm:text-sm font-semibold text-heading-light">
+                      <div key={idx} className="flex items-center gap-3 p-3 sm:p-3.5 bg-white/5 rounded-xl border border-white/10 text-xs sm:text-sm font-semibold text-heading-light">
                         <div className="w-6 h-6 rounded-lg bg-primary/20 text-primary flex items-center justify-center text-xs font-extrabold shrink-0">
                           ✓
                         </div>
@@ -583,20 +582,19 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
               )}
             </div>
 
-
             {/* ── 10. Quality & Trust Assurance ── */}
             {qualityGuarantees.length > 0 && (
-              <div className="glass p-8 sm:p-12 rounded-3xl mb-12 border border-white/10 space-y-6">
+              <div className="glass p-6 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl mb-10 md:mb-14 border border-white/10 space-y-6">
                 <div className="text-center max-w-xl mx-auto">
                   <span className="text-xs font-extrabold uppercase text-emerald-400 tracking-wider">Certified Standards</span>
                   <h3 className="text-2xl sm:text-3xl font-extrabold text-heading-light mt-1">Quality & Trust Assurance</h3>
                   <p className="text-xs sm:text-sm text-text-light/75 mt-2 leading-relaxed">{qualityText}</p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                   {qualityGuarantees.map((g: any, i: number) => (
-                    <div key={i} className="p-6 bg-white/5 rounded-2xl border border-white/10 space-y-2 hover:border-emerald-400/40 transition-all">
+                    <div key={i} className="p-5 sm:p-6 bg-white/5 rounded-2xl border border-white/10 space-y-2 hover:border-emerald-400/40 transition-all">
                       <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-400/10 text-emerald-400 flex items-center justify-center font-bold text-lg shrink-0">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-400/10 text-emerald-400 flex items-center justify-center font-bold text-base sm:text-lg shrink-0">
                           🛡️
                         </div>
                         <h4 className="text-base font-bold text-heading-light">{g.title}</h4>
@@ -610,29 +608,29 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
 
             {/* ── 11. Meet The Leadership Team ── */}
             {teamMembers.length > 0 && (
-              <div className="mb-12">
-                <div className="text-center max-w-xl mx-auto mb-8">
+              <div className="mb-10 md:mb-14">
+                <div className="text-center max-w-xl mx-auto mb-6 md:mb-8">
                   <span className="text-xs font-extrabold uppercase text-primary tracking-wider">Our People</span>
                   <h3 className="text-2xl sm:text-3xl font-extrabold text-heading-light mt-1">
                     {corp.team_subtitle || 'Meet The People Behind The Brand'}
                   </h3>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {teamMembers.map((member: any, i: number) => (
-                    <div key={i} className="glass p-6 rounded-2xl border border-white/10 text-center space-y-3 hover:border-primary/40 transition-all hover:-translate-y-1">
+                    <div key={i} className="glass p-5 sm:p-6 rounded-2xl border border-white/10 text-center space-y-3 hover:border-primary/40 transition-all hover:-translate-y-1">
                       {member.image ? (
                         <img
                           src={getFileUrl(member.image)}
                           alt={member.name}
-                          className="w-24 h-24 rounded-full mx-auto object-cover border-2 border-primary/50 shadow-md"
+                          className="w-20 h-20 sm:w-24 sm:h-24 rounded-full mx-auto object-cover border-2 border-primary/50 shadow-md"
                         />
                       ) : (
-                        <div className="w-24 h-24 rounded-full bg-white/10 mx-auto flex items-center justify-center text-3xl border border-white/20">
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/10 mx-auto flex items-center justify-center text-2xl sm:text-3xl border border-white/20">
                           👤
                         </div>
                       )}
                       <div>
-                        <h4 className="text-lg font-bold text-heading-light">{member.name}</h4>
+                        <h4 className="text-base sm:text-lg font-bold text-heading-light">{member.name}</h4>
                         <p className="text-xs text-primary font-bold uppercase tracking-wider mt-0.5">{member.role}</p>
                       </div>
                       {member.bio && (
@@ -646,15 +644,15 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
 
             {/* ── 12. Testimonials / Reviews (If configured in About CMS) ── */}
             {featuredReviews.length > 0 && (
-              <div className="glass p-8 sm:p-12 rounded-3xl mb-12 border border-white/10 space-y-6">
+              <div className="glass p-6 sm:p-8 md:p-12 rounded-2xl sm:rounded-3xl mb-10 md:mb-14 border border-white/10 space-y-6">
                 <div className="text-center max-w-xl mx-auto">
                   <span className="text-xs font-extrabold uppercase text-primary tracking-wider">Social Proof</span>
                   <h3 className="text-2xl sm:text-3xl font-extrabold text-heading-light mt-1">{testimonialsHeadline}</h3>
                   <p className="text-xs sm:text-sm text-text-light/60 mt-1">{testimonialsSummary}</p>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {featuredReviews.map((rev: any, i: number) => (
-                    <div key={i} className="p-6 bg-white/5 rounded-2xl border border-white/10 space-y-3">
+                    <div key={i} className="p-5 sm:p-6 bg-white/5 rounded-2xl border border-white/10 space-y-3">
                       <div className="flex items-center gap-1 text-amber-400 text-sm">
                         {'★'.repeat(rev.rating || 5)}
                       </div>
@@ -670,23 +668,23 @@ export default function CorporateAboutSection({ variant = 'highlights' }: { vari
             )}
 
             {/* ── 13. Final Call to Action ── */}
-            <div className="glass p-8 sm:p-14 rounded-3xl text-center border border-white/10 bg-gradient-to-r from-primary/25 via-background to-secondary/25 shadow-2xl space-y-5">
-              <h3 className="text-2xl sm:text-4xl font-extrabold text-heading-light">
+            <div className="glass p-6 sm:p-10 md:p-14 rounded-2xl sm:rounded-3xl text-center border border-white/10 bg-gradient-to-r from-primary/25 via-background to-secondary/25 shadow-2xl space-y-4 sm:space-y-5">
+              <h3 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-heading-light">
                 {corp.cta_headline || 'Ready to Find What You Need?'}
               </h3>
-              <p className="text-xs sm:text-base text-text-light/80 max-w-xl mx-auto">
+              <p className="text-xs sm:text-sm md:text-base text-text-light/80 max-w-xl mx-auto">
                 {corp.cta_subheadline || 'Explore our catalog or get in touch with our team today.'}
               </p>
-              <div className="flex flex-wrap justify-center gap-4 pt-2">
+              <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 pt-2 max-w-md mx-auto sm:max-w-none">
                 <Link
                   href={corp.cta_btn1_url || (!showServices ? '/projects' : '/services')}
-                  className="px-8 py-3.5 bg-primary text-white font-bold text-sm rounded-full hover:bg-primary/90 transition-all shadow-lg hover:-translate-y-0.5"
+                  className="px-7 py-3.5 bg-primary text-white font-bold text-sm rounded-full hover:bg-primary/90 transition-all shadow-lg hover:-translate-y-0.5 inline-flex items-center justify-center"
                 >
                   {corp.cta_btn1_text || (!showServices ? 'Explore Products' : 'Explore Services')} →
                 </Link>
                 <Link
                   href={corp.cta_btn2_url || '/contact'}
-                  className="px-8 py-3.5 border border-white/20 text-heading-light font-bold text-sm rounded-full hover:bg-white/10 transition-all"
+                  className="px-7 py-3.5 border border-white/20 text-heading-light font-bold text-sm rounded-full hover:bg-white/10 transition-all inline-flex items-center justify-center"
                 >
                   {corp.cta_btn2_text || 'Contact Us'}
                 </Link>

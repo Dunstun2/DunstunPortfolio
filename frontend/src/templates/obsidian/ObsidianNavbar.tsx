@@ -38,6 +38,7 @@ export default function ObsidianNavbar({ config }: TemplateSectionProps) {
   const { isCorporate, siteMode } = useSiteMode();
 
   const [businessType, setBusinessType] = useState<string>('both');
+  const [logoWidth, setLogoWidth] = useState(1000);
 
   useEffect(() => {
     Promise.all([
@@ -102,7 +103,7 @@ export default function ObsidianNavbar({ config }: TemplateSectionProps) {
                   src={settings.corporate_logo_url}
                   alt="Logo"
                   className="h-10 object-contain"
-                  style={{ width: '100%', maxWidth: '1000px' }}
+                  style={{ width: '100%', maxWidth: settings?.corporate_logo_width ? `${settings.corporate_logo_width}px` : '1000px' }}
                 />
               </InlineButtonLink>
             ) : (
