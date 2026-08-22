@@ -94,14 +94,15 @@ export default function ObsidianNavbar({ config }: TemplateSectionProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo Section */}
-          <div className="flex-shrink-0 flex items-center gap-3">
+          <div className="flex items-center gap-3">
             {isCorporate && settings?.corporate_logo_url ? (
               // Corporate Logo
-              <InlineButtonLink href="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+              <InlineButtonLink href="/" onClick={() => setIsOpen(false)} className="hover:opacity-80 transition-opacity">
                 <img
                   src={settings.corporate_logo_url}
                   alt="Logo"
-                  className="h-8 w-auto object-contain"
+                  className="h-10 object-contain"
+                  style={{ width: '100%', maxWidth: '1000px' }}
                 />
               </InlineButtonLink>
             ) : (

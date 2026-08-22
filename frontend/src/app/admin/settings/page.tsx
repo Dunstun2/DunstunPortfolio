@@ -1137,20 +1137,20 @@ export default function SettingsAdmin() {
               <div className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center bg-gray-900/50">
                 {corporateLogo ? (
                   <div className="flex flex-col items-center gap-4">
-                    <div className="w-full max-w-sm bg-gray-900 p-4 rounded-lg border border-gray-700 flex items-center justify-center" style={{ minHeight: '120px' }}>
+                    <div className="w-full max-w-2xl bg-gray-900 p-6 rounded-lg border border-gray-700 flex items-center justify-center" style={{ minHeight: '200px' }}>
                       <img
                         src={corporateLogo}
                         alt="Corporate Logo"
-                        className="max-h-24 max-w-full object-contain"
+                        className="max-h-48 max-w-full object-contain"
                       />
                     </div>
-                    <p className="text-xs text-gray-500">Current logo</p>
+                    <p className="text-xs text-gray-500">Current logo (as shown in navbar)</p>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-3">
                     <i className="fas fa-image text-4xl text-gray-600"></i>
                     <p className="text-gray-400">No logo uploaded yet</p>
-                    <p className="text-xs text-gray-500">Supports JPG, PNG, WebP, and other image formats</p>
+                    <p className="text-xs text-gray-500">Supports JPG, PNG, WebP, GIF, and other image formats</p>
                   </div>
                 )}
               </div>
@@ -1198,7 +1198,7 @@ export default function SettingsAdmin() {
                 <ul className="text-xs text-blue-200 space-y-1 list-disc list-inside">
                   <li>Maximum file size: 5 MB</li>
                   <li>Supported formats: JPG, PNG, WebP, GIF, SVG</li>
-                  <li>Recommended dimensions: 300x60 px (landscape)</li>
+                  <li>Recommended dimensions: 400x100 px (landscape)</li>
                   <li>Logo will be displayed in the navbar on corporate websites</li>
                 </ul>
               </div>
