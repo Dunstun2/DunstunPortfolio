@@ -4,7 +4,8 @@
  */
 
 const sequelize = require('../config/database');
-const models = require('../models');
+const portfolioModels = require('../modes/portfolio/models');
+const corporateModels = require('../modes/corporate/models');
 
 async function initDatabase() {
   try {
@@ -13,17 +14,29 @@ async function initDatabase() {
     console.log('✅ Database connection established');
 
     console.log('🔄 Syncing database models...');
-    await sequelize.sync({ alter: true });
+    await sequelize.sync();
     console.log('✅ All models synchronized successfully');
 
-    console.log('\n📊 Database tables:');
-    const [results] = await sequelize.query(`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public'
-      ORDER BY table_name;
-    `);
-    results.forEach(row => console.log(`  - ${row.table_name}`));
+    const dialect = sequelize.getDialect();
+    console.log(`\n📊 Database dialect: ${dialect}`);
+
+    if (dialect === 'postgres') {
+      const [results] = await sequelize.query(`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public'
+        ORDER BY table_name;
+      `);
+      results.forEach(row => console.log(`  - ${row.table_name}`));
+    } else if (dialect === 'sqlite') {
+      const [results] = await sequelize.query(`
+        SELECT name as table_name 
+        FROM sqlite_master 
+        WHERE type='table' AND name NOT LIKE 'sqlite_%'
+        ORDER BY name;
+      `);
+      results.forEach(row => console.log(`  - ${row.table_name}`));
+    }
 
     console.log('\n✅ Database initialization complete!');
     process.exit(0);
