@@ -14,10 +14,13 @@ async function initDatabase() {
     console.log('✅ Database connection established');
 
     console.log('🔄 Syncing database models...');
-    await sequelize.sync();
+    const dialect = sequelize.getDialect();
+    // Use alter:true on PostgreSQL to add missing columns to existing tables
+    // Use plain sync on SQLite to avoid foreign key constraint issues
+    const syncOptions = dialect === 'postgres' ? { alter: true } : {};
+    await sequelize.sync(syncOptions);
     console.log('✅ All models synchronized successfully');
 
-    const dialect = sequelize.getDialect();
     console.log(`\n📊 Database dialect: ${dialect}`);
 
     if (dialect === 'postgres') {
