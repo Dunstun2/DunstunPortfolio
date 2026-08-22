@@ -4,13 +4,26 @@ let io = null;
 
 module.exports = {
   init: (server) => {
-    const allowedOrigins = process.env.CORS_ORIGIN
-      ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-      : ['http://localhost:3000'];
-
     io = socketIo(server, {
       cors: {
-        origin: allowedOrigins,
+        origin: (origin, callback) => {
+          if (!origin) return callback(null, true);
+          const envOrigins = process.env.CORS_ORIGIN
+            ? process.env.CORS_ORIGIN.split(',').map(o => o.trim()).filter(Boolean)
+            : [];
+          const defaultOrigins = [
+            'http://localhost:3000',
+            'http://127.0.0.1:3000',
+            'https://dunstun-portfolio.vercel.app',
+          ];
+          const isAllowed =
+            envOrigins.includes('*') ||
+            envOrigins.includes(origin) ||
+            defaultOrigins.includes(origin) ||
+            origin.endsWith('.vercel.app') ||
+            origin.endsWith('.up.railway.app');
+          callback(null, isAllowed);
+        },
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
         credentials: true
       },

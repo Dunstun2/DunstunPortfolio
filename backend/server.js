@@ -35,25 +35,41 @@ if (process.env.NODE_ENV === 'production') {
 // CORS Configuration
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or Postman)
+    // Allow requests with no origin (like mobile apps, curl, Postman)
     if (!origin) return callback(null, true);
 
-    // Get allowed origins from environment variable
-    const allowedOrigins = process.env.CORS_ORIGIN
-      ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-      : ['http://localhost:3000']; // Default for development
+    const envOrigins = process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(',').map(o => o.trim()).filter(Boolean)
+      : [];
 
-    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+    const defaultOrigins = [
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'https://dunstun-portfolio.vercel.app',
+    ];
+
+    const isAllowed =
+      envOrigins.includes('*') ||
+      envOrigins.includes(origin) ||
+      defaultOrigins.includes(origin) ||
+      origin.endsWith('.vercel.app') ||
+      origin.endsWith('.up.railway.app');
+
+    if (isAllowed) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      logger.warn(`CORS rejected for origin: ${origin}`);
+      callback(null, false);
     }
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // Log incoming requests
