@@ -8,6 +8,7 @@ export default function AdminAbout() {
   const [activeTab, setActiveTab] = useState('general');
   const [editId, setEditId] = useState('');
   const [isLoaded, setIsLoaded] = useState(false);
+  const [siteMode, setSiteMode] = useState('portfolio');
   const [currentStatus, setCurrentStatus] = useState<'draft' | 'published' | 'archived'>('draft');
   const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
   const skipNextAutoSave = useRef(false);
@@ -62,10 +63,32 @@ export default function AdminAbout() {
   };
 
   const loadData = () => {
-    fetchApi('/about').then(res => {
-      const data = res.data && res.data.length > 0 ? res.data[0] : null;
-      if (data) {
-        startEdit(data);
+    Promise.all([
+      fetchApi('/about'),
+      fetchApi('/settings')
+    ]).then(([resAbout, resSettings]) => {
+      const mode = resSettings.data?.site_mode || 'portfolio';
+      setSiteMode(mode);
+
+      const data = resAbout.data && resAbout.data.length > 0 ? resAbout.data[0] : null;
+
+      if (mode === 'corporate') {
+        const isPortfolioContent = data && (
+          data.personal_introduction?.toLowerCase().includes('dunstun') ||
+          data.content?.toLowerCase().includes('developer') ||
+          data.title?.toLowerCase().includes('about me')
+        );
+
+        if (!data || isPortfolioContent) {
+          setFormData({ ...initialFormState });
+          setEditId('');
+        } else {
+          startEdit(data);
+        }
+      } else {
+        if (data) {
+          startEdit(data);
+        }
       }
       setIsLoaded(true);
     }).catch(err => {
@@ -256,18 +279,33 @@ export default function AdminAbout() {
   };
 
   const tabs = [
-    { id: 'general', label: 'General & Profile' },
-    { id: 'narrative', label: 'Narrative' },
-    { id: 'lists', label: 'Values, Milestones & Lists' }
+    { id: 'general', label: siteMode === 'corporate' ? 'Company Profile' : 'General & Profile' },
+    { id: 'narrative', label: siteMode === 'corporate' ? 'Overview & Narrative' : 'Narrative & Bio' },
+    { id: 'lists', label: siteMode === 'corporate' ? 'Values, Milestones & Stats' : 'Values, Milestones & Lists' }
   ];
+
+  const isCorporate = siteMode === 'corporate';
 
   return (
     <div>
-      <h1 className="text-xl sm:text-3xl font-bold mb-6 sm:mb-8 whitespace-nowrap">About Page Management</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+        <div>
+          <h1 className="text-xl sm:text-3xl font-bold">
+            {isCorporate ? 'About Us / Company Profile' : 'About Me & Professional Profile'}
+          </h1>
+          <p className="text-sm text-gray-400 mt-1">
+            {isCorporate 
+              ? 'Manage your organization overview, mission, core values, milestones, and impact metrics.' 
+              : 'Manage your personal story, bio, professional summary, mission, values, and achievements.'}
+          </p>
+        </div>
+      </div>
 
       <div className="bg-gray-800 rounded-lg mb-12 border border-gray-700 overflow-hidden">
         <div className="p-6 border-b border-gray-700 flex justify-between items-center">
-          <h2 className="text-xl font-bold">Edit About Page</h2>
+          <h2 className="text-xl font-bold">
+            {isCorporate ? 'Edit Company Profile & About Us' : 'Edit About Me'}
+          </h2>
         </div>
 
         <div className="flex border-b border-gray-700 overflow-x-auto">
@@ -288,16 +326,35 @@ export default function AdminAbout() {
           <div className={activeTab === 'general' ? 'block' : 'hidden'}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
-                <label className="block text-sm mb-1 text-gray-400">Your Name</label>
-                <input type="text" required value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
+                <label className="block text-sm mb-1 text-gray-400">
+                  {isCorporate ? 'Company / Organization Name' : 'Your Name'}
+                </label>
+                <input 
+                  type="text" 
+                  required 
+                  value={formData.title} 
+                  onChange={e => setFormData({ ...formData, title: e.target.value })} 
+                  placeholder={isCorporate ? 'e.g. Acme Innovations Inc. or About Our Company' : 'e.g. Jane Doe or About Me'}
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" 
+                />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-400">Professional Title</label>
-                <input type="text" value={formData.professional_title} onChange={e => setFormData({ ...formData, professional_title: e.target.value })} placeholder="e.g. Biomedical Engineer | Software Developer | UX/UI Designer" className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" />
+                <label className="block text-sm mb-1 text-gray-400">
+                  {isCorporate ? 'Tagline / Specialty' : 'Professional Title'}
+                </label>
+                <input 
+                  type="text" 
+                  value={formData.professional_title} 
+                  onChange={e => setFormData({ ...formData, professional_title: e.target.value })} 
+                  placeholder={isCorporate ? 'e.g. Enterprise Technology & Strategic Consulting' : 'e.g. Biomedical Engineer | Software Developer | UX/UI Designer'} 
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none" 
+                />
               </div>
             </div>
             <div className="mb-6">
-              <label className="block text-sm mb-1 text-gray-400">Profile Photograph</label>
+              <label className="block text-sm mb-1 text-gray-400">
+                {isCorporate ? 'Company Image / Overview Photo' : 'Profile Photograph'}
+              </label>
               <div className="flex gap-2 items-center">
                 {formData.image_url && (
                   <img src={formData.image_url} alt="Preview" className="w-10 h-10 rounded object-cover border border-gray-700 bg-gray-800 shrink-0" />
@@ -315,19 +372,51 @@ export default function AdminAbout() {
           <div className={activeTab === 'narrative' ? 'block' : 'hidden'}>
             <div className="space-y-8">
               <div>
-                <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">Personal Introduction</h3>
-                <textarea rows={6} value={formData.personal_introduction} onChange={e => setFormData({ ...formData, personal_introduction: e.target.value })} placeholder="Tell your story — who you are, your background, interests, and goals..." className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
+                <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">
+                  {isCorporate ? 'Company Introduction (Short Overview)' : 'Personal Introduction (Short Teaser)'}
+                </h3>
+                <textarea 
+                  rows={4} 
+                  value={formData.personal_introduction} 
+                  onChange={e => setFormData({ ...formData, personal_introduction: e.target.value })} 
+                  placeholder={isCorporate ? 'Short introductory teaser about your company...' : 'Tell your story — who you are, your background, and what drives you...'} 
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"
+                ></textarea>
               </div>
               <div>
-                <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">Professional Summary</h3>
-                <textarea rows={6} value={formData.professional_summary} onChange={e => setFormData({ ...formData, professional_summary: e.target.value })} placeholder="Your professional identity — years of experience, industries, specializations, achievements..." className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
+                <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">
+                  {isCorporate ? 'Detailed Bio & Story / Narrative' : 'Detailed Bio & Background Story'}
+                </h3>
+                <textarea 
+                  rows={6} 
+                  value={formData.content} 
+                  onChange={e => setFormData({ ...formData, content: e.target.value })} 
+                  placeholder="In-depth background story, journey, experiences, and technical focus..." 
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"
+                ></textarea>
               </div>
               <div>
-                <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">Mission Statement</h3>
+                <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">
+                  {isCorporate ? 'Company History & Capabilities Summary' : 'Professional Summary'}
+                </h3>
+                <textarea 
+                  rows={4} 
+                  value={formData.professional_summary} 
+                  onChange={e => setFormData({ ...formData, professional_summary: e.target.value })} 
+                  placeholder={isCorporate ? 'Enterprise summary of services, founding history, and industry leadership...' : 'Your professional identity — years of experience, industries, specializations, achievements...'} 
+                  className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"
+                ></textarea>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">
+                  {isCorporate ? 'Our Mission Statement' : 'Mission Statement'}
+                </h3>
                 <textarea rows={3} value={formData.mission_statement} onChange={e => setFormData({ ...formData, mission_statement: e.target.value })} placeholder="e.g. To develop innovative, accessible, and impactful solutions that empower individuals..." className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
               </div>
               <div>
-                <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">Vision Statement</h3>
+                <h3 className="text-lg font-bold border-b border-gray-700 pb-2 mb-4 text-white">
+                  {isCorporate ? 'Our Vision Statement' : 'Vision Statement'}
+                </h3>
                 <textarea rows={3} value={formData.vision_statement} onChange={e => setFormData({ ...formData, vision_statement: e.target.value })} placeholder="e.g. To become a leading innovator who bridges healthcare, technology, and entrepreneurship..." className="w-full bg-gray-900 border border-gray-700 rounded p-2 text-white focus:border-primary focus:outline-none"></textarea>
               </div>
             </div>

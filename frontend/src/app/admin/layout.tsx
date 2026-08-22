@@ -3,22 +3,25 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import ThemeToggle from '@/components/ThemeToggle';
+import { fetchApi } from '@/utils/api';
 
 const navItems = [
   { label: 'Dashboard', href: '/admin', icon: '📊' },
   { section: 'Content' },
-  { label: 'Hero Section', href: '/admin/hero', icon: '⚡' },
-  { label: 'About Section', href: '/admin/about', icon: '👤' },
+  { label: 'Hero Section', corporateLabel: 'Hero Banner', href: '/admin/hero', corporateHref: '/admin/corporate/hero', icon: '⚡' },
+  { label: 'About Section', corporateLabel: 'About Us', href: '/admin/about', corporateHref: '/admin/corporate/about', icon: '🏢' },
   { label: 'Services', href: '/admin/services', icon: '💼' },
-  { label: 'Projects', href: '/admin/projects', icon: '🚀' },
-  { label: 'Events', href: '/admin/events', icon: '📅' },
-  { section: 'Resume' },
-  { label: 'CV Import', href: '/admin/cv-import', icon: '📄' },
-  { label: 'Experience', href: '/admin/experience', icon: '💼' },
-  { label: 'Education', href: '/admin/education', icon: '🎓' },
-  { label: 'Achievements', href: '/admin/achievements', icon: '🏆' },
-  { label: 'Certifications', href: '/admin/certifications', icon: '📜' },
-  { label: 'Skills', href: '/admin/skills', icon: '🛠️' },
+  { label: 'Projects / Work', corporateLabel: 'Projects & Case Studies', href: '/admin/projects', icon: '🚀' },
+  { label: 'Events', corporateLabel: 'Events & Webinars', href: '/admin/events', icon: '📅' },
+  { section: 'Resume', portfolioOnly: true },
+  { label: 'CV Import', href: '/admin/cv-import', icon: '📄', portfolioOnly: true },
+  { label: 'Experience', href: '/admin/experience', icon: '💼', portfolioOnly: true },
+  { label: 'Education', href: '/admin/education', icon: '🎓', portfolioOnly: true },
+  { label: 'Achievements', href: '/admin/achievements', icon: '🏆', portfolioOnly: true },
+  { label: 'Certifications', href: '/admin/certifications', icon: '📜', portfolioOnly: true },
+  { label: 'Referees', corporateLabel: 'Client References', href: '/admin/referees', icon: '👥', portfolioOnly: true },
+  { label: 'Skills', href: '/admin/skills', icon: '🛠️', portfolioOnly: true },
+
   { section: 'Blog' },
   { label: 'Blog Posts', href: '/admin/blog', icon: '📝' },
   { label: 'Blog Categories', href: '/admin/blog/categories', icon: '📂' },
@@ -46,6 +49,33 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [siteMode, setSiteMode] = useState<string>('portfolio');
+  const [isDefaultAdmin, setIsDefaultAdmin] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('user') || '{}');
+      if (u.isDefaultAdmin || u.id === 0 || u.email === 'admin@example.com') {
+        setIsDefaultAdmin(true);
+      }
+    } catch { }
+
+    const loadSettings = () => {
+      fetchApi('/settings')
+        .then(res => {
+          if (res.data?.site_mode) {
+            setSiteMode(res.data.site_mode);
+          }
+        })
+        .catch(() => { });
+    };
+
+    loadSettings();
+
+    const handleSettingsUpdated = () => loadSettings();
+    window.addEventListener('settings-updated', handleSettingsUpdated);
+    return () => window.removeEventListener('settings-updated', handleSettingsUpdated);
+  }, []);
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -55,21 +85,30 @@ export default function AdminLayout({
   const handleSignOut = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
       router.push('/admin/login');
     }
   };
 
-  // Don't show header/sidebar on login/forgot-password pages
-  const isAuthPage = pathname === '/admin/login' || pathname === '/admin/forgot-password';
+  // Don't show header/sidebar on login, forgot-password, or select-mode pages
+  const isAuthPage = pathname === '/admin/login' || pathname === '/admin/forgot-password' || pathname === '/admin/select-mode';
 
   if (isAuthPage) {
     return <div className="min-h-screen bg-bg-dark text-text-light">{children}</div>;
   }
 
+  // Filter navItems based on siteMode
+  const filteredNavItems = navItems.filter(item => {
+    if (siteMode === 'corporate' && (item as any).portfolioOnly) {
+      return false;
+    }
+    return true;
+  });
+
   // Get current active section label
-  const currentItem = navItems.find(item => item.href === pathname);
-  const activeTitle = currentItem?.label || 'Dashboard';
+  const currentItem = filteredNavItems.find((item: any) => item.href === pathname);
+  const activeTitle = (currentItem as any)?.label || 'Dashboard';
 
   return (
     <div className="min-h-screen bg-bg-dark text-text-light flex flex-col admin-panel">
@@ -112,16 +151,14 @@ export default function AdminLayout({
         </div>
       </header>
 
-      {/* Mobile Slide-over Sidebar (Overlays left section of page, leaving right section clearly visible) */}
+      {/* Mobile Slide-over Sidebar */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 md:hidden flex">
-          {/* Transparent backdrop so right side of page remains clearly visible */}
           <div
             className="fixed inset-0 bg-black/20 backdrop-blur-[1px] transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
           />
 
-          {/* Sidebar Drawer on left */}
           <div className="relative w-72 max-w-[78vw] bg-gray-900/95 backdrop-blur-xl h-full border-r border-gray-800 p-4 flex flex-col z-50 shadow-2xl overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-gray-800 mb-3">
               <span className="text-base font-extrabold text-primary tracking-tight">
@@ -136,7 +173,7 @@ export default function AdminLayout({
             </div>
 
             <nav className="space-y-1 flex-1 overflow-y-auto">
-              {navItems.map((item: any, i) => {
+              {filteredNavItems.map((item: any, i) => {
                 if ('section' in item) {
                   return (
                     <p key={i} className="text-xs text-primary font-bold uppercase tracking-wider pt-3 pb-1 px-2 border-t border-gray-800/80 first:border-0">
@@ -144,17 +181,19 @@ export default function AdminLayout({
                     </p>
                   );
                 }
-                const isActive = pathname === item.href;
+                const effectiveHref = (siteMode === 'corporate' && item.corporateHref) ? item.corporateHref : (item.href || '#');
+                const isActive = pathname === effectiveHref || pathname === item.href;
+                const label = (siteMode === 'corporate' && item.corporateLabel) ? item.corporateLabel : item.label;
                 return (
                   <Link
                     key={i}
-                    href={item.href || '#'}
+                    href={effectiveHref}
                     onClick={() => setMobileMenuOpen(false)}
                     className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${isActive ? 'bg-primary/20 text-primary font-bold border-l-4 border-primary' : 'text-gray-300 hover:bg-gray-800'
                       }`}
                   >
                     <span>{item.icon}</span>
-                    <span>{item.label}</span>
+                    <span>{label}</span>
                   </Link>
                 );
               })}
@@ -184,7 +223,7 @@ export default function AdminLayout({
         {/* Full Desktop Sidebar */}
         <aside className="w-64 admin-sidebar backdrop-blur-xl border-r border-white/10 hidden md:flex md:flex-col flex-shrink-0">
           <nav className="p-4 space-y-1 flex-1 overflow-y-auto">
-            {navItems.map((item, i) => {
+            {filteredNavItems.map((item: any, i) => {
               if ('section' in item) {
                 return (
                   <p key={i} className="text-xs text-text-light/75 font-bold uppercase tracking-wider pt-4 pb-1 px-2">
@@ -192,18 +231,20 @@ export default function AdminLayout({
                   </p>
                 );
               }
-              const isActive = pathname === item.href;
+              const effectiveHref = (siteMode === 'corporate' && item.corporateHref) ? item.corporateHref : (item.href || '#');
+              const isActive = pathname === effectiveHref || pathname === item.href;
+              const label = (siteMode === 'corporate' && item.corporateLabel) ? item.corporateLabel : item.label;
               return (
                 <Link
                   key={i}
-                  href={item.href || '#'}
+                  href={effectiveHref}
                   className={`flex items-center gap-2.5 p-2 rounded-lg transition-colors text-sm ${isActive
                     ? 'bg-primary/20 text-primary font-semibold border-l-4 border-primary'
                     : 'text-text-light/80 hover:bg-black/5 dark:hover:bg-white/5'
                     }`}
                 >
                   <span>{item.icon}</span>
-                  <span>{item.label}</span>
+                  <span>{label}</span>
                 </Link>
               );
             })}

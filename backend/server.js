@@ -1,14 +1,17 @@
+// Server initialization with dynamic mode delegation - corporate routes mounted (v6) - show-videos added
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-const routes = require('./routes');
+const routes = require('./modes/portfolio/routes');
+const corporateRoutes = require('./modes/corporate/routes');
 const path = require('path');
 const logger = require('./config/logger');
 const { errorHandler, notFound } = require('./middleware/errorHandler.middleware');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+// Trigger restart to reload routes: portfolio & corporate namespaces mounted (v4)
 
 // Monitor memory usage (RSS-based, less noisy)
 if (process.env.NODE_ENV !== 'production') {
@@ -85,7 +88,7 @@ app.use('/api-docs', (req, res, next) => {
 });
 
 // Serve static files from the uploads directory with correct Content-Type from DB
-const { Media } = require('./models');
+const { Media } = require('./modes/portfolio/models');
 app.use('/uploads', async (req, res, next) => {
   try {
     const filePath = '/uploads' + req.path;
@@ -103,7 +106,8 @@ app.use('/uploads', async (req, res, next) => {
   next();
 }, express.static(path.join(__dirname, '..', 'uploads')));
 
-// Mount the main API routes
+// Mount mode API routes
+app.use('/api/corporate', corporateRoutes);
 app.use('/api', routes);
 
 // 404 handler - must come after all other routes
@@ -141,8 +145,22 @@ process.on('SIGINT', async () => {
   });
 });
 
+// Seed default templates
+const templateService = require('./modes/portfolio/services/template.service');
+const { sequelize } = require('./modes/portfolio/models');
+
+sequelize.sync().then(async () => {
+  try {
+    await templateService.seedDefaults();
+    logger.info('Default templates seeded (if needed)');
+  } catch (err) {
+    logger.error('Error seeding templates:', err.message);
+  }
+});
+
 server.listen(PORT, () => {
   logger.info(`Backend server is running on http://localhost:${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
   logger.info(`API Documentation: http://localhost:${PORT}/api-docs`);
 });
+ 

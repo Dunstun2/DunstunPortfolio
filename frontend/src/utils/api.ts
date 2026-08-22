@@ -1,7 +1,7 @@
 import { API_BASE_URL } from './urls';
 
 // Endpoints that should never send an Authorization header
-const PUBLIC_ENDPOINTS = ['/auth/login', '/auth/forgot-password', '/auth/reset-password'];
+const PUBLIC_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password'];
 
 const MAX_RETRIES = 5;
 const INITIAL_RETRY_DELAY = 1000; // ms

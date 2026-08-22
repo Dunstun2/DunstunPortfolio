@@ -3,7 +3,11 @@ import { useEffect, useState } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
+import Link from '@/components/PreviewLink';
+import { useInlineEdit } from '@/templateEngine/InlineEditContext';
+import InlineResourceText from '@/templateEngine/components/InlineResourceText';
+import InlineResourceImage from '@/templateEngine/components/InlineResourceImage';
+import InlineEditableList from '@/templateEngine/components/InlineEditableList';
 
 interface Service {
   id: string;
@@ -19,6 +23,7 @@ interface Service {
 }
 
 export default function ServiceDetailPage() {
+  const { isInlineEditing } = useInlineEdit();
   const refreshKeySettings = useRealtimeRefresh('settings');
   const params = useParams();
   const slug = params.slug as string;
@@ -81,7 +86,7 @@ export default function ServiceDetailPage() {
   }
 
   return (
-    <div className="min-h-screen py-12 md:py-20">
+    <div className="min-h-screen pt-8 pb-12 md:pb-20">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <Link
@@ -94,21 +99,26 @@ export default function ServiceDetailPage() {
         {/* Service Header */}
         <div className="glass rounded-2xl overflow-hidden mb-8">
           {/* Hero: Image or Placeholder */}
-          {service.image_url ? (
-            <div className="overflow-hidden relative">
-              <img
-                src={service.image_url}
+          {(service.image_url || isInlineEditing) ? (
+            <div className="overflow-hidden relative min-h-[300px]">
+              <InlineResourceImage
+                resource="services"
+                id={service.id}
+                field="image_url"
+                currentSrc={service.image_url || ''}
                 alt={service.name}
                 className="w-full h-auto"
+                wrapperClassName="w-full h-full"
+                width={1000}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
               <div className="absolute bottom-0 left-0 right-0 p-8">
                 <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
-                  {service.name}
+                  <InlineResourceText resource="services" id={service.id} field="name" defaultValue={service.name} />
                 </h1>
-                {service.price && (
+                {(service.price || isInlineEditing) && (
                   <div className="inline-block px-6 py-2 bg-primary rounded-full text-white font-bold text-xl">
-                    {service.price}
+                    <InlineResourceText resource="services" id={service.id} field="price" defaultValue={service.price || ''} placeholder="Set Price" />
                   </div>
                 )}
               </div>
@@ -117,11 +127,11 @@ export default function ServiceDetailPage() {
             <div className="p-12 text-center border-b border-text-light/10 bg-gradient-to-br from-primary/10 to-transparent">
               <div className="text-8xl mb-6 font-bold text-primary/20">{service.name[0]}</div>
               <h1 className="text-4xl md:text-6xl font-bold text-heading-light mb-4">
-                {service.name}
+                <InlineResourceText resource="services" id={service.id} field="name" defaultValue={service.name} />
               </h1>
-              {service.price && (
+              {(service.price || isInlineEditing) && (
                 <div className="inline-block px-6 py-2 bg-primary rounded-full text-white font-bold text-xl">
-                  {service.price}
+                  <InlineResourceText resource="services" id={service.id} field="price" defaultValue={service.price || ''} placeholder="Set Price" />
                 </div>
               )}
             </div>
@@ -132,26 +142,33 @@ export default function ServiceDetailPage() {
             {/* Full Description */}
             <div className="prose prose-invert max-w-none mb-12">
               <p className="text-text-light leading-relaxed whitespace-pre-line">
-                {service.description}
+                <InlineResourceText resource="services" id={service.id} field="description" multiline defaultValue={service.description} />
               </p>
             </div>
 
             {/* Features Section */}
-            {service.features && service.features.length > 0 && (
+            {(service.features || isInlineEditing) && (
               <div className="mb-12">
                 <h2 className="text-2xl md:text-3xl font-bold text-heading-light mb-6">
                   What's <span className="text-primary">Included</span>
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {service.features.map((feature, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-start gap-3 p-4 rounded-xl bg-black/20 border border-primary/20 hover:border-primary/40 transition-colors"
-                    >
-                      <span className="text-primary text-xl mt-0.5">✓</span>
-                      <span className="text-text-light">{feature}</span>
-                    </div>
-                  ))}
+                  <InlineEditableList
+                    resource="services"
+                    id={service.id}
+                    field="features"
+                    items={service.features || []}
+                    placeholder="Add feature"
+                    renderItem={(feature, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-start gap-3 p-4 rounded-xl bg-black/20 border border-primary/20 hover:border-primary/40 transition-colors w-full"
+                      >
+                        <span className="text-primary text-xl mt-0.5">✓</span>
+                        <span className="text-text-light">{feature}</span>
+                      </div>
+                    )}
+                  />
                 </div>
               </div>
             )}

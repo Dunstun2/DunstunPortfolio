@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
 
+import BlogNavigation from '../BlogNavigation';
+
 export default function AdminBlogTags() {
   const refreshKey = useRealtimeRefresh('blogTags');
   const [items, setItems] = useState<any[]>([]);
@@ -60,6 +62,7 @@ export default function AdminBlogTags() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
+      <BlogNavigation />
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-white mb-1">Blog Tags</h1>

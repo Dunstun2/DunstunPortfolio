@@ -9,7 +9,9 @@ import DynamicPageSettingsForm from '@/components/admin/DynamicPageSettingsForm'
 export default function SettingsAdmin() {
   const refreshKeySettings = useRealtimeRefresh('settings');
   const refreshKeySocial = useRealtimeRefresh('social');
-  const [activeTab, setActiveTab] = useState<'theme' | 'content' | 'social'>('theme');
+  const [activeTab, setActiveTab] = useState<'template' | 'theme' | 'branding' | 'content' | 'social'>('template');
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [activeTemplate, setActiveTemplate] = useState('obsidian');
 
   // Theme State
   const [primary, setPrimary] = useState('59 130 246');
@@ -84,6 +86,11 @@ export default function SettingsAdmin() {
   // Social State
   const [socialAccounts, setSocialAccounts] = useState<any[]>([]);
 
+  // Branding State (Logo)
+  const [corporateLogo, setCorporateLogo] = useState('');
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoError, setLogoError] = useState('');
+
   // All settings data for dynamic form
   const [allSettings, setAllSettings] = useState<Record<string, any>>({});
 
@@ -113,7 +120,9 @@ export default function SettingsAdmin() {
         if (res.data.nav_text_color) setNavTextColor(res.data.nav_text_color);
         if (res.data.subheading_color) setSubheadingColor(res.data.subheading_color);
         if (res.data.button_text_color) setButtonTextColor(res.data.button_text_color);
+        if (res.data.active_template) setActiveTemplate(res.data.active_template);
         if (res.data.show_social_floater !== undefined) setShowSocialFloater(res.data.show_social_floater === 'true');
+        if (res.data.corporate_logo_url) setCorporateLogo(res.data.corporate_logo_url);
 
         // Services Section Content
         if (res.data.services_section_title) setServicesSectionTitle(res.data.services_section_title);
@@ -177,6 +186,13 @@ export default function SettingsAdmin() {
         setSocialAccounts(res.data || []);
       }
     }).catch(err => console.error(err));
+
+    // Load templates
+    fetchApi('/templates').then(res => {
+      if (res.success) {
+        setTemplates(res.data || []);
+      }
+    }).catch(err => console.error(err));
   }, [router, refreshKeySettings, refreshKeySocial]);
 
   // Real-time theme preview
@@ -208,6 +224,7 @@ export default function SettingsAdmin() {
       await fetchApi('/settings', {
         method: 'PUT',
         body: JSON.stringify({
+          active_template: activeTemplate,
           primary_color: primary,
           secondary_color: secondary,
           background_dark_color: bgDark,
@@ -482,6 +499,82 @@ export default function SettingsAdmin() {
     return `${r} ${g} ${b}`;
   };
 
+  // Logo Upload Handler
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setLogoError('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setLogoError('File size must be less than 5MB');
+      return;
+    }
+
+    setLogoUploading(true);
+    setLogoError('');
+    setMessage('Uploading logo...');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', '/branding');
+
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000'}/media`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error('Upload failed');
+
+      const resData = await res.json();
+      const logoUrl = resData.data.file_path;
+
+      // Save logo URL to settings
+      await fetchApi('/settings', {
+        method: 'PUT',
+        body: JSON.stringify({
+          corporate_logo_url: logoUrl,
+        })
+      });
+
+      setCorporateLogo(logoUrl);
+      setMessage('Logo uploaded successfully!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err: any) {
+      setLogoError(err.message || 'Failed to upload logo');
+      setMessage(`Error: ${err.message}`);
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
+  const handleRemoveLogo = async () => {
+    if (!confirm('Are you sure you want to remove the logo?')) return;
+
+    setMessage('Removing logo...');
+    try {
+      await fetchApi('/settings', {
+        method: 'PUT',
+        body: JSON.stringify({
+          corporate_logo_url: '',
+        })
+      });
+
+      setCorporateLogo('');
+      setMessage('Logo removed successfully!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err: any) {
+      setMessage(`Error: ${err.message}`);
+    }
+  };
   // --- Social Logic ---
   const isWhatsApp = (platformName: string) => platformName?.toLowerCase().includes('whatsapp');
 
@@ -585,17 +678,48 @@ export default function SettingsAdmin() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-white">Global Settings</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Global Settings</h1>
+          <p className="text-sm text-gray-400 mt-1">Configure website template, theme colors, titles, and site mode.</p>
+        </div>
+
+        {/* Website Mode Switcher */}
+        <div className="flex items-center gap-3 bg-gray-900 border border-gray-800 p-3 rounded-xl shadow-sm">
+          <div className="text-xs">
+            <span className="text-gray-400 block font-semibold">Website Type:</span>
+            <span className={`font-bold text-sm ${allSettings?.site_mode === 'corporate' ? 'text-secondary' : 'text-primary'}`}>
+              {allSettings?.site_mode === 'corporate' ? '🏢 Corporate' : '👤 Portfolio'}
+            </span>
+          </div>
+          <a
+            href="/admin/select-mode"
+            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 rounded-lg text-xs font-bold transition-all"
+          >
+            Change Type ⚙️
+          </a>
+        </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-1 bg-gray-900 p-1 rounded-lg w-fit mb-8 border border-gray-800">
+      <div className="flex space-x-1 bg-gray-900 p-1 rounded-lg w-fit mb-8 border border-gray-800 flex-wrap">
+        <button
+          onClick={() => setActiveTab('template')}
+          className={`px-6 py-2.5 rounded-md font-medium text-sm transition-all duration-200 ${activeTab === 'template' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
+        >
+          <i className="fas fa-layer-group mr-2"></i>Template
+        </button>
         <button
           onClick={() => setActiveTab('theme')}
           className={`px-6 py-2.5 rounded-md font-medium text-sm transition-all duration-200 ${activeTab === 'theme' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
         >
-          <i className="fas fa-palette mr-2"></i>Theme
+          <i className="fas fa-palette mr-2"></i>Colors
+        </button>
+        <button
+          onClick={() => setActiveTab('branding')}
+          className={`px-6 py-2.5 rounded-md font-medium text-sm transition-all duration-200 ${activeTab === 'branding' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
+        >
+          <i className="fas fa-image mr-2"></i>Branding
         </button>
         <button
           onClick={() => setActiveTab('content')}
@@ -616,6 +740,84 @@ export default function SettingsAdmin() {
         <div className="mb-6 p-4 bg-blue-900/50 text-blue-200 rounded-lg border border-blue-800 max-w-3xl flex items-center animate-fade-in">
           <svg className="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           {message}
+        </div>
+      )}
+
+      {/* ======================== TEMPLATE TAB ======================== */}
+      {activeTab === 'template' && (
+        <div className="animate-fade-in space-y-8">
+          <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-xl">
+            <h2 className="text-xl font-bold mb-1 text-white">Select Template</h2>
+            <p className="text-gray-400 mb-6 text-sm">
+              Choose a design system for your portfolio. This changes layout, typography, and styling, while keeping your content intact.
+            </p>
+
+            <form onSubmit={handleThemeSave} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {templates.map(tmpl => (
+                  <div
+                    key={tmpl.id}
+                    onClick={() => setActiveTemplate(tmpl.slug)}
+                    className={`cursor-pointer border-2 rounded-xl p-4 transition-all duration-300 ${activeTemplate === tmpl.slug
+                      ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.3)]'
+                      : 'border-gray-700 bg-gray-900 hover:border-gray-500'
+                      }`}
+                  >
+                    <div className="aspect-video bg-gray-800 rounded-lg mb-4 flex items-center justify-center overflow-hidden relative">
+                      {tmpl.thumbnail_url ? (
+                        <img src={tmpl.thumbnail_url} alt={tmpl.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="text-gray-500 font-medium">{tmpl.name} Preview</div>
+                      )}
+                      {activeTemplate === tmpl.slug && (
+                        <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                          <i className="fas fa-check"></i> Active
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-1">{tmpl.name}</h3>
+                    <p className="text-sm text-gray-400 line-clamp-2">{tmpl.description}</p>
+                    <div className="mt-4 flex items-center justify-between gap-2">
+                      <span className="inline-block text-xs uppercase tracking-wider text-primary font-medium bg-primary/20 px-2 py-1 rounded">
+                        {tmpl.category}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`/?preview_template=${tmpl.slug}&inline_edit=true`, '_blank');
+                          }}
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-300 hover:text-amber-200 bg-amber-950/60 hover:bg-amber-900/80 border border-amber-500/50 px-3 py-1.5 rounded-lg transition-all duration-200"
+                          title="Open live inline template editor"
+                        >
+                          <i className="fas fa-pen-to-square"></i> Live Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`/?preview_template=${tmpl.slug}`, '_blank');
+                          }}
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-300 hover:text-primary bg-gray-800 hover:bg-gray-700 border border-gray-600 hover:border-primary/50 px-3 py-1.5 rounded-lg transition-all duration-200"
+                        >
+                          <i className="fas fa-eye"></i> Preview
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="pt-6 border-t border-gray-700">
+                <button
+                  type="submit"
+                  className="bg-primary text-white px-8 py-3 rounded-md font-bold hover:bg-blue-600 transition-colors shadow-lg"
+                >
+                  Save Template
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
@@ -916,6 +1118,98 @@ export default function SettingsAdmin() {
                 <li><strong>Card Surfaces:</strong> Semi-transparent glass panels with backdrop filters that shift between transparent dark (Dark theme) and frosted white (Light theme) to group items cleanly.</li>
                 <li><strong>Text & Details:</strong> High-contrast Slate text with varying opacities to establish clean content hierarchy.</li>
               </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================== BRANDING TAB ======================== */}
+      {activeTab === 'branding' && (
+        <div className="animate-fade-in space-y-8">
+          <div className="bg-gray-800 p-6 rounded-xl max-w-2xl border border-gray-700 shadow-xl">
+            <h2 className="text-xl font-bold mb-1 text-white">Corporate Logo</h2>
+            <p className="text-gray-400 mb-6 text-sm">
+              Upload a logo that will be displayed in the navbar when the site is in corporate mode.
+            </p>
+
+            <div className="space-y-6">
+              {/* Logo Preview */}
+              <div className="border-2 border-dashed border-gray-700 rounded-lg p-8 text-center bg-gray-900/50">
+                {corporateLogo ? (
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-full max-w-sm bg-gray-900 p-4 rounded-lg border border-gray-700 flex items-center justify-center" style={{ minHeight: '120px' }}>
+                      <img
+                        src={corporateLogo}
+                        alt="Corporate Logo"
+                        className="max-h-24 max-w-full object-contain"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500">Current logo</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-3">
+                    <i className="fas fa-image text-4xl text-gray-600"></i>
+                    <p className="text-gray-400">No logo uploaded yet</p>
+                    <p className="text-xs text-gray-500">Supports JPG, PNG, WebP, and other image formats</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Upload Input */}
+              <div>
+                <label className="block text-sm font-semibold mb-3 text-gray-300">Upload Logo</label>
+                <div className="flex gap-3">
+                  <label className="flex-1 relative cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      disabled={logoUploading}
+                      className="sr-only"
+                    />
+                    <div className="px-4 py-3 bg-gray-900 border-2 border-gray-700 hover:border-primary rounded-lg text-center text-sm font-medium text-gray-300 hover:text-white transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ pointerEvents: logoUploading ? 'none' : 'auto', opacity: logoUploading ? 0.5 : 1 }}>
+                      {logoUploading ? (
+                        <>
+                          <i className="fas fa-spinner fa-spin mr-2"></i> Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fas fa-upload mr-2"></i> Choose Logo
+                        </>
+                      )}
+                    </div>
+                  </label>
+                  {corporateLogo && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveLogo}
+                      className="px-6 py-3 bg-red-900/30 hover:bg-red-900/50 text-red-400 hover:text-red-300 border border-red-700/50 hover:border-red-700 rounded-lg font-medium text-sm transition-all duration-200"
+                    >
+                      <i className="fas fa-trash-alt mr-2"></i> Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* File Requirements */}
+              <div className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-4">
+                <h3 className="font-semibold text-blue-300 mb-2 text-sm">Requirements</h3>
+                <ul className="text-xs text-blue-200 space-y-1 list-disc list-inside">
+                  <li>Maximum file size: 5 MB</li>
+                  <li>Supported formats: JPG, PNG, WebP, GIF, SVG</li>
+                  <li>Recommended dimensions: 200x60 px (landscape)</li>
+                  <li>Logo will be displayed in the navbar on corporate websites</li>
+                </ul>
+              </div>
+
+              {/* Error Display */}
+              {logoError && (
+                <div className="p-4 bg-red-900/20 border border-red-800/50 rounded-lg text-red-400 text-sm">
+                  <i className="fas fa-exclamation-circle mr-2"></i>
+                  {logoError}
+                </div>
+              )}
             </div>
           </div>
         </div>

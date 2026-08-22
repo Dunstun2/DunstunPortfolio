@@ -1,18 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
+import { TemplateProvider } from "@/templateEngine";
 import ThemeProvider from "@/components/ThemeProvider";
-import SocialFloater from "@/components/layout/SocialFloater";
-import ContactCTA from "@/components/layout/ContactCTA";
 import AnalyticsProvider from "@/components/AnalyticsProvider";
-import BackButton from "@/components/layout/BackButton";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
+import PublicLayoutWrapper from "@/components/PublicLayoutWrapper";
+import { SiteModeProvider } from "@/utils/useSiteMode";
 
 export const metadata: Metadata = {
   title: {
@@ -51,20 +44,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans`}>
+    <html lang="en" className="scroll-smooth" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <body className="font-sans">
         <ThemeProvider>
-          <AnalyticsProvider />
-          <Navbar />
-          <SocialFloater />
-          <BackButton />
-          <main className="min-h-screen pt-16">
-            {children}
-          </main>
-          <ContactCTA />
-          <Footer />
+          <Suspense fallback={null}>
+            <SiteModeProvider>
+              <TemplateProvider>
+                <AnalyticsProvider />
+                <PublicLayoutWrapper>
+                  {children}
+                </PublicLayoutWrapper>
+              </TemplateProvider>
+            </SiteModeProvider>
+          </Suspense>
         </ThemeProvider>
       </body>
     </html>
   );
 }
+

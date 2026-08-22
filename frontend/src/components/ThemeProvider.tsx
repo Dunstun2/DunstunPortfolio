@@ -108,7 +108,7 @@ function ThemeVariableSync() {
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
-    <NextThemesProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+    <NextThemesProvider attribute="class" defaultTheme="dark" enableSystem={false} enableColorScheme={false}>
       <ThemeVariableSync />
       {children}
     </NextThemesProvider>

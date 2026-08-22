@@ -3,7 +3,8 @@
 
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Upload, FileText, CheckCircle, AlertCircle, Loader2, Download, Trash2, Eye, X, Info } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, Loader2, Download, Trash2, Eye, X, Info, Pencil, Save } from 'lucide-react';
+import { API_BASE_URL } from '@/utils/urls';
 
 export default function CVImportPage() {
   const router = useRouter();
@@ -21,6 +22,10 @@ export default function CVImportPage() {
   const [reviewedSections, setReviewedSections] = useState<string[]>([]);
   const [documentType, setDocumentType] = useState<string>('auto');
   const [previewSection, setPreviewSection] = useState<string | null>(null);
+
+  // Inline editing state
+  const [editingItem, setEditingItem] = useState<{ section: string; index: number } | null>(null);
+  const [editDraft, setEditDraft] = useState<any>(null);
 
   // Handle file selection
   const handleFileSelect = (selectedFile: File) => {
@@ -92,7 +97,7 @@ export default function CVImportPage() {
       formData.append('documentType', documentType);
 
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cv/upload`, {
+      const response = await fetch(`${API_BASE_URL}/cv/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -148,7 +153,7 @@ export default function CVImportPage() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cv/import/${importId}`, {
+      const response = await fetch(`${API_BASE_URL}/cv/import/${importId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -215,6 +220,32 @@ export default function CVImportPage() {
     setSelectedSections([]);
   };
 
+  // Open the inline editor for a specific item
+  const openEdit = (section: string, index: number) => {
+    const item = mappedData?.[section]?.[index];
+    if (!item) return;
+    setEditingItem({ section, index });
+    setEditDraft({ ...item });
+  };
+
+  // Update a field in the draft
+  const updateDraftField = (field: string, value: string) => {
+    setEditDraft((prev: any) => ({ ...prev, [field]: value }));
+  };
+
+  // Save edits back to mappedData
+  const saveEdit = () => {
+    if (!editingItem || !editDraft) return;
+    const { section, index } = editingItem;
+    setMappedData((prev: any) => {
+      const updated = [...(prev[section] || [])];
+      updated[index] = { ...updated[index], ...editDraft };
+      return { ...prev, [section]: updated };
+    });
+    setEditingItem(null);
+    setEditDraft(null);
+  };
+
   const getPreviewData = () => {
     return mappedData;
   };
@@ -275,14 +306,37 @@ export default function CVImportPage() {
             <h2 className="text-2xl font-bold mb-4">Skills</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {data.skills?.map((skill: any, i: number) => (
-                <div key={i} className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
-                  <p className="font-semibold text-gray-900 dark:text-white">
-                    {skill.skill_name || skill.name || skill}
-                  </p>
+                <div key={i} className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 relative group">
+                  <div className="flex justify-between items-start mb-1 gap-2">
+                    <p className="font-semibold text-gray-900 dark:text-white">
+                      {skill.skill_name || skill.name || skill}
+                    </p>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {skill.existsInDb ? (
+                        <span className="text-[10px] uppercase tracking-wider font-bold bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700 whitespace-nowrap">
+                          Exists (Will Update)
+                        </span>
+                      ) : (
+                        <span className="text-[10px] uppercase tracking-wider font-bold bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded border border-green-300 dark:border-green-700 whitespace-nowrap">
+                          New
+                        </span>
+                      )}
+                      <button
+                        onClick={() => openEdit('skills', i)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-blue-200 dark:hover:bg-blue-700 text-blue-600 dark:text-blue-300"
+                        title="Edit this skill"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
                   {skill.proficiency_level && (
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       Level: {skill.proficiency_level}
                     </p>
+                  )}
+                  {skill.category && (
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{skill.category}</p>
                   )}
                 </div>
               ))}
@@ -296,10 +350,30 @@ export default function CVImportPage() {
             <h2 className="text-2xl font-bold mb-4">Experience</h2>
             <div className="space-y-6">
               {data.experience?.map((exp: any, i: number) => (
-                <div key={i} className="border-l-4 border-blue-500 pl-4">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {exp.position_title || exp.title}
-                  </h3>
+                <div key={i} className="border-l-4 border-blue-500 pl-4 group">
+                  <div className="flex justify-between items-start gap-2">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      {exp.position_title || exp.position || exp.title}
+                    </h3>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {exp.existsInDb ? (
+                        <span className="text-xs font-semibold bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded border border-amber-300 dark:border-amber-700">
+                          Already Exists (Will Update)
+                        </span>
+                      ) : (
+                        <span className="text-xs font-semibold bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 px-2 py-0.5 rounded border border-green-300 dark:border-green-700">
+                          New Entry
+                        </span>
+                      )}
+                      <button
+                        onClick={() => openEdit('experience', i)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                        title="Edit this experience"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
                   <p className="text-lg text-gray-700 dark:text-gray-300">
                     {exp.company_name || exp.company}
                   </p>
@@ -308,7 +382,7 @@ export default function CVImportPage() {
                     {exp.location && ` • ${exp.location}`}
                   </p>
                   <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                    {exp.description}
+                    {exp.short_summary || exp.description}
                   </p>
                   {exp.responsibilities && exp.responsibilities.length > 0 && (
                     <ul className="list-disc list-inside mt-2 space-y-1 text-gray-700 dark:text-gray-300">
@@ -340,13 +414,31 @@ export default function CVImportPage() {
                 }
                 
                 return (
-                  <div key={index} className="glass p-6 md:p-8 rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(var(--color-primary-rgb),0.15)] hover:border-primary/30 bg-white/5 border border-gray-200 dark:border-gray-800">
+                  <div key={index} className="glass p-6 md:p-8 rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(var(--color-primary-rgb),0.15)] hover:border-primary/30 bg-white/5 border border-gray-200 dark:border-gray-800 group">
                     <div className="mb-2 flex flex-col md:flex-row items-start justify-between gap-2 md:gap-4">
-                      <h3 className="text-lg md:text-xl lg:text-2xl font-bold leading-snug break-words text-gray-900 dark:text-white">
-                        {edu.degree && <span className="text-orange-500">{edu.degree}</span>}
-                        {edu.degree && edu.field_of_study && ' in '}
-                        {edu.field_of_study && <span className="text-blue-500">{edu.field_of_study}</span>}
-                      </h3>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-lg md:text-xl lg:text-2xl font-bold leading-snug break-words text-gray-900 dark:text-white">
+                          {edu.degree && <span className="text-orange-500">{edu.degree}</span>}
+                          {edu.degree && edu.field_of_study && ' in '}
+                          {edu.field_of_study && <span className="text-blue-500">{edu.field_of_study}</span>}
+                        </h3>
+                        {edu.existsInDb ? (
+                          <span className="text-xs font-semibold bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded border border-amber-300 dark:border-amber-700">
+                            Already Exists (Will Update)
+                          </span>
+                        ) : (
+                          <span className="text-xs font-semibold bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 px-2 py-0.5 rounded border border-green-300 dark:border-green-700">
+                            New Entry
+                          </span>
+                        )}
+                        <button
+                          onClick={() => openEdit('education', index)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 ml-2"
+                          title="Edit this education"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                      </div>
                       <span className="flex-shrink-0 inline-block align-middle text-[11px] md:text-sm font-bold text-blue-500 bg-blue-500/10 px-2 md:px-3 py-1 rounded-full border border-blue-500/20 whitespace-nowrap mt-1">
                         {startStr} – {endStr}
                       </span>
@@ -391,10 +483,30 @@ export default function CVImportPage() {
             <h2 className="text-2xl font-bold mb-4">Certifications</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {data.certifications?.map((cert: any, i: number) => (
-                <div key={i} className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {cert.certification_name || cert.name}
-                  </h3>
+                <div key={i} className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800 group">
+                  <div className="flex justify-between items-start gap-2 mb-1">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {cert.certification_name || cert.name}
+                    </h3>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {cert.existsInDb ? (
+                        <span className="text-[10px] uppercase font-bold bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded border border-amber-300 dark:border-amber-700 whitespace-nowrap">
+                          Already Exists
+                        </span>
+                      ) : (
+                        <span className="text-[10px] uppercase font-bold bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 px-1.5 py-0.5 rounded border border-green-300 dark:border-green-700 whitespace-nowrap">
+                          New
+                        </span>
+                      )}
+                      <button
+                        onClick={() => openEdit('certifications', i)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded hover:bg-purple-200 dark:hover:bg-purple-900/30 text-purple-600 dark:text-purple-400"
+                        title="Edit this certification"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
                   <p className="text-gray-700 dark:text-gray-300">
                     {cert.issuing_organization || cert.issuer}
                   </p>
@@ -420,10 +532,30 @@ export default function CVImportPage() {
             <h2 className="text-2xl font-bold mb-4">Achievements</h2>
             <div className="space-y-4">
               {data.achievements?.map((ach: any, i: number) => (
-                <div key={i} className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {ach.title}
-                  </h3>
+                <div key={i} className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800 group">
+                  <div className="flex justify-between items-start gap-2 mb-1">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      {ach.title}
+                    </h3>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {ach.existsInDb ? (
+                        <span className="text-xs font-semibold bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded border border-amber-300 dark:border-amber-700">
+                          Already Exists (Will Update)
+                        </span>
+                      ) : (
+                        <span className="text-xs font-semibold bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 px-2 py-0.5 rounded border border-green-300 dark:border-green-700">
+                          New Entry
+                        </span>
+                      )}
+                      <button
+                        onClick={() => openEdit('achievements', i)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded hover:bg-yellow-200 dark:hover:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400"
+                        title="Edit this achievement"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
                   {ach.organization && (
                     <p className="text-gray-700 dark:text-gray-300">{ach.organization}</p>
                   )}
@@ -445,10 +577,30 @@ export default function CVImportPage() {
             <h2 className="text-2xl font-bold mb-4">Projects</h2>
             <div className="space-y-6">
               {data.projects?.map((proj: any, i: number) => (
-                <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    {proj.title || proj.project_name}
-                  </h3>
+                <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 group">
+                  <div className="flex justify-between items-start gap-2 mb-1">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                      {proj.title || proj.project_name}
+                    </h3>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {proj.existsInDb ? (
+                        <span className="text-xs font-semibold bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded border border-amber-300 dark:border-amber-700">
+                          Already Exists (Will Update)
+                        </span>
+                      ) : (
+                        <span className="text-xs font-semibold bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 px-2 py-0.5 rounded border border-green-300 dark:border-green-700">
+                          New Entry
+                        </span>
+                      )}
+                      <button
+                        onClick={() => openEdit('projects', i)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                        title="Edit this project"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
                   <p className="text-gray-700 dark:text-gray-300 mt-2">
                     {proj.short_description || proj.description}
                   </p>
@@ -473,8 +625,15 @@ export default function CVImportPage() {
             <h2 className="text-2xl font-bold mb-4">Testimonials (from Recommendation Letters)</h2>
             <div className="space-y-6">
               {data.testimonials?.map((testim: any, i: number) => (
-                <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border-l-4 border-indigo-500">
-                  <div className="flex gap-4">
+                <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border-l-4 border-indigo-500 group relative">
+                  <button
+                    onClick={() => openEdit('testimonials', i)}
+                    className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                    title="Edit this testimonial"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <div className="flex gap-4 pr-8">
                     {testim.image_url && (
                       <img src={testim.image_url} alt={testim.author_name} className="w-16 h-16 rounded-full object-cover" />
                     )}
@@ -755,8 +914,6 @@ export default function CVImportPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { key: 'hero', label: 'Hero Section', count: 1 },
-                  { key: 'about', label: 'About Section', count: 1 },
                   { key: 'skills', label: 'Skills', count: mappedData.skills?.length || 0 },
                   { key: 'experience', label: 'Experience', count: mappedData.experience?.length || 0 },
                   { key: 'education', label: 'Education', count: mappedData.education?.length || 0 },
@@ -764,8 +921,6 @@ export default function CVImportPage() {
                   { key: 'achievements', label: 'Achievements', count: mappedData.achievements?.length || 0 },
                   { key: 'projects', label: 'Projects', count: mappedData.projects?.length || 0 },
                   { key: 'testimonials', label: 'Testimonials', count: mappedData.testimonials?.length || 0 },
-                  { key: 'social', label: 'Social Accounts', count: mappedData.social?.length || 0 },
-                  { key: 'settings', label: 'Site Settings', count: Object.keys(mappedData.settings || {}).length },
                 ].map((section) => (
                   <div
                     key={section.key}
@@ -936,6 +1091,153 @@ export default function CVImportPage() {
             </div>
           </div>
         )}
+
+        {/* ✏️ Inline Edit Modal */}
+        {editingItem && editDraft && (() => {
+          const { section } = editingItem;
+
+          const Field = ({ label, field, multiline = false }: { label: string; field: string; multiline?: boolean }) => (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{label}</label>
+              {multiline ? (
+                <textarea
+                  value={editDraft[field] ?? ''}
+                  onChange={e => updateDraftField(field, e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+              ) : (
+                <input
+                  type="text"
+                  value={editDraft[field] ?? ''}
+                  onChange={e => updateDraftField(field, e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+              )}
+            </div>
+          );
+
+          const renderFields = () => {
+            switch (section) {
+              case 'skills':
+                return (
+                  <>
+                    <Field label="Skill Name" field="name" />
+                    <Field label="Category" field="category" />
+                    <Field label="Proficiency (0–100)" field="proficiency" />
+                  </>
+                );
+              case 'experience':
+                return (
+                  <>
+                    <Field label="Position / Title" field="position" />
+                    <Field label="Company" field="company" />
+                    <Field label="Employment Type" field="employment_type" />
+                    <Field label="Start Date (YYYY-MM-DD)" field="start_date" />
+                    <Field label="End Date (YYYY-MM-DD, blank = Present)" field="end_date" />
+                    <Field label="Location" field="location" />
+                    <Field label="Short Summary" field="short_summary" multiline />
+                  </>
+                );
+              case 'education':
+                return (
+                  <>
+                    <Field label="Degree" field="degree" />
+                    <Field label="Field of Study" field="field_of_study" />
+                    <Field label="Institution" field="institution" />
+                    <Field label="Start Date (YYYY-MM-DD)" field="start_date" />
+                    <Field label="End Date (YYYY-MM-DD)" field="end_date" />
+                    <Field label="GPA / Grade" field="gpa" />
+                    <Field label="Short Summary" field="short_summary" multiline />
+                  </>
+                );
+              case 'certifications':
+                return (
+                  <>
+                    <Field label="Certification Name" field="certification_name" />
+                    <Field label="Issuing Organization" field="issuing_organization" />
+                    <Field label="Issue Date" field="issue_date" />
+                    <Field label="Expiry Date (blank = no expiry)" field="expiration_date" />
+                    <Field label="Credential ID" field="credential_id" />
+                  </>
+                );
+              case 'achievements':
+                return (
+                  <>
+                    <Field label="Title" field="title" />
+                    <Field label="Organization" field="organization" />
+                    <Field label="Date" field="date" />
+                    <Field label="Short Summary" field="short_summary" multiline />
+                  </>
+                );
+              case 'projects':
+                return (
+                  <>
+                    <Field label="Title" field="title" />
+                    <Field label="Short Description" field="short_description" multiline />
+                  </>
+                );
+              case 'testimonials':
+                return (
+                  <>
+                    <Field label="Author Name" field="author_name" />
+                    <Field label="Author Title" field="author_title" />
+                    <Field label="Company" field="company" />
+                    <Field label="Content / Testimonial" field="content" multiline />
+                  </>
+                );
+              default:
+                return <p className="text-gray-500">No editable fields for this section.</p>;
+            }
+          };
+
+          return (
+            <div className="fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-center justify-center p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
+                      <Pencil className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">Edit {section.charAt(0).toUpperCase() + section.slice(1)}</h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Changes apply to what gets imported — not saved to DB yet.</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => { setEditingItem(null); setEditDraft(null); }}
+                    className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Fields */}
+                <div className="flex-1 overflow-y-auto px-6 py-5">
+                  {renderFields()}
+                </div>
+
+                {/* Footer */}
+                <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                  <button
+                    onClick={() => { setEditingItem(null); setEditDraft(null); }}
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={saveEdit}
+                    className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

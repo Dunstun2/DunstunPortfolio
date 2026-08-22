@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { fetchApi } from '@/utils/api';
 import { useRealtimeRefresh } from '@/utils/useRealtimeRefresh';
 
+import BlogNavigation from '../BlogNavigation';
+
 export default function AdminBlogComments() {
   const refreshKey = useRealtimeRefresh('blogComments');
   const [comments, setComments] = useState<any[]>([]);
@@ -61,6 +63,7 @@ export default function AdminBlogComments() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+      <BlogNavigation />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white mb-1">Comment Moderation</h1>

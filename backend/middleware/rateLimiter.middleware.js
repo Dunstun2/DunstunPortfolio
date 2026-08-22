@@ -12,17 +12,17 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Strict rate limiter for auth endpoints - 10 attempts per 15 minutes
+// Strict rate limiter for auth endpoints - 10 attempts per 15 minutes in prod, relaxed in dev
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10,
+  max: process.env.NODE_ENV === 'production' ? 10 : 1000,
   message: {
     success: false,
     message: 'Too many authentication attempts, please try again after 15 minutes.',
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: false,
+  skipSuccessfulRequests: true,
 });
 
 // Medium rate limiter for password reset - 10 attempts per 15 minutes

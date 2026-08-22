@@ -75,8 +75,14 @@ export default function AdminHero() {
   const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
 
   const loadData = () => {
-    fetchApi('/hero').then(res => {
-      const hero = res.data.length > 0 ? res.data[0] : null;
+    Promise.all([
+      fetchApi('/hero'),
+      fetchApi('/settings'),
+      fetchApi('/media')
+    ]).then(([resHero, resSettings, resMedia]) => {
+      const heroes = resHero.data || [];
+      const hero = heroes.find((h: any) => h.internal_name === 'Homepage Hero') || heroes.find((h: any) => h.internal_name !== 'Corporate Hero') || heroes[0] || null;
+
       if (hero) {
         setFormData({ ...emptyForm, ...hero, layout_template: hero.layout_template || 'split' });
         setIsEditing(true);
@@ -85,12 +91,9 @@ export default function AdminHero() {
         setIsEditing(false);
         setEditId('');
       }
-    }).catch(console.error);
 
-    fetchApi('/media').then(res => {
-      if (res.success) {
-        // Filter only images for backgrounds
-        setMediaFiles(res.data.filter((m: any) => m.mime_type?.startsWith('image/')));
+      if (resMedia.success) {
+        setMediaFiles(resMedia.data.filter((m: any) => m.mime_type?.startsWith('image/')));
       }
     }).catch(console.error);
   };

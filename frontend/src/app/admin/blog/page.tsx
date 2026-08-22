@@ -36,6 +36,8 @@ function AutoResizingTextarea({
   );
 }
 
+import BlogNavigation from './BlogNavigation';
+
 export default function AdminBlogPosts() {
   const refreshKey = useRealtimeRefresh('blog');
   const [items, setItems] = useState<any[]>([]);
@@ -90,6 +92,10 @@ export default function AdminBlogPosts() {
     tags: [] as string[],
     status: 'draft',
     featured: false,
+    author_name: '',
+    author_title: '',
+    author_avatar_url: '',
+    reading_time: 0,
     seo_title: '',
     seo_description: '',
     seo_keywords: '',
@@ -97,11 +103,39 @@ export default function AdminBlogPosts() {
 
   const [formData, setFormData] = useState<any>(initialForm);
 
+  const [adminPhoto, setAdminPhoto] = useState<string>('');
+
   const loadData = () => {
     fetchApi('/blog').then(res => setItems(res.data)).catch(console.error);
     fetchApi('/blog-categories').then(res => setCategories(res.data)).catch(console.error);
     fetchApi('/blog-tags').then(res => setTags(res.data)).catch(console.error);
   };
+
+  // Fetch admin profile photo from About or Hero sections
+  useEffect(() => {
+    const fetchAdminPhoto = async () => {
+      try {
+        // Try About section first
+        const aboutRes = await fetchApi('/about').catch(() => null);
+        if (aboutRes?.data) {
+          const aboutData = Array.isArray(aboutRes.data) ? aboutRes.data[0] : aboutRes.data;
+          if (aboutData?.image_url) {
+            setAdminPhoto(aboutData.image_url);
+            return;
+          }
+        }
+        // Fall back to Hero section
+        const heroRes = await fetchApi('/hero').catch(() => null);
+        if (heroRes?.data) {
+          const heroData = Array.isArray(heroRes.data) ? heroRes.data.find((h: any) => h.is_active) || heroRes.data[0] : heroRes.data;
+          if (heroData?.image_url) {
+            setAdminPhoto(heroData.image_url);
+          }
+        }
+      } catch { /* silently ignore */ }
+    };
+    fetchAdminPhoto();
+  }, []);
 
   useEffect(() => { loadData(); }, [refreshKey]);
 
@@ -130,6 +164,18 @@ export default function AdminBlogPosts() {
       alert('Failed to upload cover image');
     } finally {
       setUploadingImage(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleAuthorPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    try {
+      const url = await uploadFile(e.target.files[0]);
+      setFormData((prev: any) => ({ ...prev, author_avatar_url: url }));
+    } catch (err) {
+      alert('Failed to upload author photo');
+    } finally {
       e.target.value = '';
     }
   };
@@ -164,6 +210,10 @@ export default function AdminBlogPosts() {
       tags: item.tags || [],
       status: item.status,
       featured: item.featured,
+      author_name: item.author_name || '',
+      author_title: item.author_title || '',
+      author_avatar_url: item.author_avatar_url || '',
+      reading_time: item.reading_time || 0,
       seo_title: item.seo_title || '',
       seo_description: item.seo_description || '',
       seo_keywords: item.seo_keywords || '',
@@ -299,6 +349,7 @@ export default function AdminBlogPosts() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
+      <BlogNavigation />
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-white mb-1 flex flex-wrap items-center gap-3">
@@ -546,6 +597,55 @@ export default function AdminBlogPosts() {
                         <img src={formData.featured_image_url} alt="Cover Preview" className="w-full h-full object-cover" />
                       </div>
                     )}
+                  </div>
+
+                  {/* Author & Reading Time Section */}
+                  <div className="space-y-4 pt-6 border-t border-gray-800">
+                    <h4 className="text-sm font-bold text-gray-200 flex items-center gap-2">✍️ Author & Reading Info</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-300">Author Name</label>
+                        <input type="text" value={formData.author_name} onChange={e => setFormData({...formData, author_name: e.target.value})} placeholder="e.g. John Doe" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-primary" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-300">Author Title</label>
+                        <input type="text" value={formData.author_title} onChange={e => setFormData({...formData, author_title: e.target.value})} placeholder="e.g. Software Engineer" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-primary" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-300">Est. Reading Time (min)</label>
+                        <input type="number" min="0" value={formData.reading_time} onChange={e => setFormData({...formData, reading_time: parseInt(e.target.value) || 0})} placeholder="e.g. 5" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-primary" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-300">Author Cover Photo</label>
+                      {adminPhoto && !formData.author_avatar_url && (
+                        <div className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg border border-gray-700/50">
+                          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/40 shrink-0">
+                            <img src={adminPhoto} alt="Admin Photo" className="w-full h-full object-cover" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-xs text-gray-400">Using your profile photo from About/Hero section</p>
+                          </div>
+                          <button type="button" onClick={() => setFormData({...formData, author_avatar_url: adminPhoto})} className="text-xs bg-primary/20 text-primary px-3 py-1.5 rounded-lg hover:bg-primary/30 transition-colors">Use This</button>
+                        </div>
+                      )}
+                      <div className="flex gap-3 items-center">
+                        <input type="text" value={formData.author_avatar_url} onChange={e => setFormData({...formData, author_avatar_url: e.target.value})} placeholder="Paste image URL or upload a photo" className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-primary" />
+                        <label className="cursor-pointer bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm px-3 py-2.5 rounded-lg transition-colors shrink-0 flex items-center gap-1.5">
+                          📷 Upload
+                          <input type="file" accept="image/*" onChange={handleAuthorPhotoUpload} className="hidden" />
+                        </label>
+                        {(formData.author_avatar_url || adminPhoto) && (
+                          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/40 shrink-0">
+                            <img src={formData.author_avatar_url || adminPhoto} alt="Author Photo" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                      </div>
+                      {formData.author_avatar_url && adminPhoto && formData.author_avatar_url !== adminPhoto && (
+                        <button type="button" onClick={() => setFormData({...formData, author_avatar_url: ''})} className="text-xs text-gray-500 hover:text-gray-300 transition-colors">↩ Reset to profile photo</button>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 italic">📅 Published date is set automatically when you change the status to "Published".</p>
                   </div>
                 </div>
               )}

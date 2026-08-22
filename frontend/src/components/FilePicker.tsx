@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { fetchApi } from '@/utils/api';
-import { getFileUrl } from '@/utils/urls';
+import { API_BASE_URL, getFileUrl } from '@/utils/urls';
 
 interface MediaFile {
   id: string;
@@ -13,15 +13,21 @@ interface MediaFile {
 
 interface FilePickerProps {
   onSelect: (url: string) => void;
-  onCancel: () => void;
+  onCancel?: () => void;
+  onClose?: () => void;
+  accept?: 'image' | 'video' | 'all' | string;
 }
 
-export default function FilePicker({ onSelect, onCancel }: FilePickerProps) {
+export default function FilePicker({ onSelect, onCancel, onClose, accept = 'all' }: FilePickerProps) {
+  const handleClose = onCancel || onClose || (() => {});
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [folders, setFolders] = useState<string[]>(['/']);
   const [currentFolder, setCurrentFolder] = useState<string>('/');
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['/']));
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<string>(accept || 'all');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchFolders();
@@ -30,6 +36,12 @@ export default function FilePicker({ onSelect, onCancel }: FilePickerProps) {
   useEffect(() => {
     fetchFiles(currentFolder);
   }, [currentFolder]);
+
+  useEffect(() => {
+    if (accept) {
+      setActiveFilter(accept);
+    }
+  }, [accept]);
 
   const fetchFolders = async () => {
     try {
@@ -52,13 +64,62 @@ export default function FilePicker({ onSelect, onCancel }: FilePickerProps) {
     }
   };
 
-  // Helper to determine if a folder has subfolders
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    setUploading(true);
+
+    const fileToUpload = e.target.files[0];
+    const formData = new FormData();
+    formData.append('file', fileToUpload);
+    formData.append('folder', currentFolder);
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/media`, {
+        method: 'POST',
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'Failed to upload file');
+      }
+
+      const uploadResult = await res.json();
+      const uploadedFilePath = uploadResult.data?.file_path;
+      await fetchFiles(currentFolder);
+
+      if (uploadedFilePath) {
+        onSelect(getFileUrl(uploadedFilePath));
+      }
+    } catch (error: any) {
+      alert(error.message || 'Failed to upload file');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const isVideo = (file: MediaFile) => {
+    return file.mime_type?.startsWith('video/') || /\.(mp4|webm|mov|avi|mkv)$/i.test(file.file_name);
+  };
+
+  const isImage = (file: MediaFile) => {
+    return file.mime_type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file.file_name);
+  };
+
+  const filteredFiles = files.filter(file => {
+    if (activeFilter === 'video') return isVideo(file);
+    if (activeFilter === 'image') return isImage(file);
+    return true;
+  });
+
   const hasChildren = (folderPath: string) => {
     const prefix = folderPath === '/' ? '/' : folderPath + '/';
     return folders.some(f => f !== folderPath && f.startsWith(prefix));
   };
 
-  // Helper to determine if a folder should be visible in the tree
   const isVisible = (folderPath: string) => {
     if (folderPath === '/') return true;
     if (!expandedFolders.has('/')) return false;
@@ -96,20 +157,71 @@ export default function FilePicker({ onSelect, onCancel }: FilePickerProps) {
 
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-      <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl">
+      <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-4xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
         
+        {/* Hidden File Input for Direct Upload */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileUpload}
+          className="hidden"
+          accept={activeFilter === 'video' ? 'video/*' : activeFilter === 'image' ? 'image/*' : '*'}
+        />
+
         {/* Header */}
-        <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950 rounded-t-xl">
-          <h2 className="text-lg font-semibold text-white">Select a File</h2>
-          <button onClick={onCancel} className="text-gray-400 hover:text-white transition-colors">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
+        <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-950">
+          <div className="flex items-center space-x-3">
+            <h2 className="text-lg font-semibold text-white">Select a File</h2>
+            <div className="flex bg-gray-800 p-0.5 rounded-lg border border-gray-700">
+              <button
+                onClick={() => setActiveFilter('all')}
+                className={`px-2.5 py-1 text-xs font-semibold rounded ${activeFilter === 'all' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'}`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setActiveFilter('image')}
+                className={`px-2.5 py-1 text-xs font-semibold rounded ${activeFilter === 'image' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'}`}
+              >
+                🖼️ Images
+              </button>
+              <button
+                onClick={() => setActiveFilter('video')}
+                className={`px-2.5 py-1 text-xs font-semibold rounded ${activeFilter === 'video' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'}`}
+              >
+                🎬 Videos
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="px-3.5 py-1.5 bg-primary hover:bg-primary/90 text-white text-xs font-bold rounded-lg transition-colors flex items-center space-x-1.5 shadow"
+            >
+              {uploading ? (
+                <>
+                  <span className="animate-spin text-sm">⏳</span>
+                  <span>Uploading...</span>
+                </>
+              ) : (
+                <>
+                  <span>📤</span>
+                  <span>Upload New File</span>
+                </>
+              )}
+            </button>
+            <button onClick={handleClose} className="text-gray-400 hover:text-white transition-colors p-1">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
         </div>
 
         {/* Content */}
         <div className="flex flex-1 overflow-hidden min-h-[400px]">
           {/* Sidebar */}
-          <div className="w-48 sm:w-56 bg-gray-800/50 border-r border-gray-800 p-2 overflow-y-auto">
+          <div className="w-48 sm:w-56 bg-gray-800/50 border-r border-gray-800 p-2 overflow-y-auto shrink-0">
             <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2 mt-2">Folders</div>
             {folders.filter(isVisible).map(f => {
               const depth = f === '/' ? 0 : f.split('/').length - 1;
@@ -132,7 +244,7 @@ export default function FilePicker({ onSelect, onCancel }: FilePickerProps) {
                       <svg className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
                     </button>
                   ) : (
-                    <div className="w-4 h-4" /> // spacer
+                    <div className="w-4 h-4" />
                   )}
                   <span>📁</span>
                   <span className="truncate">{name}</span>
@@ -144,39 +256,63 @@ export default function FilePicker({ onSelect, onCancel }: FilePickerProps) {
           {/* Files Grid */}
           <div className="flex-1 p-4 overflow-y-auto bg-gray-900">
             {loading ? (
-              <div className="flex justify-center py-12 text-gray-500">Loading...</div>
-            ) : files.length === 0 ? (
-              <div className="text-center text-gray-500 py-12">No files in this folder.</div>
+              <div className="flex justify-center py-12 text-gray-500">Loading files...</div>
+            ) : filteredFiles.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-400 mb-3">No {activeFilter !== 'all' ? activeFilter + ' ' : ''}files in this folder.</p>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-4 py-2 bg-primary/20 text-primary border border-primary/40 rounded-lg text-sm font-semibold hover:bg-primary/30 transition-colors"
+                >
+                  📤 Upload a file here
+                </button>
+              </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {files.map(file => (
-                  <div 
-                    key={file.id} 
-                    onClick={() => onSelect(getFileUrl(file.file_path))}
-                    className="bg-gray-800 border border-gray-700 rounded-lg p-3 cursor-pointer hover:border-primary group transition-all"
-                  >
-                    <div className="aspect-square mb-2 bg-gray-900 rounded flex items-center justify-center overflow-hidden">
-                      {file.mime_type.startsWith('image/') ? (
-                        <img src={getFileUrl(file.file_path)} alt={file.file_name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                      ) : (
-                        <div className="text-3xl text-gray-600">
-                          {file.file_name.endsWith('.pdf') ? '📄' : '📝'}
-                        </div>
-                      )}
+                {filteredFiles.map(file => {
+                  const fileIsVid = isVideo(file);
+                  const fileIsImg = isImage(file);
+                  const fileUrl = getFileUrl(file.file_path);
+
+                  return (
+                    <div 
+                      key={file.id} 
+                      onClick={() => onSelect(fileUrl)}
+                      className="bg-gray-800 border border-gray-700 rounded-lg p-3 cursor-pointer hover:border-primary group transition-all relative flex flex-col justify-between"
+                    >
+                      <div className="aspect-square mb-2 bg-gray-950 rounded flex items-center justify-center overflow-hidden relative">
+                        {fileIsImg ? (
+                          <img src={fileUrl} alt={file.file_name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                        ) : fileIsVid ? (
+                          <div className="w-full h-full relative flex items-center justify-center bg-black">
+                            <video src={fileUrl} className="w-full h-full object-cover opacity-80" muted preload="metadata" />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/10 transition-colors">
+                              <span className="text-2xl drop-shadow">🎬</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-3xl text-gray-600">
+                            {file.file_name.endsWith('.pdf') ? '📄' : '📝'}
+                          </div>
+                        )}
+                      </div>
+                      <div className="truncate text-xs font-medium text-gray-200" title={file.file_name}>
+                        {file.file_name}
+                      </div>
                     </div>
-                    <div className="truncate text-sm text-gray-200" title={file.file_name}>
-                      {file.file_name}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-800 bg-gray-950 rounded-b-xl flex justify-end">
-          <button onClick={onCancel} className="px-4 py-2 text-sm text-gray-300 hover:text-white mr-2">Cancel</button>
+        <div className="p-3 border-t border-gray-800 bg-gray-950 flex justify-between items-center">
+          <span className="text-xs text-gray-500">Folder: <span className="text-gray-300 font-mono">{currentFolder}</span></span>
+          <button onClick={handleClose} className="px-4 py-1.5 text-xs font-semibold text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors">
+            Cancel
+          </button>
         </div>
       </div>
     </div>

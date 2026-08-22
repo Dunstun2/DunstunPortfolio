@@ -1,5 +1,4 @@
-const bcrypt = require('bcryptjs');
-const { sequelize, User } = require('../models');
+const { sequelize, User } = require('../modes/portfolio/models');
 
 /**
  * Production-Safe Admin Seeder
@@ -40,16 +39,21 @@ async function seedAdmin() {
       defaults: {
         name: adminName,
         email: adminEmail,
-        password: passwordHash,
+        password_hash: passwordHash,
         role: 'admin',
       },
     });
+
+    if (!created) {
+      user.password_hash = passwordHash;
+      await user.save();
+    }
 
     console.log('===========================================');
     if (created) {
       console.log('✅ Admin account created successfully!');
     } else {
-      console.log('ℹ️  Admin account already exists.');
+      console.log('ℹ️  Admin account exists - password updated.');
     }
     console.log('===========================================');
     console.log(`\n👤 Name:     ${user.name}`);

@@ -130,7 +130,14 @@ async function clearAllCache() {
   const client = getClient();
 
   try {
-    await client.flushDb();
+    const keys = await client.keys('cache:*');
+    if (keys.length > 0) {
+      await client.del(keys);
+    }
+    const allKeys = await client.keys('*');
+    if (allKeys.length > 0) {
+      await client.del(allKeys);
+    }
     logger.info('Cleared all cache');
   } catch (error) {
     logger.error(`Failed to clear all cache: ${error.message}`);

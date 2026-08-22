@@ -1,4 +1,4 @@
-const authService = require('../services/auth.service');
+const authService = require('../modes/portfolio/services/auth.service');
 
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;

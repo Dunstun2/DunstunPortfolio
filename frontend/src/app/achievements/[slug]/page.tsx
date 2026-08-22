@@ -3,7 +3,10 @@ import { useEffect, useState } from 'react';
 import { fetchApi } from '@/utils/api';
 import { getFileUrl } from '@/utils/urls';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
+import Link from '@/components/PreviewLink';
+import { useInlineEdit } from '@/templateEngine/InlineEditContext';
+import InlineResourceText from '@/templateEngine/components/InlineResourceText';
+import InlineResourceImage from '@/templateEngine/components/InlineResourceImage';
 
 // Utility function to strip HTML tags and preserve formatting
 const stripHtml = (html: string) => {
@@ -22,6 +25,7 @@ const stripHtml = (html: string) => {
 };
 
 export default function AchievementDetail() {
+  const { isInlineEditing } = useInlineEdit();
   const params = useParams();
   const slug = params?.slug;
   const [item, setItem] = useState<any>(null);
@@ -59,7 +63,7 @@ export default function AchievementDetail() {
   const hasMedia = item.featured_image || (item.media && item.media.length > 0);
 
   return (
-    <div className="pt-20 pb-24 min-h-screen bg-background">
+    <div className="pt-8 pb-24 min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb with Back */}
         <nav className="text-sm text-gray-400 mb-6 flex items-center gap-2">
@@ -72,7 +76,7 @@ export default function AchievementDetail() {
           <span>/</span>
           <Link href="/achievements" className="hover:text-primary transition">Achievements</Link>
           <span>/</span>
-          <span className="text-gray-300">{item.title}</span>
+          <span className="text-gray-300"><InlineResourceText resource="achievements" id={item.id} field="title" defaultValue={item.title} /></span>
         </nav>
 
         {/* Header */}
@@ -80,7 +84,7 @@ export default function AchievementDetail() {
           <div className="flex flex-wrap gap-2 mb-3">
             {item.category && (
               <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm">
-                {item.category}
+                <InlineResourceText resource="achievements" id={item.id} field="category" defaultValue={item.category} />
               </span>
             )}
             {item.featured && (
@@ -90,53 +94,59 @@ export default function AchievementDetail() {
             )}
           </div>
 
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">{item.title}</h1>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+            <InlineResourceText resource="achievements" id={item.id} field="title" defaultValue={item.title} />
+          </h1>
 
           <div className="flex flex-wrap gap-4 text-sm text-gray-400">
-            {item.organization && (
+            {(item.organization || isInlineEditing) && (
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
-                <span>{item.organization}</span>
+                <InlineResourceText resource="achievements" id={item.id} field="organization" defaultValue={item.organization || ''} placeholder="Organization" />
               </div>
             )}
-            {item.date && (
+            {(item.date || isInlineEditing) && (
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <span>{item.date}</span>
+                <InlineResourceText resource="achievements" id={item.id} field="date" defaultValue={item.date || ''} placeholder="Date" />
               </div>
             )}
-            {item.location && (
+            {(item.location || isInlineEditing) && (
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span>{item.location}</span>
+                <InlineResourceText resource="achievements" id={item.id} field="location" defaultValue={item.location || ''} placeholder="Location" />
               </div>
             )}
-            {item.role && (
+            {(item.role || isInlineEditing) && (
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
-                <span>{item.role}</span>
+                <InlineResourceText resource="achievements" id={item.id} field="role" defaultValue={item.role || ''} placeholder="Role" />
               </div>
             )}
           </div>
         </div>
 
         {/* Featured Image */}
-        {item.featured_image && (
-          <div className="mb-8 rounded-lg overflow-hidden">
-            <img
-              src={item.featured_image}
+        {(item.featured_image || isInlineEditing) && (
+          <div className="mb-8 rounded-lg overflow-hidden min-h-[300px] relative">
+            <InlineResourceImage
+              resource="achievements"
+              id={item.id}
+              field="featured_image"
+              currentSrc={item.featured_image || ''}
               alt={item.title}
               className="w-full h-auto max-h-[500px] object-cover cursor-pointer hover:opacity-90 transition"
-              onClick={() => setSelectedImage(item.featured_image)}
+              wrapperClassName="w-full h-full"
+              width={1000}
             />
           </div>
         )}
@@ -158,17 +168,17 @@ export default function AchievementDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             {/* Description */}
-            {(item.full_description || item.short_description) && (
+            {(item.full_description || item.short_description || isInlineEditing) && (
               <section className="bg-gray-800 rounded-lg p-6">
                 <h2 className="text-2xl font-bold mb-4">About This Achievement</h2>
                 <div className="text-gray-300 whitespace-pre-line">
-                  {stripHtml(item.full_description || item.short_description)}
+                  <InlineResourceText resource="achievements" id={item.id} field="full_description" multiline defaultValue={item.full_description || item.short_description || ''} placeholder="About this achievement..." />
                 </div>
               </section>
             )}
 
             {/* Impact */}
-            {item.impact && (
+            {(item.impact || isInlineEditing) && (
               <section className="bg-gray-800 rounded-lg p-6">
                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                   <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,12 +186,14 @@ export default function AchievementDetail() {
                   </svg>
                   Impact
                 </h2>
-                <p className="text-gray-300 whitespace-pre-line">{stripHtml(item.impact)}</p>
+                <div className="text-gray-300 whitespace-pre-line">
+                  <InlineResourceText resource="achievements" id={item.id} field="impact" multiline defaultValue={item.impact || ''} placeholder="Describe the impact..." />
+                </div>
               </section>
             )}
 
             {/* Why It Matters */}
-            {item.why_it_matters && (
+            {(item.why_it_matters || isInlineEditing) && (
               <section className="bg-gray-800 rounded-lg p-6">
                 <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                   <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,7 +201,9 @@ export default function AchievementDetail() {
                   </svg>
                   Why It Matters
                 </h2>
-                <p className="text-gray-300 whitespace-pre-line">{stripHtml(item.why_it_matters)}</p>
+                <div className="text-gray-300 whitespace-pre-line">
+                  <InlineResourceText resource="achievements" id={item.id} field="why_it_matters" multiline defaultValue={item.why_it_matters || ''} placeholder="Why it matters..." />
+                </div>
               </section>
             )}
 
