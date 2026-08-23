@@ -59,6 +59,8 @@ scripts/*
 !scripts/CORPORATE_SEED_GUIDE.md
 !scripts/PRODUCTION_SEED_SETUP.md
 !scripts/seed-one-time.js
+!scripts/cleanup-bad-about.js
+!scripts/run-cleanup-production.js
 
 # Development documentation
 CHANGELOG.md
