@@ -155,19 +155,42 @@ async function seed() {
     }
 
     if (servicesData.length > 0) {
-      await seedWithCheck(Service, servicesData, 'slug', 'Services');
+      // Convert data types for services
+      const convertedServices = servicesData.map(s => ({
+        ...s,
+        featured: Boolean(s.featured),
+        status: s.status || 'published',
+      }));
+      await seedWithCheck(Service, convertedServices, 'slug', 'Services');
     }
 
     if (testimonialsData.length > 0) {
-      await seedWithCheck(Testimonial, testimonialsData, 'id', 'Testimonials');
+      // Convert data types for testimonials
+      const convertedTestimonials = testimonialsData.map(t => ({
+        ...t,
+        featured: Boolean(t.featured),
+        status: t.status || 'published',
+      }));
+      await seedWithCheck(Testimonial, convertedTestimonials, 'id', 'Testimonials');
     }
 
     if (projectsData.length > 0) {
-      await seedWithCheck(Project, projectsData, 'slug', 'Projects');
+      // Convert data types for projects
+      const convertedProjects = projectsData.map(p => ({
+        ...p,
+        featured: Boolean(p.featured),
+        status: p.status || 'published',
+      }));
+      await seedWithCheck(Project, convertedProjects, 'slug', 'Projects');
     }
 
     if (eventsData.length > 0) {
-      await seedWithCheck(Event, eventsData, 'slug', 'Events');
+      // Convert data types for events
+      const convertedEvents = eventsData.map(e => ({
+        ...e,
+        status: e.status || 'published',
+      }));
+      await seedWithCheck(Event, convertedEvents, 'slug', 'Events');
     }
 
     if (socialAccountsData.length > 0) {
