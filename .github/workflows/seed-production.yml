@@ -1,0 +1,90 @@
+name: Seed Production Corporate Data
+
+on:
+  workflow_dispatch:  # Manual trigger
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/scripts/corporate-dev-export.json'
+      - 'backend/scripts/seed-one-time.js'
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  seed-production:
+    name: Seed Corporate Data to Production
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Display deployment info
+        run: |
+          echo "📦 Production Seed Deployment"
+          echo "============================"
+          echo "Date: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "Commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo ""
+
+      - name: Check export data
+        run: |
+          if [ -f "backend/scripts/corporate-dev-export.json" ]; then
+            echo "✅ Found corporate-dev-export.json"
+            LINES=$(wc -l < backend/scripts/corporate-dev-export.json)
+            echo "   Size: $LINES lines"
+          else
+            echo "❌ corporate-dev-export.json not found"
+            exit 1
+          fi
+
+      - name: Run production seed
+        env:
+          NODE_ENV: production
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "🚀 Starting seed script..."
+          echo ""
+          node backend/scripts/seed-one-time.js
+        working-directory: .
+
+      - name: Verify data
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo ""
+          echo "✅ Seed workflow completed!"
+          echo ""
+          echo "Next steps:"
+          echo "1. Verify corporate data in production dashboard"
+          echo "2. Check corporate website in browser"
+          echo "3. Review logs if issues occur"
+        working-directory: backend
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Seed failed!"
+          echo ""
+          echo "Troubleshooting:"
+          echo "1. Check DATABASE_URL secret in GitHub"
+          echo "2. Verify corporate-dev-export.json is valid JSON"
+          echo "3. Check production database status"
+          echo "4. Review logs above for specific errors"

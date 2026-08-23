@@ -49,8 +49,16 @@ seeders/
 # Scripts directory - exclude all by default
 scripts/*
 
-# But ALLOW these production-safe scripts (admin creation only, no sample data)
+# But ALLOW these production-safe scripts
 !scripts/seed-admin.js
+!scripts/export-corporate-dev.js
+!scripts/seed-corporate-production.js
+!scripts/run-seed-production.js
+!scripts/seed-production.sh
+!scripts/corporate-dev-export.json
+!scripts/CORPORATE_SEED_GUIDE.md
+!scripts/PRODUCTION_SEED_SETUP.md
+!scripts/seed-one-time.js
 
 # Development documentation
 CHANGELOG.md
