@@ -61,6 +61,11 @@ scripts/*
 !scripts/seed-one-time.js
 !scripts/cleanup-bad-about.js
 !scripts/run-cleanup-production.js
+!scripts/fix-corporate-rendering.js
+!scripts/check-hero-status.js
+!scripts/quick-hero-check.js
+!scripts/check-about-order.js
+!scripts/diagnose-corporate-rendering.js
 
 # Development documentation
 CHANGELOG.md

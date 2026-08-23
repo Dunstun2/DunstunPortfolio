@@ -145,21 +145,35 @@ async function seed() {
 
     // Seed in order
     if (heroData) {
-      await seedWithCheck(Hero, [heroData], 'id', 'Corporate Hero');
+      // Ensure hero is published and active so it renders on frontend
+      const heroWithDefaults = {
+        ...heroData,
+        status: heroData.status || 'published',
+        is_active: heroData.is_active !== false ? true : heroData.is_active, // Force true unless explicitly false
+        internal_name: 'Corporate Hero',
+        published_at: heroData.published_at || new Date(),
+      };
+      await seedWithCheck(Hero, [heroWithDefaults], 'id', 'Corporate Hero');
     } else {
       console.log('\n⚠️  No hero data in export');
     }
 
     if (aboutsData.length > 0) {
-      await seedWithCheck(About, aboutsData, 'id', 'Abouts');
+      // Ensure About data has published status so business_type is accessible to frontend
+      const convertedAbouts = aboutsData.map(a => ({
+        ...a,
+        status: a.status || 'published',
+      }));
+      await seedWithCheck(About, convertedAbouts, 'id', 'Abouts');
     }
 
     if (servicesData.length > 0) {
-      // Convert data types for services
+      // Convert data types for services and ensure they're published
       const convertedServices = servicesData.map(s => ({
         ...s,
         featured: Boolean(s.featured),
         status: s.status || 'published',
+        display_order: s.display_order || 0,
       }));
       await seedWithCheck(Service, convertedServices, 'slug', 'Services');
     }
