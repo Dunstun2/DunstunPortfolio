@@ -1,0 +1,44 @@
+name: Cleanup Production Bad About Record
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/scripts/cleanup-bad-about.js'
+      - 'backend/scripts/run-cleanup-production.js'
+      - '.github/workflows/cleanup-production.yml'
+  workflow_dispatch:
+
+jobs:
+  cleanup-production:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: backend
+
+      - name: Run cleanup script
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NODE_ENV: production
+        run: node scripts/cleanup-bad-about.js
+        working-directory: backend
+        
+      - name: Log cleanup status
+        if: success()
+        run: echo "✅ Cleanup completed successfully. Services should now display on production."
+        
+      - name: Log cleanup failure
+        if: failure()
+        run: echo "⚠️ Cleanup script encountered an issue. Check logs above for details."
