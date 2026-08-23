@@ -22,7 +22,7 @@ function getDatabaseConfig() {
     return {
       url: process.env.DATABASE_URL,
       dialect: 'postgres',
-      dialectOptions: {
+      dialectOptions: process.env.DB_SSL === 'false' ? {} : {
         ssl: {
           require: true,
           rejectUnauthorized: false, // Required for some hosted databases
@@ -71,7 +71,7 @@ const sequelize = dbConfig.url
       // Retry configuration
       retry: {
         max: 3,
-        timeout: 5000,
+        timeout: 45000,
       },
       
       // Query options
@@ -99,7 +99,7 @@ const sequelize = dbConfig.url
       // Retry configuration
       retry: {
         max: 3,
-        timeout: 5000,
+        timeout: 45000,
       },
       
       // Query options

@@ -223,15 +223,38 @@ function StatsRow({ stats }: { stats?: HeroData['stats'] }) {
   );
 }
 
+function parseJsonIfNeeded<T>(val: unknown, fallback: T): T {
+  if (val === null || val === undefined || val === '') return fallback;
+  if (typeof val === 'string') {
+    try {
+      const parsed = JSON.parse(val);
+      if (typeof parsed === 'string') {
+        try { return JSON.parse(parsed); } catch { return fallback; }
+      }
+      return parsed;
+    } catch {
+      return fallback;
+    }
+  }
+  return val as T;
+}
+
 /** Trust indicators row: ⭐ 5-Star Rated  |  ✅ ISO Certified  |  🔒 Secure */
-function TrustRow({ items }: { items?: HeroData['trust_indicators'] }) {
-  if (!items?.length) return null;
+function TrustRow({ items }: { items?: unknown }) {
+  const safeItems = parseJsonIfNeeded<any[]>(items, []);
+  if (!safeItems.length) return null;
   return (
     <div className="corp-hero-trust">
-      {items.map((item, i) => (
+      {safeItems.map((item, i) => (
         <span key={i} className="corp-hero-trust-item">
-          <span className="corp-hero-trust-icon" aria-hidden="true">{item.icon}</span>
-          {item.text}
+          {typeof item === 'string' ? (
+            item
+          ) : (
+            <>
+              {item.icon && <span className="corp-hero-trust-icon" aria-hidden="true">{item.icon}</span>}
+              {item.text || item.label || ''}
+            </>
+          )}
         </span>
       ))}
     </div>
@@ -239,18 +262,21 @@ function TrustRow({ items }: { items?: HeroData['trust_indicators'] }) {
 }
 
 /** Client logos strip */
-function ClientLogos({ logos }: { logos?: HeroData['client_logos'] }) {
-  if (!logos?.length) return null;
+function ClientLogos({ logos }: { logos?: unknown }) {
+  const safeLogos = parseJsonIfNeeded<any[]>(logos, []);
+  if (!safeLogos.length) return null;
   return (
     <div className="corp-hero-logos-wrap">
       <p className="corp-hero-logos-label">Trusted by leading organizations</p>
       <div className="corp-hero-logos">
-        {logos.map((logo, i) =>
-          logo.logo_url ? (
+        {safeLogos.map((logo, i) =>
+          typeof logo === 'string' ? (
+            <span key={i} className="corp-hero-logo-text">{logo}</span>
+          ) : logo.logo_url ? (
             <img
               key={i}
               src={logo.logo_url}
-              alt={logo.name}
+              alt={logo.name || 'Client logo'}
               className="corp-hero-logo-img"
               loading="lazy"
             />
@@ -1347,28 +1373,34 @@ export default function CorporateHero() {
       </section>
 
       {/* Dedicated Client Logos Strip Bar directly below Hero Banner */}
-      {!!hero.client_logos?.length && (
-        <section className="corp-logos-strip-bar" aria-label="Trusted by leading organizations">
-          <div className="corp-logos-strip-inner">
-            <p className="corp-logos-strip-label">TRUSTED BY LEADING ORGANIZATIONS</p>
-            <div className="corp-logos-strip-list">
-              {hero.client_logos.map((logo, i) =>
-                logo.logo_url ? (
-                  <img
-                    key={i}
-                    src={logo.logo_url}
-                    alt={logo.name}
-                    className="corp-hero-logo-img"
-                    loading="lazy"
-                  />
-                ) : (
-                  <span key={i} className="corp-hero-logo-text">{logo.name}</span>
-                )
-              )}
+      {(() => {
+        const clientLogosList = parseJsonIfNeeded<any[]>(hero.client_logos, []);
+        if (!clientLogosList.length) return null;
+        return (
+          <section className="corp-logos-strip-bar" aria-label="Trusted by leading organizations">
+            <div className="corp-logos-strip-inner">
+              <p className="corp-logos-strip-label">TRUSTED BY LEADING ORGANIZATIONS</p>
+              <div className="corp-logos-strip-list">
+                {clientLogosList.map((logo, i) =>
+                  typeof logo === 'string' ? (
+                    <span key={i} className="corp-hero-logo-text">{logo}</span>
+                  ) : logo.logo_url ? (
+                    <img
+                      key={i}
+                      src={logo.logo_url}
+                      alt={logo.name || 'Client logo'}
+                      className="corp-hero-logo-img"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span key={i} className="corp-hero-logo-text">{logo.name}</span>
+                  )
+                )}
+              </div>
             </div>
-          </div>
-        </section>
-      )}
+          </section>
+        );
+      })()}
     </>
   );
 }

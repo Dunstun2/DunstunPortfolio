@@ -1,6 +1,26 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../../config/database');
 
+function safeJsonParse(raw, fallback = []) {
+  if (raw === null || raw === undefined || raw === '') return fallback;
+  if (typeof raw !== 'string') return raw;
+  try {
+    const parsed = JSON.parse(raw);
+    if (typeof parsed === 'string') {
+      try { return JSON.parse(parsed); } catch (e) { return parsed; }
+    }
+    return parsed;
+  } catch (e) {
+    return fallback;
+  }
+}
+
+function safeJsonSet(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'string') return value;
+  return JSON.stringify(value);
+}
+
 const Hero = sequelize.define('Hero', {
   id: {
     type: DataTypes.UUID,
@@ -63,65 +83,60 @@ const Hero = sequelize.define('Hero', {
 
   // Social proof — all stored as JSON arrays
   stats: {
-    // [{number: "500", suffix: "+", label: "Happy Clients"}]
     type: DataTypes.TEXT,
     allowNull: true,
     get() {
       const raw = this.getDataValue('stats');
-      return raw ? JSON.parse(raw) : [];
+      return safeJsonParse(raw, []);
     },
     set(value) {
-      this.setDataValue('stats', value ? JSON.stringify(value) : null);
+      this.setDataValue('stats', safeJsonSet(value));
     },
   },
   trust_indicators: {
-    // [{icon: "⭐", text: "5-Star Rated"}]
     type: DataTypes.TEXT,
     allowNull: true,
     get() {
       const raw = this.getDataValue('trust_indicators');
-      return raw ? JSON.parse(raw) : [];
+      return safeJsonParse(raw, []);
     },
     set(value) {
-      this.setDataValue('trust_indicators', value ? JSON.stringify(value) : null);
+      this.setDataValue('trust_indicators', safeJsonSet(value));
     },
   },
   client_logos: {
-    // [{name: "Acme Corp", logo_url: "..."}]
     type: DataTypes.TEXT,
     allowNull: true,
     get() {
       const raw = this.getDataValue('client_logos');
-      return raw ? JSON.parse(raw) : [];
+      return safeJsonParse(raw, []);
     },
     set(value) {
-      this.setDataValue('client_logos', value ? JSON.stringify(value) : null);
+      this.setDataValue('client_logos', safeJsonSet(value));
     },
   },
 
   // Multi-Slide Carousel & Rotating Banner
   slides: {
-    // Array of slide objects: [{ id, slide_type, badge, headline, highlighted_text, subheadline, cta_buttons, media_url, media_type, is_active }]
     type: DataTypes.TEXT,
     allowNull: true,
     get() {
       const raw = this.getDataValue('slides');
-      return raw ? JSON.parse(raw) : [];
+      return safeJsonParse(raw, []);
     },
     set(value) {
-      this.setDataValue('slides', value ? JSON.stringify(value) : null);
+      this.setDataValue('slides', safeJsonSet(value));
     },
   },
   rotation_settings: {
-    // { auto_rotate: true, interval_sec: 6, pause_on_hover: true, transition_effect: 'fade' | 'slide' }
     type: DataTypes.TEXT,
     allowNull: true,
     get() {
       const raw = this.getDataValue('rotation_settings');
-      return raw ? JSON.parse(raw) : { auto_rotate: true, interval_sec: 6, pause_on_hover: true, transition_effect: 'slide' };
+      return safeJsonParse(raw, { auto_rotate: true, interval_sec: 6, pause_on_hover: true, transition_effect: 'slide' });
     },
     set(value) {
-      this.setDataValue('rotation_settings', value ? JSON.stringify(value) : null);
+      this.setDataValue('rotation_settings', safeJsonSet(value));
     },
   },
 
@@ -157,10 +172,10 @@ const Hero = sequelize.define('Hero', {
     allowNull: true,
     get() {
       const rawValue = this.getDataValue('cta_buttons');
-      return rawValue ? JSON.parse(rawValue) : [];
+      return safeJsonParse(rawValue, []);
     },
     set(value) {
-      this.setDataValue('cta_buttons', value ? JSON.stringify(value) : null);
+      this.setDataValue('cta_buttons', safeJsonSet(value));
     }
   },
 

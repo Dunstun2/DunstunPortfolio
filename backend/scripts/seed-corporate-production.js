@@ -54,7 +54,7 @@ try {
 async function seedWithCheck(Model, records, uniqueKey, label) {
   console.log(`\n📦 Seeding ${label}...`);
   let created = 0;
-  let skipped = 0;
+  let updated = 0;
 
   for (const record of records) {
     try {
@@ -67,39 +67,45 @@ async function seedWithCheck(Model, records, uniqueKey, label) {
         where[uniqueKey] = record[uniqueKey];
       }
 
-      const [, wasCreated] = await Model.findOrCreate({ where, defaults: record });
+      const [instance, wasCreated] = await Model.findOrCreate({ where, defaults: record });
+      const name = record.title || record.name || record.full_name || record.author_name || record.platform_name || record.key || record.id;
+
       if (wasCreated) {
-        const name = record.title || record.name || record.full_name || record.author_name || record.platform_name || record.key || record.id;
         console.log(`  ✅ Created: ${name}`);
         created++;
       } else {
-        skipped++;
+        await instance.update(record);
+        console.log(`  🔄 Updated: ${name}`);
+        updated++;
       }
     } catch (err) {
       const name = record.title || record.name || record.full_name || record.slug || record.id;
-      console.error(`  ❌ Failed to create "${name}": ${err.message}`);
+      console.error(`  ❌ Failed to seed "${name}": ${err.message}`);
     }
   }
 
-  console.log(`  → Created: ${created} | Skipped (already exists): ${skipped}`);
+  console.log(`  → Created: ${created} | Updated: ${updated}`);
 }
 
 async function seedSettings(settingsArray) {
   console.log('\n📦 Seeding Settings...');
-  let created = 0;
-  let skipped = 0;
+  let count = 0;
 
   for (const s of settingsArray) {
-    const [, wasCreated] = await Setting.findOrCreate({ where: { key: s.key }, defaults: { value: s.value } });
-    if (wasCreated) {
-      console.log(`  ✅ Created setting: ${s.key}`);
-      created++;
-    } else {
-      skipped++;
+    try {
+      await sequelize.query(
+        `INSERT INTO "settings" ("key", "value", "created_at", "updated_at") 
+         VALUES (:key, :value, NOW(), NOW()) 
+         ON CONFLICT ("key") DO UPDATE SET "value" = EXCLUDED."value", "updated_at" = NOW()`,
+        { replacements: { key: s.key, value: s.value } }
+      );
+      count++;
+    } catch (e) {
+      console.error(`  ❌ Failed setting "${s.key}": ${e.message}`);
     }
   }
 
-  console.log(`  → Created: ${created} | Skipped: ${skipped}`);
+  console.log(`  → Upserted: ${count} settings.`);
 }
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
@@ -145,11 +151,10 @@ async function seed() {
 
     // Seed in order
     if (heroData) {
-      // Ensure hero is published and active so it renders on frontend
       const heroWithDefaults = {
         ...heroData,
         status: heroData.status || 'published',
-        is_active: heroData.is_active !== false ? true : heroData.is_active, // Force true unless explicitly false
+        is_active: heroData.is_active !== false ? true : heroData.is_active,
         internal_name: 'Corporate Hero',
         published_at: heroData.published_at || new Date(),
       };
@@ -159,7 +164,6 @@ async function seed() {
     }
 
     if (aboutsData.length > 0) {
-      // Ensure About data has published status so business_type is accessible to frontend
       const convertedAbouts = aboutsData.map(a => ({
         ...a,
         status: a.status || 'published',
@@ -168,7 +172,6 @@ async function seed() {
     }
 
     if (servicesData.length > 0) {
-      // Convert data types for services and ensure they're published
       const convertedServices = servicesData.map(s => ({
         ...s,
         featured: Boolean(s.featured),
@@ -179,7 +182,6 @@ async function seed() {
     }
 
     if (testimonialsData.length > 0) {
-      // Convert data types for testimonials
       const convertedTestimonials = testimonialsData.map(t => ({
         ...t,
         featured: Boolean(t.featured),
@@ -189,7 +191,6 @@ async function seed() {
     }
 
     if (projectsData.length > 0) {
-      // Convert data types for projects
       const convertedProjects = projectsData.map(p => ({
         ...p,
         featured: Boolean(p.featured),
@@ -199,7 +200,6 @@ async function seed() {
     }
 
     if (eventsData.length > 0) {
-      // Convert data types for events
       const convertedEvents = eventsData.map(e => ({
         ...e,
         status: e.status || 'published',
@@ -208,7 +208,13 @@ async function seed() {
     }
 
     if (socialAccountsData.length > 0) {
-      await seedWithCheck(SocialAccount, socialAccountsData, 'id', 'Social Accounts');
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const cleanSocials = socialAccountsData.map(s => {
+        const item = { ...s };
+        if (!uuidRegex.test(item.id)) delete item.id;
+        return item;
+      });
+      await seedWithCheck(SocialAccount, cleanSocials, 'platform_name', 'Social Accounts');
     }
 
     if (showVideosData.length > 0) {

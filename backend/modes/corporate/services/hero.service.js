@@ -1,9 +1,15 @@
 const { Hero, SocialAccount } = require('../models');
+const { Op } = require('sequelize');
 
 class HeroService {
   async getAll() {
     return await Hero.findAll({ 
-      where: { internal_name: 'Corporate Hero' },
+      where: { 
+        [Op.or]: [
+          { internal_name: { [Op.like]: '%Corporate%' } },
+          { company_tagline: { [Op.ne]: null } }
+        ]
+      },
       order: [['updated_at', 'DESC']] 
     });
   }
@@ -11,14 +17,21 @@ class HeroService {
   async getPublished() {
     // Single-hero pattern: get the corporate hero that is published and active
     const corporateHero = await Hero.findOne({ 
-      where: { status: 'published', is_active: true, internal_name: 'Corporate Hero' },
-      order: [['published_at', 'DESC']]
+      where: { 
+        status: 'published', 
+        is_active: true, 
+        [Op.or]: [
+          { internal_name: { [Op.like]: '%Corporate%' } },
+          { company_tagline: { [Op.ne]: null } }
+        ]
+      },
+      order: [['published_at', 'DESC'], ['updated_at', 'DESC']]
     });
     if (corporateHero) return corporateHero;
 
     return await Hero.findOne({ 
       where: { status: 'published', is_active: true },
-      order: [['published_at', 'DESC']]
+      order: [['published_at', 'DESC'], ['updated_at', 'DESC']]
     });
   }
 
