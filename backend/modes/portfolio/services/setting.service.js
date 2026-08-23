@@ -266,6 +266,7 @@ class SettingService {
       setup_completed: 'true',
       site_name: 'BUSINESS CO.',
       corporate_logo_url: '', // Logo URL - can be set by user
+      corporate_logo_width: '1000', // Logo width in pixels - configurable from admin panel
 
       // About
       about_section_title: 'About Us',

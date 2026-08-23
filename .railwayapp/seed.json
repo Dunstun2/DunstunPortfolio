@@ -1,0 +1,5 @@
+{
+  "command": "NODE_ENV=production node backend/scripts/seed-one-time.js",
+  "description": "One-time seed of corporate website data to production",
+  "runOnDeploy": true
+}

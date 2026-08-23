@@ -11,7 +11,8 @@
     "dev:high-memory": "concurrently \"npm run backend:high-memory\" \"npm run frontend\"",
     "backend": "cd backend && npx nodemon --signal SIGTERM --exec \"node --max-old-space-size=512\" server.js",
     "backend:high-memory": "cd backend && node --max-old-space-size=4096 server.js",
-    "frontend": "cd frontend && npm run dev"
+    "frontend": "cd frontend && npm run dev",
+    "seed:corporate:prod": "NODE_ENV=production node backend/scripts/seed-corporate-production.js"
   },
   "keywords": [],
   "author": "",
